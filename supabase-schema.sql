@@ -122,8 +122,10 @@ DROP POLICY IF EXISTS "Authenticated admins can update orders" ON public.orders;
 DROP POLICY IF EXISTS "Authenticated admins can delete orders" ON public.orders;
 DROP POLICY IF EXISTS "Allow all on orders" ON public.orders;
 
--- Políticas de Acesso Total (Permite anon e authenticated gravarem e consultarem)
--- O painel administrativo já é protegido pela senha de acesso do proprietário
+-- ============================================================
+-- OPÇÃO A: Modo Padrão (Compatível com painel via senha do proprietário)
+-- Permite leitura e gravação tanto via chave anon quanto autenticada.
+-- ============================================================
 CREATE POLICY "Allow all on categories" 
 ON public.categories FOR ALL 
 TO public 
@@ -147,6 +149,22 @@ ON public.orders FOR ALL
 TO public 
 USING (true) 
 WITH CHECK (true);
+
+-- ============================================================
+-- OPÇÃO B: Modo Hardened (Recomendado se usar Supabase Auth)
+-- Para ativar, descomente o bloco abaixo e comente a OPÇÃO A:
+-- ============================================================
+-- CREATE POLICY "Public read categories" ON public.categories FOR SELECT TO public USING (true);
+-- CREATE POLICY "Admin write categories" ON public.categories FOR ALL TO authenticated USING (true) WITH CHECK (true);
+--
+-- CREATE POLICY "Public read products" ON public.products FOR SELECT TO public USING (true);
+-- CREATE POLICY "Admin write products" ON public.products FOR ALL TO authenticated USING (true) WITH CHECK (true);
+--
+-- CREATE POLICY "Public read settings" ON public.settings FOR SELECT TO public USING (true);
+-- CREATE POLICY "Admin write settings" ON public.settings FOR ALL TO authenticated USING (true) WITH CHECK (true);
+--
+-- CREATE POLICY "Public insert orders" ON public.orders FOR INSERT TO public WITH CHECK (true);
+-- CREATE POLICY "Admin manage orders" ON public.orders FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- ============================================================
 -- 7. REALTIME REPLICATION (Instant sync across all devices)

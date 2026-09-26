@@ -65,9 +65,13 @@
           }
         }
 
-        // 2. Fallback to password comparison for initial setup
+        // 2. Fallback to hashed password comparison (with auto-migration from legacy plaintext)
         const settings = DataStore.getSettings();
-        if (password === settings.adminPassword || password === 'admin123') {
+        const inputHash = await Utils.hashPassword(password);
+        if (inputHash === settings.adminPassword || password === settings.adminPassword) {
+          if (password === settings.adminPassword && settings.adminPassword !== inputHash) {
+            await DataStore.updateSetting('adminPassword', inputHash);
+          }
           sessionStorage.setItem('dolcearte_admin_logged', 'true');
           loginModal.classList.remove('active');
           await initAdmin();
@@ -305,13 +309,13 @@
 
               return `
                 <tr>
-                  <td><strong>${order.id}</strong><br><small style="color:var(--text-muted);">${Utils.formatDateShort(order.date)}</small></td>
-                  <td>${order.customer.name}<br><small style="color:var(--text-muted);">${order.customer.phone}</small></td>
+                  <td><strong>${Utils.escapeHTML(order.id)}</strong><br><small style="color:var(--text-muted);">${Utils.formatDateShort(order.date)}</small></td>
+                  <td>${Utils.escapeHTML(order.customer.name)}<br><small style="color:var(--text-muted);">${Utils.escapeHTML(order.customer.phone)}</small></td>
                   <td>${isPickup ? '🏬 Retirada' : '🛵 Entrega'}</td>
                   <td style="color:var(--primary); font-weight:700;">${Utils.formatCurrency(order.total)}</td>
-                  <td><span class="status-badge ${s.cls}">${s.label}</span></td>
+                  <td><span class="status-badge ${s.cls}">${Utils.escapeHTML(s.label)}</span></td>
                   <td>
-                    <button class="btn btn-secondary btn-sm" data-dash-whatsapp="${order.id}">💬 WhatsApp</button>
+                    <button class="btn btn-secondary btn-sm" data-dash-whatsapp="${Utils.escapeHTML(order.id)}">💬 WhatsApp</button>
                   </td>
                 </tr>
               `;
@@ -439,7 +443,7 @@
     if (categoryFilter) {
       const currentSelected = categoryFilter.value;
       categoryFilter.innerHTML = `<option value="all">Todas as Categorias</option>` +
-        categories.map(c => `<option value="${c.name || c}">${c.name || c}</option>`).join('');
+        categories.map(c => `<option value="${Utils.escapeHTML(c.name || c)}">${Utils.escapeHTML(c.name || c)}</option>`).join('');
       categoryFilter.value = currentSelected;
     }
 
@@ -473,13 +477,13 @@
         : null;
 
       return `
-        <tr data-product-id="${product.id}">
+        <tr data-product-id="${Utils.escapeHTML(product.id)}">
           <td>
             <div class="table-product-info">
-              <img src="${product.image}" alt="${product.name}" class="table-product-img" onerror="this.src='assets/images/cake_chocolate.jpg'">
+              <img src="${Utils.escapeHTML(product.image)}" alt="${Utils.escapeHTML(product.name)}" class="table-product-img" onerror="this.src='assets/images/cake_chocolate.jpg'">
               <div>
-                <div class="table-product-name">${product.name}</div>
-                <div class="table-product-category">${product.description ? product.description.substring(0, 40) + '...' : ''}</div>
+                <div class="table-product-name">${Utils.escapeHTML(product.name)}</div>
+                <div class="table-product-category">${product.description ? Utils.escapeHTML(product.description.substring(0, 40)) + '...' : ''}</div>
               </div>
             </div>
           </td>
@@ -489,8 +493,8 @@
               ${Utils.formatCurrency(hasPromo ? promoPrice : product.price)}
             </strong>
           </td>
-          <td><span class="status-badge" style="background:var(--bg-secondary);">${product.category}</span></td>
-          <td>${product.badge ? `<span class="status-badge promo">${product.badge}</span>` : '—'}</td>
+          <td><span class="status-badge" style="background:var(--bg-secondary);">${Utils.escapeHTML(product.category)}</span></td>
+          <td>${product.badge ? `<span class="status-badge promo">${Utils.escapeHTML(product.badge)}</span>` : '—'}</td>
           <td>
             ${hasPromo
               ? `<span class="status-badge promo">-${product.promotion.discountPercent}%</span>`
@@ -498,20 +502,20 @@
           </td>
           <td>
             <label class="toggle-switch">
-              <input type="checkbox" ${product.inStock ? 'checked' : ''} data-toggle="stock" data-id="${product.id}">
+              <input type="checkbox" ${product.inStock ? 'checked' : ''} data-toggle="stock" data-id="${Utils.escapeHTML(product.id)}">
               <span class="toggle-slider"></span>
             </label>
           </td>
           <td>
             <label class="toggle-switch">
-              <input type="checkbox" ${product.active ? 'checked' : ''} data-toggle="active" data-id="${product.id}">
+              <input type="checkbox" ${product.active ? 'checked' : ''} data-toggle="active" data-id="${Utils.escapeHTML(product.id)}">
               <span class="toggle-slider"></span>
             </label>
           </td>
           <td>
             <div class="table-actions">
-              <button class="btn btn-secondary btn-icon" data-action="edit" data-id="${product.id}" title="Editar Bolo">✏️</button>
-              <button class="btn btn-danger btn-icon" data-action="delete" data-id="${product.id}" title="Excluir Bolo">🗑️</button>
+              <button class="btn btn-secondary btn-icon" data-action="edit" data-id="${Utils.escapeHTML(product.id)}" title="Editar Bolo">✏️</button>
+              <button class="btn btn-danger btn-icon" data-action="delete" data-id="${Utils.escapeHTML(product.id)}" title="Excluir Bolo">🗑️</button>
             </div>
           </td>
         </tr>
@@ -574,7 +578,7 @@
     const categories = DataStore.getCategories();
     categorySelect.innerHTML = categories.map(c => {
       const name = c.name || c;
-      return `<option value="${name}">${name}</option>`;
+      return `<option value="${Utils.escapeHTML(name)}">${Utils.escapeHTML(name)}</option>`;
     }).join('');
 
     if (product) {
@@ -699,15 +703,15 @@
       return `
         <div class="category-admin-card">
           <div class="category-admin-header">
-            <span class="category-admin-icon">${icon}</span>
+            <span class="category-admin-icon">${Utils.escapeHTML(icon)}</span>
             <div>
-              <h4 class="category-admin-name">${name}</h4>
+              <h4 class="category-admin-name">${Utils.escapeHTML(name)}</h4>
               <small style="color:var(--text-muted);">${count} produto(s) associado(s)</small>
             </div>
           </div>
           <div class="category-admin-actions">
-            <button class="btn btn-secondary btn-sm" data-edit-cat="${id}">Editar</button>
-            <button class="btn btn-danger btn-sm" data-delete-cat="${id}">Excluir</button>
+            <button class="btn btn-secondary btn-sm" data-edit-cat="${Utils.escapeHTML(id)}">Editar</button>
+            <button class="btn btn-danger btn-sm" data-delete-cat="${Utils.escapeHTML(id)}">Excluir</button>
           </div>
         </div>
       `;
@@ -850,47 +854,47 @@
       };
 
       return `
-        <div class="order-card" data-order-id="${order.id}">
+        <div class="order-card" data-order-id="${Utils.escapeHTML(order.id)}">
           <div class="order-header">
             <div>
-              <span class="order-id">📦 ${order.id}</span>
+              <span class="order-id">📦 ${Utils.escapeHTML(order.id)}</span>
               <span class="order-date"> — ${Utils.formatDate(order.date)}</span>
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
-              <select class="form-control form-control-sm order-status-select" data-status-for="${order.id}">
+              <select class="form-control form-control-sm order-status-select" data-status-for="${Utils.escapeHTML(order.id)}">
                 <option value="novo" ${order.status === 'novo' ? 'selected' : ''}>🟡 Novo</option>
                 <option value="preparo" ${order.status === 'preparo' ? 'selected' : ''}>🟠 Em Preparo</option>
                 <option value="entrega" ${order.status === 'entrega' ? 'selected' : ''}>🔵 Saiu p/ Entrega</option>
                 <option value="concluido" ${order.status === 'concluido' ? 'selected' : ''}>🟢 Concluído</option>
                 <option value="cancelado" ${order.status === 'cancelado' ? 'selected' : ''}>🔴 Cancelado</option>
               </select>
-              <button class="btn btn-danger btn-sm" data-delete-order="${order.id}">🗑️</button>
+              <button class="btn btn-danger btn-sm" data-delete-order="${Utils.escapeHTML(order.id)}">🗑️</button>
             </div>
           </div>
 
           <div class="order-customer">
             <div class="order-customer-field">
               <span class="order-customer-label">Cliente</span>
-              <span class="order-customer-value"><strong>${order.customer.name}</strong></span>
+              <span class="order-customer-value"><strong>${Utils.escapeHTML(order.customer.name)}</strong></span>
             </div>
             <div class="order-customer-field">
               <span class="order-customer-label">Telefone</span>
-              <span class="order-customer-value">${order.customer.phone}</span>
+              <span class="order-customer-value">${Utils.escapeHTML(order.customer.phone)}</span>
             </div>
             <div class="order-customer-field">
               <span class="order-customer-label">Recebimento</span>
-              <span class="order-customer-value">${isPickup ? '🏬 <strong>Retirada no Local</strong>' : '🛵 <strong>Entrega:</strong> ' + order.customer.address}</span>
+              <span class="order-customer-value">${isPickup ? '🏬 <strong>Retirada no Local</strong>' : '🛵 <strong>Entrega:</strong> ' + Utils.escapeHTML(order.customer.address)}</span>
             </div>
             ${order.customer.observations ? `
               <div class="order-customer-field">
                 <span class="order-customer-label">Observações</span>
-                <span class="order-customer-value">${order.customer.observations}</span>
+                <span class="order-customer-value">${Utils.escapeHTML(order.customer.observations)}</span>
               </div>
             ` : ''}
             ${order.customer.trocoPara ? `
               <div class="order-customer-field">
                 <span class="order-customer-label">Troco</span>
-                <span class="order-customer-value">Precisa de troco para: <strong>${order.customer.trocoPara}</strong></span>
+                <span class="order-customer-value">Precisa de troco para: <strong>${Utils.escapeHTML(order.customer.trocoPara)}</strong></span>
               </div>
             ` : ''}
           </div>
@@ -898,7 +902,7 @@
           <div class="order-items-list">
             ${order.items.map(item => `
               <div class="order-item-row">
-                <span>${item.qty}x ${item.name}</span>
+                <span>${item.qty}x ${Utils.escapeHTML(item.name)}</span>
                 <span>${Utils.formatCurrency(item.subtotal)}</span>
               </div>
             `).join('')}
@@ -907,9 +911,9 @@
           <div class="order-footer">
             <div>
               <span class="order-total">Total: ${Utils.formatCurrency(order.total)}</span>
-              <span class="order-payment">💳 ${order.paymentMethod}</span>
+              <span class="order-payment">💳 ${Utils.escapeHTML(order.paymentMethod)}</span>
             </div>
-            <button class="btn btn-secondary btn-sm" data-whatsapp-contact="${order.id}">
+            <button class="btn btn-secondary btn-sm" data-whatsapp-contact="${Utils.escapeHTML(order.id)}">
               💬 Avisar Cliente no WhatsApp
             </button>
           </div>
@@ -1073,12 +1077,12 @@
 
     grid.innerHTML = settings.paymentMethods.map(method => `
       <div class="payment-method-card">
-        <span class="method-icon">${method.icon}</span>
+        <span class="method-icon">${Utils.escapeHTML(method.icon)}</span>
         <div class="method-info">
-          <div class="method-name">${method.name}</div>
+          <div class="method-name">${Utils.escapeHTML(method.name)}</div>
         </div>
         <label class="toggle-switch">
-          <input type="checkbox" ${method.active ? 'checked' : ''} data-payment-id="${method.id}">
+          <input type="checkbox" ${method.active ? 'checked' : ''} data-payment-id="${Utils.escapeHTML(method.id)}">
           <span class="toggle-slider"></span>
         </label>
       </div>
@@ -1241,8 +1245,8 @@
             <div class="closure-info">
               <span class="closure-icon">${icon}</span>
               <div>
-                <div class="closure-dates">${dates}</div>
-                <div class="closure-reason">${closure.reason || 'Sem motivo especificado'}</div>
+                <div class="closure-dates">${Utils.escapeHTML(dates)}</div>
+                <div class="closure-reason">${Utils.escapeHTML(closure.reason || 'Sem motivo especificado')}</div>
               </div>
             </div>
             <button class="btn btn-danger btn-sm" data-delete-closure="${idx}">🗑️</button>
@@ -1382,6 +1386,9 @@
         return;
       }
 
+      // Hash password before saving
+      const hashedPassword = await Utils.hashPassword(pass);
+
       // Update in Supabase Auth if connected
       const client = window.SupabaseService ? window.SupabaseService.getClient() : null;
       if (client) {
@@ -1393,7 +1400,7 @@
         } catch (e) {}
       }
 
-      await DataStore.updateSetting('adminPassword', pass);
+      await DataStore.updateSetting('adminPassword', hashedPassword);
       Utils.showToast('Senha de administrador atualizada com sucesso!', 'success');
       $('#settings-password').value = '';
       $('#settings-password-confirm').value = '';

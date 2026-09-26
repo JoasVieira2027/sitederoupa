@@ -140,8 +140,9 @@
     if (navbarBrandName) navbarBrandName.textContent = settings.storeName;
     if (navbarBrandTagline) navbarBrandTagline.textContent = settings.storeTagline;
     if (navbarLogoIcon) {
-      if (settings.storeLogoImage) {
-        navbarLogoIcon.innerHTML = `<img src="${settings.storeLogoImage}" alt="${settings.storeName}" style="width:36px; height:36px; object-fit:contain; border-radius:50%;">`;
+      const safeLogoUrl = Utils.sanitizeUrl(settings.storeLogoImage);
+      if (safeLogoUrl) {
+        navbarLogoIcon.innerHTML = `<img src="${Utils.escapeHTML(safeLogoUrl)}" alt="${Utils.escapeHTML(settings.storeName)}" style="width:36px; height:36px; object-fit:contain; border-radius:50%;">`;
       } else {
         navbarLogoIcon.textContent = settings.storeLogoEmoji || '🎂';
       }
@@ -206,10 +207,10 @@
     if (aboutFeatures && settings.about.features && settings.about.features.length > 0) {
       aboutFeatures.innerHTML = settings.about.features.map(f => `
         <div class="about-feature-item">
-          <div class="feature-icon">${f.icon || '✨'}</div>
+          <div class="feature-icon">${Utils.escapeHTML(f.icon || '✨')}</div>
           <div class="feature-content">
-            <h4>${f.title}</h4>
-            <p>${f.desc}</p>
+            <h4>${Utils.escapeHTML(f.title)}</h4>
+            <p>${Utils.escapeHTML(f.desc)}</p>
           </div>
         </div>
       `).join('');
@@ -242,7 +243,7 @@
     categories.forEach(cat => {
       const name = cat.name || cat;
       const icon = cat.icon || '🎂';
-      html += `<button class="category-btn" data-category="${name}">${icon} ${name}</button>`;
+      html += `<button class="category-btn" data-category="${Utils.escapeHTML(name)}">${Utils.escapeHTML(icon)} ${Utils.escapeHTML(name)}</button>`;
     });
 
     categoriesFilter.innerHTML = html;
@@ -289,26 +290,26 @@
           badgesHtml += `<span class="product-badge badge-promo">-${product.promotion.discountPercent}%</span>`;
         }
         if (product.badge) {
-          badgesHtml += `<span class="product-badge badge-custom">${product.badge}</span>`;
+          badgesHtml += `<span class="product-badge badge-custom">${Utils.escapeHTML(product.badge)}</span>`;
         }
       }
 
       return `
-        <article class="product-card" style="animation-delay: ${index * 0.06}s" data-product-id="${product.id}">
+        <article class="product-card" style="animation-delay: ${index * 0.06}s" data-product-id="${Utils.escapeHTML(product.id)}">
           <div class="product-card-image">
             ${badgesHtml}
-            <img src="${product.image}" alt="${product.name}" loading="lazy" onerror="this.src='assets/images/cake_chocolate.jpg'">
+            <img src="${Utils.escapeHTML(product.image)}" alt="${Utils.escapeHTML(product.name)}" loading="lazy" onerror="this.src='assets/images/cake_chocolate.jpg'">
           </div>
           <div class="product-card-body">
-            <div class="product-card-category">${product.category}</div>
-            <h3 class="product-card-name">${product.name}</h3>
-            <p class="product-card-description">${product.description || ''}</p>
+            <div class="product-card-category">${Utils.escapeHTML(product.category)}</div>
+            <h3 class="product-card-name">${Utils.escapeHTML(product.name)}</h3>
+            <p class="product-card-description">${Utils.escapeHTML(product.description || '')}</p>
             <div class="product-card-footer">
               <div class="product-price">
                 ${hasPromo ? `<span class="original-price">${Utils.formatCurrency(product.price)}</span>` : ''}
                 <span class="current-price ${hasPromo ? 'promo-price' : ''}">${Utils.formatCurrency(hasPromo ? promoPrice : product.price)}</span>
               </div>
-              <button class="btn-add-cart" data-id="${product.id}" ${isOutOfStock ? 'disabled' : ''}>
+              <button class="btn-add-cart" data-id="${Utils.escapeHTML(product.id)}" ${isOutOfStock ? 'disabled' : ''}>
                 ${isOutOfStock ? '😔 Esgotado' : '🛒 Adicionar'}
               </button>
             </div>
@@ -375,16 +376,16 @@
       div.className = 'cart-item';
       div.innerHTML = `
         <div class="cart-item-image">
-          <img src="${item.product.image}" alt="${item.product.name}" onerror="this.src='assets/images/cake_chocolate.jpg'">
+          <img src="${Utils.escapeHTML(item.product.image)}" alt="${Utils.escapeHTML(item.product.name)}" onerror="this.src='assets/images/cake_chocolate.jpg'">
         </div>
         <div class="cart-item-info">
-          <span class="cart-item-name">${item.product.name}</span>
+          <span class="cart-item-name">${Utils.escapeHTML(item.product.name)}</span>
           <span class="cart-item-price">${Utils.formatCurrency(item.finalPrice)}</span>
           <div class="cart-item-controls">
-            <button class="qty-btn" data-action="decrease" data-id="${item.productId}">−</button>
+            <button class="qty-btn" data-action="decrease" data-id="${Utils.escapeHTML(item.productId)}">−</button>
             <span class="cart-item-qty">${item.qty}</span>
-            <button class="qty-btn" data-action="increase" data-id="${item.productId}">+</button>
-            <button class="btn-remove-item" data-id="${item.productId}" aria-label="Remover item">🗑️</button>
+            <button class="qty-btn" data-action="increase" data-id="${Utils.escapeHTML(item.productId)}">+</button>
+            <button class="btn-remove-item" data-id="${Utils.escapeHTML(item.productId)}" aria-label="Remover item">🗑️</button>
           </div>
         </div>
       `;
@@ -552,7 +553,7 @@
     const items = Cart.getDetailedItems();
     checkoutSummary.innerHTML = items.map(item => `
       <div class="checkout-item">
-        <span>${item.qty}x ${item.product.name}</span>
+        <span>${item.qty}x ${Utils.escapeHTML(item.product.name)}</span>
         <span>${Utils.formatCurrency(item.subtotal)}</span>
       </div>
     `).join('');
@@ -563,10 +564,10 @@
     // Render payment methods
     const activeMethods = settings.paymentMethods.filter(m => m.active);
     paymentOptions.innerHTML = activeMethods.map(method => `
-      <label class="payment-option" data-method-id="${method.id}" data-method-name="${method.name}">
-        <input type="radio" name="payment" value="${method.name}" required>
-        <span class="payment-icon">${method.icon}</span>
-        <span class="payment-label">${method.name}</span>
+      <label class="payment-option" data-method-id="${Utils.escapeHTML(method.id)}" data-method-name="${Utils.escapeHTML(method.name)}">
+        <input type="radio" name="payment" value="${Utils.escapeHTML(method.name)}" required>
+        <span class="payment-icon">${Utils.escapeHTML(method.icon)}</span>
+        <span class="payment-label">${Utils.escapeHTML(method.name)}</span>
       </label>
     `).join('');
 
@@ -651,6 +652,17 @@
 
     if (!name || !phone) {
       Utils.showToast('Por favor, informe seu nome e telefone.', 'warning');
+      return;
+    }
+
+    // Validação de formato
+    const cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
+      Utils.showToast('Telefone inválido. Informe um número com DDD.', 'warning');
+      return;
+    }
+    if (name.length < 3) {
+      Utils.showToast('Informe seu nome completo (mínimo 3 caracteres).', 'warning');
       return;
     }
 
