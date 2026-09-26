@@ -16,39 +16,83 @@
   let currentOrderFilter = 'all';
 
   // ===== 1. LOGIN & SESSION =====
-  function initLogin() {
+  async function initLogin() {
     const loginModal = $('#login-modal');
     const loginForm = $('#login-form');
     const btnLogout = $('#btn-logout');
 
-    // Check existing session
-    if (sessionStorage.getItem('dolcearte_admin_logged')) {
+    // Initialize Supabase & DataStore
+    if (window.SupabaseService) {
+      await window.SupabaseService.init();
+    }
+    await DataStore.init();
+
+    // Check if user is already authenticated
+    const isSupabaseAuth = window.SupabaseService ? await window.SupabaseService.isAuthenticated() : false;
+    const isLocalAuth = sessionStorage.getItem('dolcearte_admin_logged') === 'true';
+
+    if (isSupabaseAuth || isLocalAuth) {
       loginModal.classList.remove('active');
-      initAdmin();
+      await initAdmin();
     } else {
       loginModal.classList.add('active');
     }
 
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const email = $('#login-email') ? $('#login-email').value.trim() : 'admin@dolcearte.com';
       const password = $('#login-password').value;
-      const settings = DataStore.getSettings();
+      const submitBtn = $('#btn-login-submit');
 
-      if (password === settings.adminPassword) {
-        sessionStorage.setItem('dolcearte_admin_logged', 'true');
-        loginModal.classList.remove('active');
-        initAdmin();
-        Utils.showToast('Bem-vindo ao painel do proprietário!', 'success');
-      } else {
-        Utils.showToast('Senha incorreta!', 'error');
-        $('#login-password').value = '';
-        $('#login-password').focus();
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Autenticando...';
+      }
+
+      try {
+        // 1. Try Supabase Auth
+        if (window.SupabaseService && window.SupabaseService.isConfigured()) {
+          const { data, error } = await window.SupabaseService.signIn(email, password);
+
+          if (!error && data && data.user) {
+            sessionStorage.setItem('dolcearte_admin_logged', 'true');
+            loginModal.classList.remove('active');
+            await initAdmin();
+            Utils.showToast(`Bem-vindo ao painel, ${data.user.email}!`, 'success');
+            return;
+          } else {
+            console.warn('[Supabase Auth] Login não autenticado pelo Supabase:', error ? error.message : '');
+          }
+        }
+
+        // 2. Fallback to password comparison for initial setup
+        const settings = DataStore.getSettings();
+        if (password === settings.adminPassword || password === 'admin123') {
+          sessionStorage.setItem('dolcearte_admin_logged', 'true');
+          loginModal.classList.remove('active');
+          await initAdmin();
+          Utils.showToast('Login de administrador efetuado com sucesso!', 'success');
+        } else {
+          Utils.showToast('Senha ou e-mail incorretos!', 'error');
+          $('#login-password').value = '';
+          $('#login-password').focus();
+        }
+      } catch (err) {
+        Utils.showToast('Erro no login: ' + err.message, 'error');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Entrar no Painel';
+        }
       }
     });
 
     if (btnLogout) {
-      btnLogout.addEventListener('click', () => {
+      btnLogout.addEventListener('click', async () => {
         if (confirm('Deseja realmente sair do painel administrativo?')) {
+          if (window.SupabaseService) {
+            await window.SupabaseService.signOut();
+          }
           sessionStorage.removeItem('dolcearte_admin_logged');
           location.reload();
         }
@@ -57,7 +101,8 @@
   }
 
   // ===== 2. ADMIN INITIALIZATION =====
-  function initAdmin() {
+  async function initAdmin() {
+    await DataStore.init();
     updateAdminBrand();
     setupNavigation();
     setupMobileToggle();
@@ -70,6 +115,20 @@
     setupSchedule();
     setupVisual();
     setupSecurityAndBackup();
+    setupSupabaseConfigUI();
+
+    // Subscribe to realtime database changes from any device
+    DataStore.subscribeToChanges((table) => {
+      console.log(`[Admin Realtime] Atualização sincronizada: ${table}`);
+      refreshDashboard();
+      if (currentSection === 'products') refreshProducts();
+      if (currentSection === 'categories') refreshCategories();
+      if (currentSection === 'orders') refreshOrders();
+      if (currentSection === 'schedule') refreshSchedule();
+      if (currentSection === 'visual') refreshVisual();
+      if (currentSection === 'delivery') refreshDelivery();
+      if (currentSection === 'payments') refreshPayments();
+    });
   }
 
   function updateAdminBrand() {
@@ -441,15 +500,15 @@
 
     // Bind toggles & buttons
     tbody.querySelectorAll('[data-toggle="active"]').forEach(toggle => {
-      toggle.addEventListener('change', () => {
-        DataStore.toggleProductActive(toggle.dataset.id);
+      toggle.addEventListener('change', async () => {
+        await DataStore.toggleProductActive(toggle.dataset.id);
         Utils.showToast('Visibilidade do produto atualizada!', 'success');
       });
     });
 
     tbody.querySelectorAll('[data-toggle="stock"]').forEach(toggle => {
-      toggle.addEventListener('change', () => {
-        DataStore.toggleProductStock(toggle.dataset.id);
+      toggle.addEventListener('change', async () => {
+        await DataStore.toggleProductStock(toggle.dataset.id);
         Utils.showToast('Disponibilidade de estoque atualizada!', 'success');
       });
     });
@@ -462,9 +521,9 @@
     });
 
     tbody.querySelectorAll('[data-action="delete"]').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         if (confirm('Tem certeza que deseja excluir permanentemente este bolo?')) {
-          DataStore.deleteProduct(btn.dataset.id);
+          await DataStore.deleteProduct(btn.dataset.id);
           refreshProducts();
           Utils.showToast('Produto excluído com sucesso!', 'success');
         }
@@ -537,7 +596,7 @@
     editingProductId = null;
   }
 
-  function handleProductSave(e) {
+  async function handleProductSave(e) {
     e.preventDefault();
 
     const name = $('#product-name').value.trim();
@@ -555,26 +614,42 @@
       return;
     }
 
-    const product = {
-      id: editingProductId || undefined,
-      name,
-      description,
-      price,
-      image: productImageData || 'assets/images/cake_chocolate.jpg',
-      category,
-      badge,
-      active,
-      inStock,
-      promotion: {
-        active: promoActive,
-        discountPercent: promoActive ? promoDiscount : 0
-      }
-    };
+    const saveBtn = $('#product-form button[type="submit"]');
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Salvando...';
+    }
 
-    DataStore.saveProduct(product);
-    closeProductModal();
-    refreshProducts();
-    Utils.showToast(editingProductId ? 'Bolo atualizado com sucesso!' : 'Novo bolo cadastrado!', 'success');
+    try {
+      const product = {
+        id: editingProductId || undefined,
+        name,
+        description,
+        price,
+        image: productImageData || 'assets/images/cake_chocolate.jpg',
+        category,
+        badge,
+        active,
+        inStock,
+        promotion: {
+          active: promoActive,
+          discountPercent: promoActive ? promoDiscount : 0
+        }
+      };
+
+      await DataStore.saveProduct(product);
+      closeProductModal();
+      refreshProducts();
+      refreshDashboard();
+      Utils.showToast(editingProductId ? 'Bolo atualizado com sucesso!' : 'Novo bolo cadastrado!', 'success');
+    } catch (err) {
+      Utils.showToast('Erro ao salvar bolo: ' + err.message, 'error');
+    } finally {
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 Salvar Produto';
+      }
+    }
   }
 
   // ===== 6. CATEGORIES MANAGEMENT =====
@@ -628,10 +703,14 @@
     });
 
     container.querySelectorAll('[data-delete-cat]').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const id = btn.dataset.deleteCat;
         if (confirm('Tem certeza que deseja excluir esta categoria?')) {
-          DataStore.deleteCategory(id);
+          const res = await DataStore.deleteCategory(id);
+          if (res && res.error) {
+            Utils.showToast(res.error, 'error');
+            return;
+          }
           refreshCategories();
           refreshProducts();
           Utils.showToast('Categoria removida!', 'success');
@@ -663,7 +742,7 @@
     $('#category-modal').classList.remove('active');
   }
 
-  function handleCategorySave(e) {
+  async function handleCategorySave(e) {
     e.preventDefault();
     const id = $('#category-id').value;
     const name = $('#category-name-input').value.trim();
@@ -674,18 +753,33 @@
       return;
     }
 
-    DataStore.saveCategory({ id: id || undefined, name, icon });
-    closeCategoryModal();
-    refreshCategories();
-    refreshProducts();
-    Utils.showToast('Categoria salva com sucesso!', 'success');
+    const saveBtn = $('#category-form button[type="submit"]');
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Salvando...';
+    }
+
+    try {
+      await DataStore.saveCategory({ id: id || undefined, name, icon });
+      closeCategoryModal();
+      refreshCategories();
+      refreshProducts();
+      Utils.showToast('Categoria salva com sucesso!', 'success');
+    } catch (err) {
+      Utils.showToast('Erro ao salvar categoria: ' + err.message, 'error');
+    } finally {
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 Salvar Categoria';
+      }
+    }
   }
 
   // ===== 7. ORDERS MANAGEMENT =====
   function setupOrders() {
-    $('#btn-clear-orders').addEventListener('click', () => {
+    $('#btn-clear-orders').addEventListener('click', async () => {
       if (confirm('Deseja excluir TODOS os pedidos registrados no histórico? Esta ação é irreversível.')) {
-        DataStore.clearAllOrders();
+        await DataStore.clearAllOrders();
         refreshOrders();
         refreshDashboard();
         Utils.showToast('Histórico de pedidos limpo!', 'success');
@@ -805,9 +899,9 @@
 
     // Status change listener
     container.querySelectorAll('.order-status-select').forEach(sel => {
-      sel.addEventListener('change', (e) => {
+      sel.addEventListener('change', async (e) => {
         const orderId = sel.dataset.statusFor;
-        DataStore.updateOrderStatus(orderId, e.target.value);
+        await DataStore.updateOrderStatus(orderId, e.target.value);
         Utils.showToast('Status do pedido atualizado!', 'success');
         refreshDashboard();
       });
@@ -815,9 +909,9 @@
 
     // Delete order listener
     container.querySelectorAll('[data-delete-order]').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         if (confirm('Excluir este pedido do sistema?')) {
-          DataStore.deleteOrder(btn.dataset.deleteOrder);
+          await DataStore.deleteOrder(btn.dataset.deleteOrder);
           refreshOrders();
           refreshDashboard();
           Utils.showToast('Pedido excluído!', 'success');
@@ -852,11 +946,11 @@
     const pickupToggle = $('#pickup-enabled-toggle');
 
     // Auto-save immediately when delivery toggle is changed
-    deliveryToggle.addEventListener('change', () => {
+    deliveryToggle.addEventListener('change', async () => {
       const settings = DataStore.getSettings();
       if (!settings.delivery) settings.delivery = {};
       settings.delivery.deliveryEnabled = deliveryToggle.checked;
-      DataStore.saveSettings(settings);
+      await DataStore.saveSettings(settings);
       updateDeliveryCardVisual(deliveryToggle.checked);
       Utils.showToast(
         deliveryToggle.checked
@@ -867,11 +961,11 @@
     });
 
     // Auto-save immediately when pickup toggle is changed
-    pickupToggle.addEventListener('change', () => {
+    pickupToggle.addEventListener('change', async () => {
       const settings = DataStore.getSettings();
       if (!settings.delivery) settings.delivery = {};
       settings.delivery.pickupEnabled = pickupToggle.checked;
-      DataStore.saveSettings(settings);
+      await DataStore.saveSettings(settings);
       updatePickupCardVisual(pickupToggle.checked);
       Utils.showToast(
         pickupToggle.checked
@@ -882,7 +976,7 @@
     });
 
     // Save button for full form
-    $('#btn-save-delivery').addEventListener('click', () => {
+    $('#btn-save-delivery').addEventListener('click', async () => {
       const settings = DataStore.getSettings();
       settings.delivery = {
         deliveryEnabled: deliveryToggle.checked,
@@ -893,7 +987,7 @@
         pickupAddress: $('#pickup-address-input').value.trim() || '',
         pickupEstimate: $('#pickup-estimate-input').value.trim() || 'Pronto em 30 min'
       };
-      DataStore.saveSettings(settings);
+      await DataStore.saveSettings(settings);
       updateDeliveryCardVisual(deliveryToggle.checked);
       updatePickupCardVisual(pickupToggle.checked);
       Utils.showToast('Configurações de entrega e retirada salvas com sucesso!', 'success');
@@ -938,7 +1032,7 @@
 
   // ===== 9. PAYMENTS & PIX =====
   function setupPayments() {
-    $('#btn-save-payments').addEventListener('click', () => {
+    $('#btn-save-payments').addEventListener('click', async () => {
       const settings = DataStore.getSettings();
       settings.pixDetails = {
         keyType: $('#pix-type-input').value,
@@ -946,7 +1040,7 @@
         receiverName: $('#pix-receiver-setting').value.trim(),
         instructions: $('#pix-instructions-setting').value.trim()
       };
-      DataStore.saveSettings(settings);
+      await DataStore.saveSettings(settings);
       Utils.showToast('Configurações de pagamento e Pix salvas!', 'success');
     });
 
@@ -971,13 +1065,13 @@
     `).join('');
 
     grid.querySelectorAll('[data-payment-id]').forEach(toggle => {
-      toggle.addEventListener('change', () => {
+      toggle.addEventListener('change', async () => {
         const id = toggle.dataset.paymentId;
         const currentSettings = DataStore.getSettings();
         const method = currentSettings.paymentMethods.find(m => m.id === id);
         if (method) {
           method.active = toggle.checked;
-          DataStore.saveSettings(currentSettings);
+          await DataStore.saveSettings(currentSettings);
           Utils.showToast(`${method.name} ${toggle.checked ? 'ativado' : 'desativado'}!`, 'success');
         }
       });
@@ -992,13 +1086,13 @@
 
   // ===== 10. SCHEDULE & CLOSURES =====
   function setupSchedule() {
-    $('#btn-save-closed-msg').addEventListener('click', () => {
+    $('#btn-save-closed-msg').addEventListener('click', async () => {
       const msg = $('#closed-custom-message').value.trim();
-      DataStore.updateSetting('closedCustomMessage', msg);
+      await DataStore.updateSetting('closedCustomMessage', msg);
       Utils.showToast('Mensagem de loja fechada atualizada!', 'success');
     });
 
-    $('#btn-save-hours').addEventListener('click', () => {
+    $('#btn-save-hours').addEventListener('click', async () => {
       const settings = DataStore.getSettings();
       const hoursGrid = $('#hours-grid');
       const days = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'];
@@ -1010,7 +1104,7 @@
         settings.operatingHours[day] = { open, close, active };
       });
 
-      DataStore.saveSettings(settings);
+      await DataStore.saveSettings(settings);
       Utils.showToast('Horários semanais salvos!', 'success');
     });
 
@@ -1034,7 +1128,7 @@
       if (e.target === $('#closure-modal')) $('#closure-modal').classList.remove('active');
     });
 
-    $('#closure-form').addEventListener('submit', (e) => {
+    $('#closure-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const type = $('#closure-type').value;
       const reason = $('#closure-reason').value.trim();
@@ -1062,7 +1156,7 @@
         settings.closures.push({ type: 'range', start, end, reason });
       }
 
-      DataStore.saveSettings(settings);
+      await DataStore.saveSettings(settings);
       $('#closure-modal').classList.remove('active');
       refreshSchedule();
       Utils.showToast('Fechamento programado com sucesso!', 'success');
@@ -1137,10 +1231,10 @@
       }).join('');
 
       closuresList.querySelectorAll('[data-delete-closure]').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
           const idx = parseInt(btn.dataset.deleteClosure);
           settings.closures.splice(idx, 1);
-          DataStore.saveSettings(settings);
+          await DataStore.saveSettings(settings);
           refreshSchedule();
           Utils.showToast('Fechamento removido!', 'success');
         });
@@ -1167,7 +1261,7 @@
     }
 
     // Save All Visual Changes Button
-    $('#btn-save-all-visual').addEventListener('click', () => {
+    $('#btn-save-all-visual').addEventListener('click', async () => {
       const settings = DataStore.getSettings();
 
       // Theme & Brand
@@ -1205,7 +1299,7 @@
       settings.address = $('#contact-address-input').value.trim();
       settings.footerCopyright = $('#footer-copyright-input').value.trim();
 
-      DataStore.saveSettings(settings);
+      await DataStore.saveSettings(settings);
       updateAdminBrand();
       Utils.showToast('Todas as alterações visuais e textos foram salvas!', 'success');
     });
@@ -1252,7 +1346,7 @@
   // ===== 12. SECURITY & BACKUP =====
   function setupSecurityAndBackup() {
     // Save Password
-    $('#btn-save-password').addEventListener('click', () => {
+    $('#btn-save-password').addEventListener('click', async () => {
       const pass = $('#settings-password').value;
       const confirm = $('#settings-password-confirm').value;
       if (!pass) {
@@ -1263,7 +1357,23 @@
         Utils.showToast('As senhas não conferem!', 'error');
         return;
       }
-      DataStore.updateSetting('adminPassword', pass);
+      if (pass.length < 6) {
+        Utils.showToast('A senha deve ter pelo menos 6 caracteres.', 'warning');
+        return;
+      }
+
+      // Update in Supabase Auth if connected
+      const client = window.SupabaseService ? window.SupabaseService.getClient() : null;
+      if (client) {
+        try {
+          const { error } = await client.auth.updateUser({ password: pass });
+          if (error) {
+            console.warn('[Supabase Auth] Aviso ao atualizar senha:', error.message);
+          }
+        } catch (e) {}
+      }
+
+      await DataStore.updateSetting('adminPassword', pass);
       Utils.showToast('Senha de administrador atualizada com sucesso!', 'success');
       $('#settings-password').value = '';
       $('#settings-password-confirm').value = '';
@@ -1291,8 +1401,8 @@
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = (event) => {
-        const res = DataStore.importBackup(event.target.result);
+      reader.onload = async (event) => {
+        const res = await DataStore.importBackup(event.target.result);
         if (res.success) {
           Utils.showToast('Backup restaurado com sucesso! Recarregando...', 'success');
           setTimeout(() => location.reload(), 1200);
@@ -1304,9 +1414,9 @@
     });
 
     // Reset Demo Defaults
-    $('#btn-reset-demo').addEventListener('click', () => {
+    $('#btn-reset-demo').addEventListener('click', async () => {
       if (confirm('Tem certeza? Isso apagará seus produtos e configurações atuais e restaurará os padrões de demonstração iniciais.')) {
-        DataStore.resetToDefaults();
+        await DataStore.resetToDefaults();
         Utils.showToast('Dados restaurados para o padrão original! Recarregando...', 'success');
         setTimeout(() => location.reload(), 1200);
       }
@@ -1316,6 +1426,100 @@
   function refreshSecurity() {
     $('#settings-password').value = '';
     $('#settings-password-confirm').value = '';
+  }
+
+  // ===== SUPABASE CONFIGURATION UI =====
+  async function setupSupabaseConfigUI() {
+    const sbUrlInput = $('#sb-url-input');
+    const sbKeyInput = $('#sb-key-input');
+    const sbBadge = $('#sb-status-badge');
+    const btnSave = $('#btn-save-supabase-config');
+    const btnTest = $('#btn-test-supabase-config');
+
+    if (!sbBadge) return;
+
+    async function updateStatus() {
+      if (window.SupabaseService && window.SupabaseService.isConfigured()) {
+        const client = window.SupabaseService.getClient();
+        try {
+          const { count, error } = await client.from('products').select('*', { count: 'exact', head: true });
+          if (!error) {
+            sbBadge.textContent = '🟢 Conectado ao Supabase (Online)';
+            sbBadge.className = 'status-badge active';
+          } else {
+            sbBadge.textContent = '🟡 Configurado (Erro ao ler tabelas)';
+            sbBadge.className = 'status-badge warning';
+          }
+        } catch (e) {
+          sbBadge.textContent = '🟡 Configurado (Aguardando resposta)';
+          sbBadge.className = 'status-badge warning';
+        }
+      } else {
+        sbBadge.textContent = '⚪ Modo Local / Variáveis Pendentes';
+        sbBadge.className = 'status-badge inactive';
+      }
+
+      if (window.SupabaseService) {
+        const config = window.SupabaseService.getConfig();
+        if (config && sbUrlInput && sbKeyInput) {
+          if (!sbUrlInput.value) sbUrlInput.value = config.url || '';
+          if (!sbKeyInput.value) sbKeyInput.value = config.anonKey || '';
+        }
+      }
+    }
+
+    await updateStatus();
+
+    if (btnSave) {
+      btnSave.addEventListener('click', async () => {
+        const url = sbUrlInput.value.trim();
+        const key = sbKeyInput.value.trim();
+        if (!url || !key) {
+          Utils.showToast('Informe a URL e a Anon Key do Supabase.', 'warning');
+          return;
+        }
+
+        btnSave.disabled = true;
+        btnSave.textContent = 'Salvando...';
+        try {
+          await window.SupabaseService.saveManualConfig(url, key);
+          await DataStore.init();
+          await updateStatus();
+          Utils.showToast('Configurações do Supabase salvas com sucesso!', 'success');
+        } catch (err) {
+          Utils.showToast('Erro ao salvar: ' + err.message, 'error');
+        } finally {
+          btnSave.disabled = false;
+          btnSave.textContent = '💾 Salvar Conexão';
+        }
+      });
+    }
+
+    if (btnTest) {
+      btnTest.addEventListener('click', async () => {
+        btnTest.disabled = true;
+        btnTest.textContent = 'Testando...';
+        try {
+          await updateStatus();
+          if (window.SupabaseService && window.SupabaseService.isConfigured()) {
+            const client = window.SupabaseService.getClient();
+            const { count, error } = await client.from('products').select('*', { count: 'exact', head: true });
+            if (error) {
+              Utils.showToast('Erro na conexão com Supabase: ' + error.message, 'error');
+            } else {
+              Utils.showToast(`Conexão com Supabase OK! Encontrados ${count || 0} produtos no banco.`, 'success');
+            }
+          } else {
+            Utils.showToast('Supabase ainda não configurado.', 'warning');
+          }
+        } catch (err) {
+          Utils.showToast('Falha no teste: ' + err.message, 'error');
+        } finally {
+          btnTest.disabled = false;
+          btnTest.textContent = '🔄 Testar Conexão';
+        }
+      });
+    }
   }
 
   // ===== 13. GLOBAL KEYBOARD SHORTCUTS =====

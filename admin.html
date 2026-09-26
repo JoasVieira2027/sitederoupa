@@ -531,6 +531,33 @@
           </div>
         </div>
 
+        <!-- Supabase Cloud Connection -->
+        <div class="admin-card" style="margin-bottom:var(--space-xl);">
+          <div class="admin-card-header">
+            <h3>⚡ Conexão Supabase (Banco de Dados em Nuvem)</h3>
+            <span id="sb-status-badge" class="status-badge" style="background:#e0e0e0; font-size:0.8rem;">Verificando...</span>
+          </div>
+          <div class="admin-card-body">
+            <p style="font-size:0.88rem; color:var(--text-secondary); margin-bottom:var(--space-md);">
+              Na Vercel, a conexão é configurada via Variáveis de Ambiente (<code>SUPABASE_URL</code> e <code>SUPABASE_ANON_KEY</code>). Você também pode configurar diretamente aqui:
+            </p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-lg);">
+              <div class="form-group">
+                <label for="sb-url-input">Supabase Project URL</label>
+                <input type="text" id="sb-url-input" class="form-control" placeholder="https://seu-projeto.supabase.co">
+              </div>
+              <div class="form-group">
+                <label for="sb-key-input">Supabase Anon Key</label>
+                <input type="text" id="sb-key-input" class="form-control" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+              </div>
+            </div>
+            <div style="display:flex; gap:var(--space-md); flex-wrap:wrap; align-items:center;">
+              <button type="button" class="btn btn-primary btn-sm" id="btn-save-supabase-config">💾 Salvar Conexão</button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-test-supabase-config">🔄 Testar Conexão</button>
+            </div>
+          </div>
+        </div>
+
         <div class="admin-card" style="margin-bottom:var(--space-xl);">
           <div class="admin-card-header">
             <h3>🔑 Senha de Acesso ao Painel Admin</h3>
@@ -782,10 +809,14 @@
             Área restrita ao proprietário da confeitaria.
           </p>
           <div class="form-group">
-            <label for="login-password">Senha de Administrador</label>
+            <label for="login-email">E-mail de Administrador</label>
+            <input type="email" id="login-email" class="form-control" placeholder="admin@dolcearte.com" value="admin@dolcearte.com" required>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Senha</label>
             <input type="password" id="login-password" class="form-control" placeholder="Digite sua senha" required autofocus>
           </div>
-          <button type="submit" class="btn btn-primary" style="width:100%;">Entrar no Painel</button>
+          <button type="submit" class="btn btn-primary" id="btn-login-submit" style="width:100%;">Entrar no Painel</button>
           <p style="text-align:center; margin-top:var(--space-md); font-size:0.82rem; color:var(--text-muted);">
             Senha padrão inicial: <strong>admin123</strong>
           </p>
@@ -794,6 +825,9 @@
     </div>
   </div>
 
+  <!-- Supabase Cloud Database SDK & Services -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-client.js"></script>
   <script src="js/data.js"></script>
   <script src="js/admin.js"></script>
 </body>

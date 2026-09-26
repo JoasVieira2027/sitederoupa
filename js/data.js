@@ -1,15 +1,17 @@
 /**
- * data.js - Data Management Layer
- * Handles all localStorage CRUD operations for products, orders, settings, categories, and theme
+ * data.js - Data Management Layer with Supabase as Primary Database
+ * Handles cloud persistence for products, orders, settings, and categories.
+ * All changes are saved to Supabase PostgreSQL and synced across all devices.
  */
 
 const DB_KEYS = {
   PRODUCTS: 'dolcearte_products',
   ORDERS: 'dolcearte_orders',
   SETTINGS: 'dolcearte_settings',
+  CATEGORIES: 'dolcearte_categories'
 };
 
-// ===== DEFAULT DATA =====
+// ===== DEFAULT DATA (Used for initial database seeding or offline fallback) =====
 const DEFAULT_PRODUCTS = [
   {
     id: 'prod_001',
@@ -85,21 +87,26 @@ const DEFAULT_PRODUCTS = [
   }
 ];
 
+const DEFAULT_CATEGORIES = [
+  { id: 'cat_choco', name: 'Chocolate', icon: '🍫' },
+  { id: 'cat_especial', name: 'Especial', icon: '⭐' },
+  { id: 'cat_tradicional', name: 'Tradicional', icon: '🏠' },
+  { id: 'cat_frutas', name: 'Frutas', icon: '🍓' },
+  { id: 'cat_festas', name: 'Festas', icon: '🎉' }
+];
+
 const DEFAULT_SETTINGS = {
-  // Store Branding & Visual
   storeName: 'Dolce Arte',
   storeTagline: 'Bolos Artesanais Feitos com Amor',
   storeLogoEmoji: '🎂',
   storeLogoImage: '',
-  themeColor: '#8B5E3C', // Warm bakery brown
+  themeColor: '#8B5E3C',
 
-  // Top Announcement Bar
   announcementBar: {
     active: true,
     text: '🎉 Encomendas abertas! Ingredientes 100% nobres e artesanais. Faça seu pedido!'
   },
 
-  // Hero Section
   hero: {
     emoji: '🎂',
     title: 'Bolos Artesanais Feitos com Amor',
@@ -107,7 +114,6 @@ const DEFAULT_SETTINGS = {
     ctaText: '✨ Ver Cardápio'
   },
 
-  // About Us Section
   about: {
     active: true,
     title: 'Nossa Paixão por Confeitaria Artesanal',
@@ -121,34 +127,24 @@ const DEFAULT_SETTINGS = {
     ]
   },
 
-  // Categories
-  categories: [
-    { id: 'cat_choco', name: 'Chocolate', icon: '🍫' },
-    { id: 'cat_especial', name: 'Especial', icon: '⭐' },
-    { id: 'cat_tradicional', name: 'Tradicional', icon: '🏠' },
-    { id: 'cat_frutas', name: 'Frutas', icon: '🍓' },
-    { id: 'cat_festas', name: 'Festas', icon: '🎉' }
-  ],
+  categories: DEFAULT_CATEGORIES,
 
-  // Delivery & Pickup
   delivery: {
     deliveryEnabled: true,
     deliveryFee: 10.00,
-    freeDeliveryThreshold: 120.00, // 0 = disabled
+    freeDeliveryThreshold: 120.00,
     estimatedTime: '40 a 60 min',
     pickupEnabled: true,
     pickupAddress: 'Rua das Flores, 123 - Centro (Confeitaria Dolce Arte)',
     pickupEstimate: 'Pronto em 30 min'
   },
 
-  // Contacts & Social
   whatsappNumber: '5511999999999',
   contactPhone: '(11) 99999-9999',
   instagram: '@dolcearte.bolos',
   address: 'Rua das Flores, 123 - São Paulo/SP',
   footerCopyright: '© 2026 Dolce Arte. Todos os direitos reservados.',
 
-  // Payment Methods
   paymentMethods: [
     { id: 'pix', name: 'Pix', icon: '📱', active: true },
     { id: 'dinheiro', name: 'Dinheiro', icon: '💵', active: true },
@@ -157,15 +153,13 @@ const DEFAULT_SETTINGS = {
     { id: 'transferencia', name: 'Transferência', icon: '🏦', active: false }
   ],
 
-  // Pix Details
   pixDetails: {
-    keyType: 'Celular', // Celular, CPF, CNPJ, E-mail, Aleatória
+    keyType: 'Celular',
     key: '(11) 99999-9999',
     receiverName: 'Dolce Arte Confeitaria Ltda',
     instructions: 'Transfira o valor do pedido e anexe o comprovante na conversa do WhatsApp para agilizarmos a produção.'
   },
 
-  // Operating Hours & Schedule
   storeOpen: true,
   closedCustomMessage: 'Estamos fechados no momento. Nossos confeiteiros estão preparando novas delícias para você!',
   operatingHours: {
@@ -179,11 +173,10 @@ const DEFAULT_SETTINGS = {
   },
   closures: [],
 
-  // Security
-  adminPassword: 'admin123',
+  adminPassword: 'admin123'
 };
 
-// Helper for deep merging default settings with stored settings
+// Deep merge helper
 function deepMerge(target, source) {
   const output = Object.assign({}, target);
   if (isObject(target) && isObject(source)) {
@@ -206,24 +199,338 @@ function isObject(item) {
   return (item && typeof item === 'object' && !Array.isArray(item));
 }
 
-// ===== DATA ACCESS LAYER =====
+// ===== DATA ACCESS LAYER (SUPABASE PRIMARY) =====
 const DataStore = {
-  // --- Initialize ---
-  init() {
-    if (!localStorage.getItem(DB_KEYS.PRODUCTS)) {
-      localStorage.setItem(DB_KEYS.PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
+  // In-memory active cache
+  _products: [],
+  _categories: [],
+  _settings: null,
+  _orders: [],
+  _initialized: false,
+  _listeners: [],
+  _realtimeChannel: null,
+
+  // --- Initialize & Load from Supabase ---
+  async init() {
+    // If Supabase service is available, initialize it first
+    if (window.SupabaseService) {
+      await window.SupabaseService.init();
     }
-    if (!localStorage.getItem(DB_KEYS.SETTINGS)) {
-      localStorage.setItem(DB_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
+
+    const sb = this.getSb();
+
+    if (sb) {
+      try {
+        console.log('[DataStore] Carregando dados do Supabase...');
+
+        // 1. Fetch Categories
+        const { data: catData, error: catErr } = await sb
+          .from('categories')
+          .select('*')
+          .order('name', { ascending: true });
+
+        if (!catErr && catData && catData.length > 0) {
+          this._categories = catData.map(c => ({ id: c.id, name: c.name, icon: c.icon }));
+        } else if (!catErr && (!catData || catData.length === 0)) {
+          // Empty table, auto-seed default categories
+          console.log('[DataStore] Semeando categorias iniciais no Supabase...');
+          await this.seedCategories(sb);
+        }
+
+        // 2. Fetch Products
+        const { data: prodData, error: prodErr } = await sb
+          .from('products')
+          .select('*')
+          .order('created_at', { ascending: true });
+
+        if (!prodErr && prodData && prodData.length > 0) {
+          this._products = prodData.map(p => this.productFromDb(p));
+        } else if (!prodErr && (!prodData || prodData.length === 0)) {
+          // Empty table, auto-seed default products
+          console.log('[DataStore] Semeando produtos iniciais no Supabase...');
+          await this.seedProducts(sb);
+        }
+
+        // 3. Fetch Settings
+        const { data: setData, error: setErr } = await sb
+          .from('settings')
+          .select('*')
+          .eq('id', 'main')
+          .maybeSingle();
+
+        if (!setErr && setData) {
+          this._settings = this.settingsFromDb(setData);
+        } else if (!setErr && !setData) {
+          console.log('[DataStore] Semeando configurações iniciais no Supabase...');
+          await this.seedSettings(sb);
+        }
+
+        // 4. Fetch Orders (if authenticated admin)
+        const isAuth = window.SupabaseService ? await window.SupabaseService.isAuthenticated() : false;
+        if (isAuth) {
+          const { data: orderData, error: orderErr } = await sb
+            .from('orders')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (!orderErr && orderData) {
+            this._orders = orderData.map(o => this.orderFromDb(o));
+          }
+        }
+
+        // Setup Realtime Subscription for instant sync
+        this.setupRealtimeSubscription(sb);
+
+        this._initialized = true;
+        this.applyTheme(this.getSettings().themeColor);
+        console.log('[DataStore] Dados sincronizados com Supabase com sucesso!');
+        return;
+      } catch (err) {
+        console.warn('[DataStore] Erro ao consultar Supabase, utilizando fallback local:', err);
+      }
     }
-    if (!localStorage.getItem(DB_KEYS.ORDERS)) {
-      localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify([]));
+
+    // --- FALLBACK (Offline or Supabase not yet configured) ---
+    console.warn('[DataStore] Supabase não conectado. Carregando dados locais de demonstração.');
+    this._products = JSON.parse(localStorage.getItem(DB_KEYS.PRODUCTS) || JSON.stringify(DEFAULT_PRODUCTS));
+    this._categories = JSON.parse(localStorage.getItem(DB_KEYS.CATEGORIES) || JSON.stringify(DEFAULT_CATEGORIES));
+    this._settings = JSON.parse(localStorage.getItem(DB_KEYS.SETTINGS) || JSON.stringify(DEFAULT_SETTINGS));
+    this._orders = JSON.parse(localStorage.getItem(DB_KEYS.ORDERS) || '[]');
+    this._initialized = true;
+    this.applyTheme(this.getSettings().themeColor);
+  },
+
+  getSb() {
+    return window.SupabaseService ? window.SupabaseService.getClient() : null;
+  },
+
+  // Setup Realtime Sync
+  setupRealtimeSubscription(sb) {
+    if (!sb || this._realtimeChannel) return;
+
+    try {
+      this._realtimeChannel = sb.channel('dolcearte_realtime_changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async () => {
+          console.log('[Realtime] Produtos atualizados no Supabase. Atualizando tela...');
+          await this.refreshProducts();
+          this.notifyListeners('products');
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, async () => {
+          console.log('[Realtime] Categorias atualizadas no Supabase. Atualizando tela...');
+          await this.refreshCategories();
+          this.notifyListeners('categories');
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, async () => {
+          console.log('[Realtime] Configurações da loja atualizadas no Supabase. Atualizando tela...');
+          await this.refreshSettings();
+          this.notifyListeners('settings');
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async () => {
+          console.log('[Realtime] Pedidos atualizados no Supabase. Atualizando tela...');
+          await this.refreshOrders();
+          this.notifyListeners('orders');
+        })
+        .subscribe();
+    } catch (e) {
+      console.warn('[Realtime] Erro ao conectar realtime:', e);
     }
   },
 
-  // --- Products ---
+  subscribeToChanges(callback) {
+    if (typeof callback === 'function') {
+      this._listeners.push(callback);
+    }
+  },
+
+  notifyListeners(type) {
+    this._listeners.forEach(cb => {
+      try { cb(type); } catch (e) {}
+    });
+  },
+
+  // Database Mapping Helpers
+  productFromDb(p) {
+    return {
+      id: p.id,
+      name: p.name,
+      description: p.description || '',
+      price: parseFloat(p.price) || 0,
+      image: p.image || 'assets/images/cake_chocolate.jpg',
+      category: p.category,
+      badge: p.badge || '',
+      active: p.active !== false,
+      inStock: p.in_stock !== false,
+      promotion: p.promotion || { active: false, discountPercent: 0 }
+    };
+  },
+
+  productToDb(p) {
+    return {
+      id: p.id,
+      name: p.name,
+      description: p.description || '',
+      price: p.price,
+      image: p.image || '',
+      category: p.category,
+      badge: p.badge || '',
+      active: p.active !== false,
+      in_stock: p.inStock !== false,
+      promotion: p.promotion || { active: false, discountPercent: 0 },
+      updated_at: new Date().toISOString()
+    };
+  },
+
+  settingsFromDb(s) {
+    const merged = deepMerge(DEFAULT_SETTINGS, {
+      storeName: s.store_name,
+      storeTagline: s.store_tagline,
+      storeLogoEmoji: s.store_logo_emoji,
+      storeLogoImage: s.store_logo_image,
+      themeColor: s.theme_color,
+      announcementBar: s.announcement_bar,
+      hero: s.hero,
+      about: s.about,
+      delivery: s.delivery,
+      whatsappNumber: s.whatsapp_number,
+      contactPhone: s.contact_phone,
+      instagram: s.instagram,
+      address: s.address,
+      footerCopyright: s.footer_copyright,
+      paymentMethods: s.payment_methods,
+      pixDetails: s.pix_details,
+      storeOpen: s.store_open !== false,
+      closedCustomMessage: s.closed_custom_message,
+      operatingHours: s.operating_hours,
+      closures: s.closures
+    });
+    return merged;
+  },
+
+  settingsToDb(settings) {
+    return {
+      id: 'main',
+      store_name: settings.storeName,
+      store_tagline: settings.storeTagline,
+      store_logo_emoji: settings.storeLogoEmoji,
+      store_logo_image: settings.storeLogoImage || '',
+      theme_color: settings.themeColor || '#8B5E3C',
+      announcement_bar: settings.announcementBar,
+      hero: settings.hero,
+      about: settings.about,
+      delivery: settings.delivery,
+      whatsapp_number: settings.whatsappNumber,
+      contact_phone: settings.contactPhone,
+      instagram: settings.instagram,
+      address: settings.address,
+      footer_copyright: settings.footerCopyright,
+      payment_methods: settings.paymentMethods,
+      pix_details: settings.pixDetails,
+      store_open: settings.storeOpen !== false,
+      closed_custom_message: settings.closedCustomMessage,
+      operating_hours: settings.operatingHours,
+      closures: settings.closures,
+      updated_at: new Date().toISOString()
+    };
+  },
+
+  orderFromDb(o) {
+    return {
+      id: o.id,
+      customer: o.customer || {},
+      deliveryType: o.delivery_type || 'delivery',
+      deliveryFee: parseFloat(o.delivery_fee) || 0,
+      items: o.items || [],
+      subtotal: parseFloat(o.subtotal) || 0,
+      total: parseFloat(o.total) || 0,
+      paymentMethod: o.payment_method || '',
+      status: o.status || 'novo',
+      date: o.created_at || new Date().toISOString()
+    };
+  },
+
+  orderToDb(o) {
+    return {
+      id: o.id,
+      customer: o.customer,
+      delivery_type: o.deliveryType || 'delivery',
+      delivery_fee: o.deliveryFee || 0,
+      items: o.items,
+      subtotal: o.subtotal,
+      total: o.total,
+      payment_method: o.paymentMethod,
+      status: o.status || 'novo'
+    };
+  },
+
+  // --- Seeding Helpers ---
+  async seedCategories(sb) {
+    try {
+      const records = DEFAULT_CATEGORIES.map(c => ({ id: c.id, name: c.name, icon: c.icon }));
+      await sb.from('categories').upsert(records);
+      this._categories = [...DEFAULT_CATEGORIES];
+    } catch (e) {
+      console.warn('Erro ao semear categorias:', e);
+    }
+  },
+
+  async seedProducts(sb) {
+    try {
+      const records = DEFAULT_PRODUCTS.map(p => this.productToDb(p));
+      await sb.from('products').upsert(records);
+      this._products = [...DEFAULT_PRODUCTS];
+    } catch (e) {
+      console.warn('Erro ao semear produtos:', e);
+    }
+  },
+
+  async seedSettings(sb) {
+    try {
+      const record = this.settingsToDb(DEFAULT_SETTINGS);
+      await sb.from('settings').upsert(record);
+      this._settings = { ...DEFAULT_SETTINGS };
+    } catch (e) {
+      console.warn('Erro ao semear configurações:', e);
+    }
+  },
+
+  // Refresh methods
+  async refreshProducts() {
+    const sb = this.getSb();
+    if (!sb) return;
+    const { data } = await sb.from('products').select('*').order('created_at', { ascending: true });
+    if (data) this._products = data.map(p => this.productFromDb(p));
+  },
+
+  async refreshCategories() {
+    const sb = this.getSb();
+    if (!sb) return;
+    const { data } = await sb.from('categories').select('*').order('name', { ascending: true });
+    if (data) this._categories = data.map(c => ({ id: c.id, name: c.name, icon: c.icon }));
+  },
+
+  async refreshSettings() {
+    const sb = this.getSb();
+    if (!sb) return;
+    const { data } = await sb.from('settings').select('*').eq('id', 'main').maybeSingle();
+    if (data) {
+      this._settings = this.settingsFromDb(data);
+      this.applyTheme(this._settings.themeColor);
+    }
+  },
+
+  async refreshOrders() {
+    const sb = this.getSb();
+    if (!sb) return;
+    const isAuth = window.SupabaseService ? await window.SupabaseService.isAuthenticated() : false;
+    if (isAuth) {
+      const { data } = await sb.from('orders').select('*').order('created_at', { ascending: false });
+      if (data) this._orders = data.map(o => this.orderFromDb(o));
+    }
+  },
+
+  // --- Products API ---
   getProducts() {
-    return JSON.parse(localStorage.getItem(DB_KEYS.PRODUCTS) || '[]');
+    return this._products && this._products.length > 0 ? this._products : DEFAULT_PRODUCTS;
   },
 
   getActiveProducts() {
@@ -234,157 +541,249 @@ const DataStore = {
     return this.getProducts().find(p => p.id === id);
   },
 
-  saveProduct(product) {
+  async saveProduct(product) {
     const products = this.getProducts();
     const index = products.findIndex(p => p.id === product.id);
+
     if (index >= 0) {
-      products[index] = { ...products[index], ...product };
+      product = { ...products[index], ...product };
+      products[index] = product;
     } else {
-      product.id = 'prod_' + Date.now();
+      product.id = product.id || 'prod_' + Date.now();
       products.push(product);
     }
-    localStorage.setItem(DB_KEYS.PRODUCTS, JSON.stringify(products));
+    this._products = [...products];
+
+    // Persist to Supabase
+    const sb = this.getSb();
+    if (sb) {
+      const dbRecord = this.productToDb(product);
+      const { error } = await sb.from('products').upsert(dbRecord);
+      if (error) {
+        console.error('[Supabase] Erro ao salvar produto:', error);
+        throw error;
+      }
+    }
+
+    // Backup to local storage
+    localStorage.setItem(DB_KEYS.PRODUCTS, JSON.stringify(this._products));
     return product;
   },
 
-  deleteProduct(id) {
-    const products = this.getProducts().filter(p => p.id !== id);
-    localStorage.setItem(DB_KEYS.PRODUCTS, JSON.stringify(products));
+  async deleteProduct(id) {
+    this._products = this.getProducts().filter(p => p.id !== id);
+
+    // Persist to Supabase
+    const sb = this.getSb();
+    if (sb) {
+      const { error } = await sb.from('products').delete().eq('id', id);
+      if (error) {
+        console.error('[Supabase] Erro ao excluir produto:', error);
+        throw error;
+      }
+    }
+
+    localStorage.setItem(DB_KEYS.PRODUCTS, JSON.stringify(this._products));
   },
 
-  toggleProductActive(id) {
-    const products = this.getProducts();
-    const product = products.find(p => p.id === id);
+  async toggleProductActive(id) {
+    const product = this.getProductById(id);
     if (product) {
       product.active = !product.active;
-      localStorage.setItem(DB_KEYS.PRODUCTS, JSON.stringify(products));
+      return this.saveProduct(product);
     }
-    return product;
+    return null;
   },
 
-  toggleProductStock(id) {
-    const products = this.getProducts();
-    const product = products.find(p => p.id === id);
+  async toggleProductStock(id) {
+    const product = this.getProductById(id);
     if (product) {
       product.inStock = !product.inStock;
-      localStorage.setItem(DB_KEYS.PRODUCTS, JSON.stringify(products));
+      return this.saveProduct(product);
     }
-    return product;
+    return null;
   },
 
-  // --- Categories ---
+  // --- Categories API ---
   getCategories() {
-    const settings = this.getSettings();
-    if (settings.categories && settings.categories.length > 0) {
-      return settings.categories;
+    if (this._categories && this._categories.length > 0) {
+      return this._categories;
     }
-    return DEFAULT_SETTINGS.categories;
+    return DEFAULT_CATEGORIES;
   },
 
-  saveCategory(category) {
-    const settings = this.getSettings();
-    if (!settings.categories) settings.categories = [...DEFAULT_SETTINGS.categories];
+  async saveCategory(category) {
+    const categories = [...this.getCategories()];
+    const index = categories.findIndex(c => c.id === category.id || c.name === category.name);
 
-    const index = settings.categories.findIndex(c => c.id === category.id);
     if (index >= 0) {
-      settings.categories[index] = category;
+      categories[index] = { ...categories[index], ...category };
+      category = categories[index];
     } else {
       category.id = category.id || 'cat_' + Date.now().toString(36);
-      settings.categories.push(category);
+      categories.push(category);
     }
-    this.saveSettings(settings);
+    this._categories = categories;
+
+    // Persist to Supabase
+    const sb = this.getSb();
+    if (sb) {
+      const { error } = await sb.from('categories').upsert({
+        id: category.id,
+        name: category.name,
+        icon: category.icon || '🎂'
+      });
+      if (error) {
+        console.error('[Supabase] Erro ao salvar categoria:', error);
+        throw error;
+      }
+    }
+
+    localStorage.setItem(DB_KEYS.CATEGORIES, JSON.stringify(this._categories));
     return category;
   },
 
-  deleteCategory(id) {
-    const settings = this.getSettings();
-    if (settings.categories) {
-      settings.categories = settings.categories.filter(c => c.id !== id);
-      this.saveSettings(settings);
+  async deleteCategory(id) {
+    this._categories = this.getCategories().filter(c => (c.id || c.name) !== id);
+
+    // Persist to Supabase
+    const sb = this.getSb();
+    if (sb) {
+      const { error } = await sb.from('categories').delete().or(`id.eq.${id},name.eq.${id}`);
+      if (error) {
+        console.error('[Supabase] Erro ao excluir categoria:', error);
+        throw error;
+      }
     }
+
+    localStorage.setItem(DB_KEYS.CATEGORIES, JSON.stringify(this._categories));
   },
 
-  // --- Settings ---
+  // --- Settings API ---
   getSettings() {
-    const raw = localStorage.getItem(DB_KEYS.SETTINGS);
-    if (!raw) return DEFAULT_SETTINGS;
-    try {
-      const parsed = JSON.parse(raw);
-      // Merge with default settings to ensure new keys always exist
-      return deepMerge(DEFAULT_SETTINGS, parsed);
-    } catch (e) {
-      return DEFAULT_SETTINGS;
+    if (this._settings) return this._settings;
+    return DEFAULT_SETTINGS;
+  },
+
+  async saveSettings(settings) {
+    this._settings = deepMerge(DEFAULT_SETTINGS, settings);
+    this.applyTheme(this._settings.themeColor);
+
+    // Persist to Supabase
+    const sb = this.getSb();
+    if (sb) {
+      const dbRecord = this.settingsToDb(this._settings);
+      const { error } = await sb.from('settings').upsert(dbRecord);
+      if (error) {
+        console.error('[Supabase] Erro ao salvar configurações:', error);
+        throw error;
+      }
     }
+
+    localStorage.setItem(DB_KEYS.SETTINGS, JSON.stringify(this._settings));
+    return this._settings;
   },
 
-  saveSettings(settings) {
-    localStorage.setItem(DB_KEYS.SETTINGS, JSON.stringify(settings));
-    this.applyTheme(settings.themeColor);
-  },
-
-  updateSetting(key, value) {
+  async updateSetting(key, value) {
     const settings = this.getSettings();
     settings[key] = value;
-    this.saveSettings(settings);
-    return settings;
+    return this.saveSettings(settings);
   },
 
   applyTheme(color) {
     if (!color) return;
     document.documentElement.style.setProperty('--primary', color);
-    // calculate a slightly darker and lighter variant
     try {
       const col = color.replace('#', '');
       const num = parseInt(col, 16);
       const r = Math.max(0, Math.min(255, (num >> 16) - 30));
       const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) - 20));
       const b = Math.max(0, Math.min(255, (num & 0x0000FF) - 15));
-      const darkColor = `rgb(${r}, ${g}, ${b})`;
-      document.documentElement.style.setProperty('--primary-dark', darkColor);
+      document.documentElement.style.setProperty('--primary-dark', `rgb(${r}, ${g}, ${b})`);
       document.documentElement.style.setProperty('--primary-50', `rgba(${r}, ${g}, ${b}, 0.06)`);
       document.documentElement.style.setProperty('--primary-100', `rgba(${r}, ${g}, ${b}, 0.12)`);
     } catch(e) {}
   },
 
-  // --- Orders ---
+  // --- Orders API ---
   getOrders() {
-    return JSON.parse(localStorage.getItem(DB_KEYS.ORDERS) || '[]');
+    return this._orders || [];
   },
 
-  saveOrder(order) {
-    const orders = this.getOrders();
-    order.id = 'PED-' + Date.now().toString(36).toUpperCase();
-    order.date = new Date().toISOString();
-    order.status = order.status || 'novo'; // 'novo', 'preparo', 'entrega', 'concluido', 'cancelado'
-    orders.unshift(order);
-    localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(orders));
+  async saveOrder(order) {
+    order.id = order.id || 'PED-' + Date.now().toString(36).toUpperCase();
+    order.date = order.date || new Date().toISOString();
+    order.status = order.status || 'novo';
+
+    this._orders.unshift(order);
+
+    // Persist to Supabase
+    const sb = this.getSb();
+    if (sb) {
+      const dbRecord = this.orderToDb(order);
+      const { error } = await sb.from('orders').insert(dbRecord);
+      if (error) {
+        console.error('[Supabase] Erro ao salvar pedido:', error);
+        // We still return order so WhatsApp message is generated
+      }
+    }
+
+    localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(this._orders));
     return order;
   },
 
-  updateOrderStatus(id, status) {
-    const orders = this.getOrders();
-    const order = orders.find(o => o.id === id);
+  async updateOrderStatus(id, status) {
+    const order = this._orders.find(o => o.id === id);
     if (order) {
       order.status = status;
-      localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(orders));
+
+      const sb = this.getSb();
+      if (sb) {
+        const { error } = await sb.from('orders').update({ status }).eq('id', id);
+        if (error) {
+          console.error('[Supabase] Erro ao atualizar status do pedido:', error);
+          throw error;
+        }
+      }
+
+      localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(this._orders));
     }
     return order;
   },
 
-  deleteOrder(id) {
-    const orders = this.getOrders().filter(o => o.id !== id);
-    localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(orders));
+  async deleteOrder(id) {
+    this._orders = this._orders.filter(o => o.id !== id);
+
+    const sb = this.getSb();
+    if (sb) {
+      const { error } = await sb.from('orders').delete().eq('id', id);
+      if (error) {
+        console.error('[Supabase] Erro ao excluir pedido:', error);
+        throw error;
+      }
+    }
+
+    localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(this._orders));
   },
 
-  clearAllOrders() {
+  async clearAllOrders() {
+    this._orders = [];
+
+    const sb = this.getSb();
+    if (sb) {
+      const { error } = await sb.from('orders').delete().neq('id', '');
+      if (error) {
+        console.error('[Supabase] Erro ao limpar pedidos:', error);
+        throw error;
+      }
+    }
+
     localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify([]));
   },
 
-  // --- Store Status Check ---
+  // --- Store Status ---
   isStoreOpen() {
     const settings = this.getSettings();
-
-    // Manual override
     if (!settings.storeOpen) return false;
 
     const now = new Date();
@@ -392,10 +791,8 @@ const DataStore = {
     const today = dayNames[now.getDay()];
     const hours = settings.operatingHours ? settings.operatingHours[today] : null;
 
-    // Check if day is active
     if (!hours || !hours.active) return false;
 
-    // Check closures
     const todayStr = now.toISOString().split('T')[0];
     for (const closure of settings.closures || []) {
       if (closure.type === 'date' && closure.date === todayStr) return false;
@@ -404,7 +801,6 @@ const DataStore = {
       }
     }
 
-    // Check hours
     const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
     if (currentTime < hours.open || currentTime > hours.close) return false;
 
@@ -453,23 +849,28 @@ const DataStore = {
     const data = {
       exportDate: new Date().toISOString(),
       products: this.getProducts(),
+      categories: this.getCategories(),
       settings: this.getSettings(),
       orders: this.getOrders(),
     };
     return JSON.stringify(data, null, 2);
   },
 
-  importBackup(jsonString) {
+  async importBackup(jsonString) {
     try {
       const data = JSON.parse(jsonString);
+      if (data.categories && Array.isArray(data.categories)) {
+        for (const cat of data.categories) {
+          await this.saveCategory(cat);
+        }
+      }
       if (data.products && Array.isArray(data.products)) {
-        localStorage.setItem(DB_KEYS.PRODUCTS, JSON.stringify(data.products));
+        for (const prod of data.products) {
+          await this.saveProduct(prod);
+        }
       }
       if (data.settings && typeof data.settings === 'object') {
-        localStorage.setItem(DB_KEYS.SETTINGS, JSON.stringify(data.settings));
-      }
-      if (data.orders && Array.isArray(data.orders)) {
-        localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(data.orders));
+        await this.saveSettings(data.settings);
       }
       return { success: true };
     } catch (e) {
@@ -477,10 +878,24 @@ const DataStore = {
     }
   },
 
-  resetToDefaults() {
-    localStorage.setItem(DB_KEYS.PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
-    localStorage.setItem(DB_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
-    localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify([]));
+  async resetToDefaults() {
+    this._products = [...DEFAULT_PRODUCTS];
+    this._categories = [...DEFAULT_CATEGORIES];
+    this._settings = { ...DEFAULT_SETTINGS };
+    this._orders = [];
+
+    const sb = this.getSb();
+    if (sb) {
+      await this.seedCategories(sb);
+      await this.seedProducts(sb);
+      await this.seedSettings(sb);
+      await this.clearAllOrders();
+    }
+
+    localStorage.removeItem(DB_KEYS.PRODUCTS);
+    localStorage.removeItem(DB_KEYS.SETTINGS);
+    localStorage.removeItem(DB_KEYS.CATEGORIES);
+    localStorage.removeItem(DB_KEYS.ORDERS);
   }
 };
 
@@ -608,7 +1023,6 @@ const Utils = {
     }).format(new Date(isoString));
   },
 
-  // Convert image file to base64 data URL
   fileToBase64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -618,7 +1032,6 @@ const Utils = {
     });
   },
 
-  // Toast notification
   showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
     if (!container) return;
@@ -645,7 +1058,6 @@ const Utils = {
     }, 3500);
   },
 
-  // Build WhatsApp message
   buildWhatsAppMessage(order) {
     const settings = DataStore.getSettings();
     let msg = `🎂 *NOVO PEDIDO - ${settings.storeName}*\n\n`;
@@ -707,7 +1119,3 @@ const Utils = {
     window.open(`https://wa.me/${phoneWithDDI}?text=${encoded}`, '_blank');
   }
 };
-
-// Initialize on load
-DataStore.init();
-DataStore.applyTheme(DataStore.getSettings().themeColor);

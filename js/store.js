@@ -103,7 +103,8 @@
   let storeIsOpen = true;
 
   // ===== INITIALIZATION =====
-  function init() {
+  async function init() {
+    await DataStore.init();
     renderStoreBranding();
     updateStoreStatus();
     renderCategories();
@@ -113,6 +114,16 @@
     setupEventListeners();
     setupScrollEffect();
     setupPhoneMask();
+
+    // Subscribe to instant Realtime updates from Supabase!
+    DataStore.subscribeToChanges(() => {
+      renderStoreBranding();
+      updateStoreStatus();
+      renderCategories();
+      renderProducts();
+      renderAboutSection();
+      updateDeliveryTabsUI();
+    });
   }
 
   // ===== RENDER STORE BRANDING & VISUALS =====
@@ -624,7 +635,7 @@
     document.body.style.overflow = '';
   }
 
-  function handleCheckoutSubmit(e) {
+  async function handleCheckoutSubmit(e) {
     e.preventDefault();
 
     const name = $('#customer-name').value.trim();
@@ -695,8 +706,8 @@
       paymentMethod: selectedPayment
     };
 
-    // Save order
-    const savedOrder = DataStore.saveOrder(order);
+    // Save order to Supabase
+    const savedOrder = await DataStore.saveOrder(order);
 
     // Build and send WhatsApp message to the store owner
     const message = Utils.buildWhatsAppMessage(savedOrder);
