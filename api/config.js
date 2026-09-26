@@ -11,8 +11,8 @@ module.exports = (req, res) => {
   res.setHeader('Expires', '0');
   res.setHeader('Content-Type', 'application/json');
 
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://nhcpeuwrfljlcujxnlmp.supabase.co';
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oY3BldXdyZmxqbGN1anhubG1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0MzQ0OTIsImV4cCI6MjEwNjAxMDQ5Mn0.UvonxRI8rjOihlyuqCWqbtHFWpFlKE_0Qynjg5-4JyQ';
 
   res.status(200).json({
     supabaseUrl: supabaseUrl.trim(),
