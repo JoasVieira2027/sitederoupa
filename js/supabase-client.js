@@ -66,6 +66,7 @@
         anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oY3BldXdyZmxqbGN1anhubG1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0MzQ0OTIsImV4cCI6MjEwNjAxMDQ5Mn0.UvonxRI8rjOihlyuqCWqbtHFWpFlKE_0Qynjg5-4JyQ',
         source: 'default_project'
       };
+    },
 
     /**
      * Initialize Supabase client
