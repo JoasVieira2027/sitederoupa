@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Painel Administrativo Completo - Gerenciamento de Produtos, Pedidos e Site">
+  <title>Painel Admin | Controle Total do Site</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
+</head>
+<body>
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Admin Layout -->
+  <div class="admin-layout">
+
+    <!-- Mobile Toggle -->
+    <button class="admin-mobile-toggle" id="admin-mobile-toggle" aria-label="Menu">☰</button>
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="admin-sidebar">
+      <div class="admin-sidebar-brand">
+        <span class="brand-icon" id="admin-brand-icon">🎂</span>
+        <div>
+          <span class="brand-text" id="admin-brand-title">Dolce Arte</span>
+          <span class="brand-sub">Painel do Dono</span>
+        </div>
+      </div>
+
+      <nav class="admin-nav">
+        <div class="admin-nav-item active" data-section="dashboard">
+          <span class="nav-icon">📊</span> Dashboard
+        </div>
+        <div class="admin-nav-item" data-section="products">
+          <span class="nav-icon">🎂</span> Produtos
+        </div>
+        <div class="admin-nav-item" data-section="categories">
+          <span class="nav-icon">📂</span> Categorias
+        </div>
+        <div class="admin-nav-item" data-section="orders">
+          <span class="nav-icon">📋</span> Pedidos
+        </div>
+        <div class="admin-nav-item" data-section="delivery">
+          <span class="nav-icon">🛵</span> Entrega & Retirada
+        </div>
+        <div class="admin-nav-item" data-section="payments">
+          <span class="nav-icon">💳</span> Pagamentos & Pix
+        </div>
+        <div class="admin-nav-item" data-section="schedule">
+          <span class="nav-icon">🕐</span> Horários & Loja
+        </div>
+        <div class="admin-nav-item" data-section="visual">
+          <span class="nav-icon">🎨</span> Visual & Textos
+        </div>
+        <div class="admin-nav-item" data-section="security">
+          <span class="nav-icon">⚙️</span> Senha & Backup
+        </div>
+      </nav>
+
+      <div class="admin-sidebar-footer">
+        <a href="index.html" target="_blank" class="btn-back-store" title="Abrir o site em nova aba">
+          🌐 Ver Meu Site
+        </a>
+        <button type="button" class="btn-logout" id="btn-logout" title="Encerrar sessão">
+          🚪 Sair
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main" id="admin-main">
+
+      <!-- ======== 1. DASHBOARD ======== -->
+      <div class="admin-section active" id="section-dashboard">
+        <div class="admin-page-header">
+          <div>
+            <h1>Dashboard</h1>
+            <p>Visão geral e controle em tempo real da sua confeitaria</p>
+          </div>
+          <div class="header-store-status-wrapper">
+            <span id="dash-store-status-label" style="font-size:0.92rem; font-weight:600;">Status da Loja:</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="dash-store-toggle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+            <span id="dash-store-state-badge" class="status-badge active">ABERTA</span>
+          </div>
+        </div>
+
+        <div class="admin-stats" id="admin-stats">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3>📋 Últimos Pedidos Recebidos</h3>
+            <button class="btn btn-secondary btn-sm" id="btn-dash-view-all-orders">Ver Todos os Pedidos</button>
+          </div>
+          <div class="admin-card-body" id="dash-recent-orders">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ======== 2. PRODUCTS ======== -->
+      <div class="admin-section" id="section-products">
+        <div class="admin-page-header">
+          <div>
+            <h1>Gerenciamento de Produtos</h1>
+            <p>Cadastre, edite fotos, preços, promoções e estoque dos seus bolos</p>
+          </div>
+          <button class="btn btn-primary" id="btn-add-product">
+            ➕ Novo Produto
+          </button>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="admin-filter-bar">
+          <input type="text" id="product-search-input" class="form-control" placeholder="🔍 Buscar por nome do bolo..." style="max-width:320px;">
+          <select id="product-category-filter" class="form-control" style="max-width:220px;">
+            <option value="all">Todas as Categorias</option>
+          </select>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-body" style="overflow-x:auto;">
+            <table class="admin-table" id="products-table">
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th>Preço</th>
+                  <th>Categoria</th>
+                  <th>Destaque</th>
+                  <th>Promoção</th>
+                  <th>Estoque</th>
+                  <th>Visível</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="products-table-body">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======== 3. CATEGORIES ======== -->
+      <div class="admin-section" id="section-categories">
+        <div class="admin-page-header">
+          <div>
+            <h1>Categorias do Cardápio</h1>
+            <p>Organize como seus produtos são divididos no site</p>
+          </div>
+          <button class="btn btn-primary" id="btn-add-category">
+            ➕ Nova Categoria
+          </button>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3>📂 Categorias Ativas</h3>
+          </div>
+          <div class="admin-card-body">
+            <div class="categories-grid" id="admin-categories-list">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======== 4. ORDERS ======== -->
+      <div class="admin-section" id="section-orders">
+        <div class="admin-page-header">
+          <div>
+            <h1>Gestão de Pedidos</h1>
+            <p>Acompanhe pedidos, mude o status e converse com o cliente no WhatsApp</p>
+          </div>
+          <button class="btn btn-danger btn-sm" id="btn-clear-orders">
+            🗑️ Limpar Todos os Pedidos
+          </button>
+        </div>
+
+        <!-- Order Status Filter Tabs -->
+        <div class="order-filter-tabs" id="order-filter-tabs">
+          <button class="order-tab-btn active" data-filter="all">Todos</button>
+          <button class="order-tab-btn" data-filter="novo">🟡 Novos</button>
+          <button class="order-tab-btn" data-filter="preparo">🟠 Em Preparo</button>
+          <button class="order-tab-btn" data-filter="entrega">🔵 Saiu p/ Entrega</button>
+          <button class="order-tab-btn" data-filter="concluido">🟢 Concluídos</button>
+          <button class="order-tab-btn" data-filter="cancelado">🔴 Cancelados</button>
+        </div>
+
+        <div id="orders-list">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- ======== 5. DELIVERY & PICKUP ======== -->
+      <div class="admin-section" id="section-delivery">
+        <div class="admin-page-header">
+          <div>
+            <h1>Entrega & Retirada</h1>
+            <p>Defina taxas de frete, tempo de entrega e opções de retirada no local</p>
+          </div>
+          <button class="btn btn-primary" id="btn-save-delivery">💾 Salvar Configurações</button>
+        </div>
+
+        <div class="admin-card" style="margin-bottom:var(--space-xl);">
+          <div class="admin-card-header">
+            <h3>🛵 Entrega em Domicílio (Delivery)</h3>
+            <label class="toggle-switch">
+              <input type="checkbox" id="delivery-enabled-toggle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="admin-card-body" id="delivery-settings-body">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-lg);">
+              <div class="form-group">
+                <label for="delivery-fee-input">Taxa Padrão de Entrega (R$)</label>
+                <input type="number" id="delivery-fee-input" class="form-control" step="0.50" min="0" placeholder="10.00">
+                <small style="color:var(--text-muted)">Cobrada no checkout para entregas a domicílio</small>
+              </div>
+              <div class="form-group">
+                <label for="delivery-free-threshold">Frete Grátis a partir de (R$)</label>
+                <input type="number" id="delivery-free-threshold" class="form-control" step="1.00" min="0" placeholder="120.00">
+                <small style="color:var(--text-muted)">Informe 0 para não oferecer frete grátis</small>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="delivery-time-estimate">Estimativa de Tempo de Entrega</label>
+              <input type="text" id="delivery-time-estimate" class="form-control" placeholder="Ex: 40 a 60 min ou Encomenda com 24h de antecedência">
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3>🏬 Retirada no Local (Balcão)</h3>
+            <label class="toggle-switch">
+              <input type="checkbox" id="pickup-enabled-toggle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="admin-card-body" id="pickup-settings-body">
+            <div class="form-group">
+              <label for="pickup-address-input">Endereço da Loja para Retirada</label>
+              <input type="text" id="pickup-address-input" class="form-control" placeholder="Ex: Rua das Flores, 123 - Centro">
+              <small style="color:var(--text-muted)">Endereço exibido aos clientes que optarem por retirar na loja</small>
+            </div>
+            <div class="form-group">
+              <label for="pickup-estimate-input">Tempo Estimado para Retirada</label>
+              <input type="text" id="pickup-estimate-input" class="form-control" placeholder="Ex: Pronto em 30 min após confirmação">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======== 6. PAYMENTS & PIX ======== -->
+      <div class="admin-section" id="section-payments">
+        <div class="admin-page-header">
+          <div>
+            <h1>Formas de Pagamento & Chave Pix</h1>
+            <p>Ative formas aceitas e configure sua chave Pix com cópia automática</p>
+          </div>
+          <button class="btn btn-primary" id="btn-save-payments">💾 Salvar Alterações</button>
+        </div>
+
+        <div class="admin-card" style="margin-bottom:var(--space-xl);">
+          <div class="admin-card-header">
+            <h3>💳 Métodos de Pagamento Disponíveis</h3>
+          </div>
+          <div class="admin-card-body">
+            <div class="payment-methods-grid" id="payment-methods-grid">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3>📱 Configuração do Pix (Exibição no Checkout)</h3>
+          </div>
+          <div class="admin-card-body">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-lg);">
+              <div class="form-group">
+                <label for="pix-type-input">Tipo da Chave Pix</label>
+                <select id="pix-type-input" class="form-control">
+                  <option value="Celular">Celular / WhatsApp</option>
+                  <option value="CPF">CPF</option>
+                  <option value="CNPJ">CNPJ</option>
+                  <option value="E-mail">E-mail</option>
+                  <option value="Chave Aleatória">Chave Aleatória (EVP)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="pix-key-setting">Chave Pix</label>
+                <input type="text" id="pix-key-setting" class="form-control" placeholder="Digite sua chave Pix">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="pix-receiver-setting">Nome do Titular da Conta (Recebedor)</label>
+              <input type="text" id="pix-receiver-setting" class="form-control" placeholder="Ex: Maria Bolos Artesanais / Confeitaria Ltda">
+            </div>
+            <div class="form-group">
+              <label for="pix-instructions-setting">Instruções aos Clientes</label>
+              <textarea id="pix-instructions-setting" class="form-control" rows="2" placeholder="Ex: Realize a transferência e envie o comprovante no WhatsApp"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======== 7. SCHEDULE & STORE STATUS ======== -->
+      <div class="admin-section" id="section-schedule">
+        <div class="admin-page-header">
+          <div>
+            <h1>Horários de Funcionamento & Fechamentos</h1>
+            <p>Controle abertura, fechamento por dia, feriados e períodos de férias</p>
+          </div>
+        </div>
+
+        <!-- Master Store Message -->
+        <div class="admin-card" style="margin-bottom:var(--space-xl);">
+          <div class="admin-card-header">
+            <h3>🔒 Mensagem Personalizada Quando a Loja Estiver Fechada</h3>
+            <button class="btn btn-primary btn-sm" id="btn-save-closed-msg">💾 Salvar Mensagem</button>
+          </div>
+          <div class="admin-card-body">
+            <div class="form-group" style="margin-bottom:0;">
+              <textarea id="closed-custom-message" class="form-control" rows="2" placeholder="Ex: Estamos fechados preparando novidades! Voltamos amanhã às 08h."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card" style="margin-bottom:var(--space-xl);">
+          <div class="admin-card-header">
+            <h3>🕐 Horários Semanais de Atendimento</h3>
+            <button class="btn btn-primary btn-sm" id="btn-save-hours">💾 Salvar Horários</button>
+          </div>
+          <div class="admin-card-body">
+            <div class="hours-grid" id="hours-grid">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3>📅 Feriados, Recessos & Férias Programadas</h3>
+            <button class="btn btn-primary btn-sm" id="btn-add-closure">➕ Agendar Fechamento</button>
+          </div>
+          <div class="admin-card-body">
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:var(--space-md);">
+              Bloqueia pedidos automaticamente nas datas ou períodos agendados.
+            </p>
+            <div class="closures-list" id="closures-list">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======== 8. VISUAL & TEXTS (ALL SITE CUSTOMIZATION) ======== -->
+      <div class="admin-section" id="section-visual">
+        <div class="admin-page-header">
+          <div>
+            <h1>Personalização Visual & Textos do Site</h1>
+            <p>Altere nome, slogan, cores, banner de aviso, hero e seção sobre</p>
+          </div>
+          <button class="btn btn-primary" id="btn-save-all-visual">💾 Salvar Todas as Alterações</button>
+        </div>
+
+        <!-- Theme Color & Branding -->
+        <div class="admin-card" style="margin-bottom:var(--space-xl);">
+          <div class="admin-card-header">
+            <h3>🎨 Identidade Visual & Cores</h3>
+          </div>
+          <div class="admin-card-body">
+            <div class="form-group">
+              <label>Cor Principal do Site</label>
+              <div class="color-palette-picker">
+                <button type="button" class="color-swatch" data-color="#8B5E3C" style="background:#8B5E3C;" title="Caramelo Confeitaria"></button>
+                <button type="button" class="color-swatch" data-color="#D4849A" style="background:#D4849A;" title="Rosa Doce"></button>
+                <button type="button" class="color-swatch" data-color="#5C3A25" style="background:#5C3A25;" title="Chocolate Belga"></button>
+                <button type="button" class="color-swatch" data-color="#B71C1C" style="background:#B71C1C;" title="Frutas Vermelhas"></button>
+                <button type="button" class="color-swatch" data-color="#C29236" style="background:#C29236;" title="Dourado Imperial"></button>
+                <div style="display:flex; align-items:center; gap:8px; margin-left:12px;">
+                  <input type="color" id="theme-color-custom" value="#8B5E3C" style="width:40px; height:40px; border:none; border-radius:8px; cursor:pointer;">
+                  <span style="font-size:0.85rem; color:var(--text-muted);">Cor personalizada</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-lg);">
+              <div class="form-group">
+                <label for="visual-store-name">Nome da Loja</label>
+                <input type="text" id="visual-store-name" class="form-control" placeholder="Dolce Arte">
+              </div>
+              <div class="form-group">
+                <label for="visual-store-tagline">Slogan / Subtítulo</label>
+                <input type="text" id="visual-store-tagline" class="form-control" placeholder="Bolos Artesanais">
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-lg);">
+              <div class="form-group">
+                <label for="visual-logo-emoji">Ícone / Emoji da Logo</label>
+                <input type="text" id="visual-logo-emoji" class="form-control" placeholder="🎂">
+              </div>
+              <div class="form-group">
+                <label for="visual-logo-url">Ou Link da Imagem do Logo (Opcional)</label>
+                <input type="text" id="visual-logo-url" class="form-control" placeholder="https://exemplo.com/logo.png">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Announcement Top Bar -->
+        <div class="admin-card" style="margin-bottom:var(--space-xl);">
+          <div class="admin-card-header">
+            <h3>📢 Barra de Aviso no Topo do Site</h3>
+            <label class="toggle-switch">
+              <input type="checkbox" id="announcement-active-toggle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="admin-card-body">
+            <div class="form-group" style="margin-bottom:0;">
+              <label for="announcement-text-input">Texto do Aviso / Promoção</label>
+              <input type="text" id="announcement-text-input" class="form-control" placeholder="Ex: 🎉 Encomendas abertas com frete grátis acima de R$ 120!">
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Section -->
+        <div class="admin-card" style="margin-bottom:var(--space-xl);">
+          <div class="admin-card-header">
+            <h3>✨ Seção Principal (Hero Banner)</h3>
+          </div>
+          <div class="admin-card-body">
+            <div style="display:grid; grid-template-columns:1fr 3fr; gap:var(--space-md);">
+              <div class="form-group">
+                <label for="hero-emoji-input">Emoji de Destaque</label>
+                <input type="text" id="hero-emoji-input" class="form-control" placeholder="🎂">
+              </div>
+              <div class="form-group">
+                <label for="hero-title-input">Título Principal</label>
+                <input type="text" id="hero-title-input" class="form-control" placeholder="Bolos Artesanais Feitos com Amor">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="hero-subtitle-input">Texto Descritivo do Banner</label>
+              <textarea id="hero-subtitle-input" class="form-control" rows="2" placeholder="Cada bolo é uma obra de arte..."></textarea>
+            </div>
+            <div class="form-group">
+              <label for="hero-cta-input">Texto do Botão de Ação</label>
+              <input type="text" id="hero-cta-input" class="form-control" placeholder="✨ Ver Cardápio">
+            </div>
+          </div>
+        </div>
+
+        <!-- About Us Section -->
+        <div class="admin-card" style="margin-bottom:var(--space-xl);">
+          <div class="admin-card-header">
+            <h3>👩‍🍳 Seção "Sobre Nós / História"</h3>
+            <label class="toggle-switch">
+              <input type="checkbox" id="about-active-toggle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="admin-card-body">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-lg);">
+              <div class="form-group">
+                <label for="about-title-input">Título da Seção</label>
+                <input type="text" id="about-title-input" class="form-control" placeholder="Nossa Paixão por Bolos Artesanais">
+              </div>
+              <div class="form-group">
+                <label for="about-subtitle-input">Subtítulo / Tag</label>
+                <input type="text" id="about-subtitle-input" class="form-control" placeholder="Confeitaria Afetiva">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="about-text-input">História / Apresentação</label>
+              <textarea id="about-text-input" class="form-control" rows="3" placeholder="Conte a história da sua confeitaria..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact & Footer info -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3>📍 Contatos, Redes & Rodapé</h3>
+          </div>
+          <div class="admin-card-body">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-lg);">
+              <div class="form-group">
+                <label for="contact-whatsapp-input">WhatsApp de Recebimento de Pedidos</label>
+                <input type="text" id="contact-whatsapp-input" class="form-control" placeholder="5511999999999">
+                <small style="color:var(--text-muted)">Com código do país (ex: 5511...)</small>
+              </div>
+              <div class="form-group">
+                <label for="contact-phone-input">Telefone Exibido no Site</label>
+                <input type="text" id="contact-phone-input" class="form-control" placeholder="(11) 99999-9999">
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-lg);">
+              <div class="form-group">
+                <label for="contact-instagram-input">Instagram</label>
+                <input type="text" id="contact-instagram-input" class="form-control" placeholder="@dolcearte.bolos">
+              </div>
+              <div class="form-group">
+                <label for="contact-address-input">Endereço Exibido no Rodapé</label>
+                <input type="text" id="contact-address-input" class="form-control" placeholder="Rua das Flores, 123 - Centro">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="footer-copyright-input">Texto de Direitos Autorais</label>
+              <input type="text" id="footer-copyright-input" class="form-control" placeholder="© 2026 Dolce Arte. Todos os direitos reservados.">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======== 9. SECURITY & BACKUP ======== -->
+      <div class="admin-section" id="section-security">
+        <div class="admin-page-header">
+          <div>
+            <h1>Segurança & Backup</h1>
+            <p>Gerencie a senha de acesso e faça cópias de segurança do site</p>
+          </div>
+        </div>
+
+        <div class="admin-card" style="margin-bottom:var(--space-xl);">
+          <div class="admin-card-header">
+            <h3>🔑 Senha de Acesso ao Painel Admin</h3>
+          </div>
+          <div class="admin-card-body">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-lg);">
+              <div class="form-group">
+                <label for="settings-password">Nova Senha</label>
+                <input type="password" id="settings-password" class="form-control" placeholder="Digite a nova senha">
+              </div>
+              <div class="form-group">
+                <label for="settings-password-confirm">Confirmar Nova Senha</label>
+                <input type="password" id="settings-password-confirm" class="form-control" placeholder="Repita a nova senha">
+              </div>
+            </div>
+            <button class="btn btn-primary" id="btn-save-password">💾 Atualizar Senha</button>
+          </div>
+        </div>
+
+        <div class="admin-card" style="margin-bottom:var(--space-xl);">
+          <div class="admin-card-header">
+            <h3>📦 Backup e Restauração dos Dados</h3>
+          </div>
+          <div class="admin-card-body">
+            <p style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:var(--space-md);">
+              Exporte todos os produtos, pedidos, configurações e horários em um arquivo JSON para salvar em seu computador, ou importe um backup anterior.
+            </p>
+            <div style="display:flex; gap:var(--space-md); flex-wrap:wrap;">
+              <button class="btn btn-secondary" id="btn-export-backup">
+                📥 Baixar Arquivo de Backup (.json)
+              </button>
+              <button class="btn btn-secondary" id="btn-trigger-import">
+                📤 Restaurar Backup (.json)
+              </button>
+              <input type="file" id="backup-file-input" accept=".json" style="display:none;">
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card" style="border:1px solid rgba(229, 57, 53, 0.3);">
+          <div class="admin-card-header" style="background:var(--danger-bg);">
+            <h3 style="color:var(--danger);">⚠️ Restaurar Dados de Demonstração</h3>
+          </div>
+          <div class="admin-card-body">
+            <p style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:var(--space-md);">
+              Restaura a loja para as configurações iniciais de fábrica com os bolos originais e limpa os pedidos de teste.
+            </p>
+            <button class="btn btn-danger" id="btn-reset-demo">
+              🔄 Restaurar Padrões de Fábrica
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Product Modal (Create/Edit) -->
+  <div class="admin-modal" id="product-modal">
+    <div class="admin-modal-content">
+      <div class="modal-header">
+        <h3 id="product-modal-title">Novo Produto</h3>
+        <button class="btn-close-modal" id="btn-close-product-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="product-form">
+          <input type="hidden" id="product-id">
+
+          <div class="form-group">
+            <label>Foto do Bolo</label>
+            <div class="image-upload-area" id="product-image-upload">
+              <div class="upload-placeholder" id="upload-placeholder">
+                <div class="upload-icon">📸</div>
+                <p>Clique para enviar uma foto do seu computador</p>
+                <p style="font-size:0.8rem; color:var(--text-muted)">JPG, PNG ou WEBP</p>
+              </div>
+              <img id="product-image-preview" src="" alt="" style="display:none;">
+            </div>
+            <input type="file" id="product-image-input" accept="image/*" style="display:none;">
+            <div style="margin-top:8px;">
+              <input type="text" id="product-image-url-input" class="form-control" placeholder="Ou cole aqui o link da imagem (URL)">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="product-name">Nome do Bolo <span class="required">*</span></label>
+            <input type="text" id="product-name" class="form-control" placeholder="Ex: Bolo de Chocolate Trufado" required>
+          </div>
+
+          <div class="form-group">
+            <label for="product-description">Descrição Detalhada</label>
+            <textarea id="product-description" class="form-control" rows="3" placeholder="Descreva os recheios, massa, cobertura e decorações..."></textarea>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-md);">
+            <div class="form-group">
+              <label for="product-price">Preço Normal (R$) <span class="required">*</span></label>
+              <input type="number" id="product-price" class="form-control" placeholder="89.90" step="0.01" min="0" required>
+            </div>
+            <div class="form-group">
+              <label for="product-category">Categoria <span class="required">*</span></label>
+              <select id="product-category" class="form-control" required>
+                <!-- Populated by JS -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="product-badge">Selo / Tag de Destaque (Opcional)</label>
+            <input type="text" id="product-badge" class="form-control" placeholder="Ex: Mais Vendido, Novidade, Receita de Família...">
+          </div>
+
+          <div style="display:flex; gap:var(--space-xl); margin-bottom:var(--space-md); flex-wrap:wrap;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+              <label class="toggle-switch">
+                <input type="checkbox" id="product-active" checked>
+                <span class="toggle-slider"></span>
+              </label>
+              Ativo no Cardápio
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+              <label class="toggle-switch">
+                <input type="checkbox" id="product-in-stock" checked>
+                <span class="toggle-slider"></span>
+              </label>
+              Em Estoque (Disponível)
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+              <label class="toggle-switch">
+                <input type="checkbox" id="product-promo-active">
+                <span class="toggle-slider"></span>
+              </label>
+              Ativar Desconto / Promoção
+            </label>
+          </div>
+
+          <div class="promo-fields hidden" id="promo-fields">
+            <div class="form-group" style="margin-bottom:0">
+              <label for="product-promo-discount">Desconto (%)</label>
+              <input type="number" id="product-promo-discount" class="form-control" placeholder="15" min="1" max="99" step="1">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label>Preço Promocional Final</label>
+              <div id="promo-preview" style="font-size:1.15rem; font-weight:700; color:var(--promo); padding:10px 0;">
+                --
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:var(--space-sm); justify-content:flex-end; margin-top:var(--space-lg);">
+            <button type="button" class="btn btn-secondary" id="btn-cancel-product">Cancelar</button>
+            <button type="submit" class="btn btn-primary">💾 Salvar Produto</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Modal (Create/Edit) -->
+  <div class="admin-modal" id="category-modal">
+    <div class="admin-modal-content" style="max-width:440px;">
+      <div class="modal-header">
+        <h3 id="category-modal-title">Nova Categoria</h3>
+        <button class="btn-close-modal" id="btn-close-category-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="category-form">
+          <input type="hidden" id="category-id">
+          <div class="form-group">
+            <label for="category-name-input">Nome da Categoria <span class="required">*</span></label>
+            <input type="text" id="category-name-input" class="form-control" placeholder="Ex: Especiais, Bolos de Pote..." required>
+          </div>
+          <div class="form-group">
+            <label for="category-icon-input">Emoji / Ícone</label>
+            <input type="text" id="category-icon-input" class="form-control" placeholder="Ex: 🍰 ou 🍫 ou ⭐" value="🎂">
+          </div>
+          <div style="display:flex; gap:var(--space-sm); justify-content:flex-end; margin-top:var(--space-lg);">
+            <button type="button" class="btn btn-secondary" id="btn-cancel-category">Cancelar</button>
+            <button type="submit" class="btn btn-primary">💾 Salvar Categoria</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Closure Modal -->
+  <div class="admin-modal" id="closure-modal">
+    <div class="admin-modal-content">
+      <div class="modal-header">
+        <h3>📅 Agendar Fechamento</h3>
+        <button class="btn-close-modal" id="btn-close-closure-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="closure-form">
+          <div class="form-group">
+            <label for="closure-type">Tipo de Fechamento</label>
+            <select id="closure-type" class="form-control">
+              <option value="date">Data Específica (1 dia)</option>
+              <option value="range">Período / Recesso / Férias (Intervalo de datas)</option>
+            </select>
+          </div>
+
+          <div id="closure-date-fields">
+            <div class="form-group">
+              <label for="closure-date">Data</label>
+              <input type="date" id="closure-date" class="form-control">
+            </div>
+          </div>
+
+          <div id="closure-range-fields" class="hidden">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-md);">
+              <div class="form-group">
+                <label for="closure-start">Data de Início</label>
+                <input type="date" id="closure-start" class="form-control">
+              </div>
+              <div class="form-group">
+                <label for="closure-end">Data de Fim</label>
+                <input type="date" id="closure-end" class="form-control">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="closure-reason">Motivo do Fechamento</label>
+            <input type="text" id="closure-reason" class="form-control" placeholder="Ex: Feriado de Natal, Férias Coletivas...">
+          </div>
+
+          <div style="display:flex; gap:var(--space-sm); justify-content:flex-end; margin-top:var(--space-lg);">
+            <button type="button" class="btn btn-secondary" id="btn-cancel-closure">Cancelar</button>
+            <button type="submit" class="btn btn-primary">💾 Salvar Fechamento</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login Modal (Protected Access) -->
+  <div class="modal-overlay active" id="login-modal">
+    <div class="modal" style="max-width:400px;">
+      <div class="modal-header">
+        <h3>🔐 Acesso Administrativo</h3>
+      </div>
+      <div class="modal-body">
+        <form id="login-form">
+          <p style="font-size:0.88rem; color:var(--text-secondary); margin-bottom:var(--space-md);">
+            Área restrita ao proprietário da confeitaria.
+          </p>
+          <div class="form-group">
+            <label for="login-password">Senha de Administrador</label>
+            <input type="password" id="login-password" class="form-control" placeholder="Digite sua senha" required autofocus>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">Entrar no Painel</button>
+          <p style="text-align:center; margin-top:var(--space-md); font-size:0.82rem; color:var(--text-muted);">
+            Senha padrão inicial: <strong>admin123</strong>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
