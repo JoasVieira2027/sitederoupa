@@ -180,6 +180,30 @@
     async getCurrentUser() {
       const session = await this.getSession();
       return session ? session.user : null;
+    },
+
+    /**
+     * Upload image to Supabase Storage bucket
+     */
+    async uploadImage(file, bucket = 'products') {
+      const client = await this.init();
+      if (!client) throw new Error('Supabase não está conectado.');
+      
+      const fileExt = file.name.split('.').pop() || 'jpg';
+      const cleanFileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+      const filePath = cleanFileName;
+
+      const { data, error } = await client.storage
+        .from(bucket)
+        .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+      if (error) throw error;
+
+      const { data: urlData } = client.storage
+        .from(bucket)
+        .getPublicUrl(filePath);
+
+      return urlData.publicUrl;
     }
   };
 

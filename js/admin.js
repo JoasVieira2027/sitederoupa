@@ -350,6 +350,26 @@
       const file = e.target.files[0];
       if (file) {
         try {
+          // Exibir prévia local imediata
+          const localPreview = URL.createObjectURL(file);
+          showProductImagePreview(localPreview);
+
+          // Tentar upload direto no bucket de Storage do Supabase
+          if (window.SupabaseService && window.SupabaseService.isConfigured()) {
+            Utils.showToast('Enviando imagem para o Supabase Storage...', 'info');
+            try {
+              const uploadedUrl = await window.SupabaseService.uploadImage(file, 'products');
+              productImageData = uploadedUrl;
+              if (imageUrlInput) imageUrlInput.value = uploadedUrl;
+              showProductImagePreview(uploadedUrl);
+              Utils.showToast('Foto salva no Supabase Storage com sucesso!', 'success');
+              return;
+            } catch (storageErr) {
+              console.warn('[Storage] Upload para bucket falhou, usando fallback Base64:', storageErr);
+            }
+          }
+
+          // Fallback para Base64 se Storage não estiver configurado
           productImageData = await Utils.fileToBase64(file);
           showProductImagePreview(productImageData);
           if (imageUrlInput) imageUrlInput.value = '';
