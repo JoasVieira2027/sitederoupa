@@ -55,6 +55,14 @@
   const btnCloseCart = $('#btn-close-cart');
   const btnCheckout = $('#btn-checkout');
 
+  // Mobile Floating Cart Bar
+  const mobileCartBar = $('#mobile-cart-bar');
+  const mobileCartInfo = $('#mobile-cart-info');
+  const mobileCartBadge = $('#mobile-cart-badge');
+  const mobileCartCount = $('#mobile-cart-count');
+  const mobileCartTotal = $('#mobile-cart-total');
+  const btnMobileCheckout = $('#btn-mobile-checkout');
+
   // Checkout
   const checkoutModal = $('#checkout-modal');
   const checkoutSummary = $('#checkout-items');
@@ -498,6 +506,20 @@
       renderCartItems(items);
       cartTotalEl.textContent = Utils.formatCurrency(subtotal);
     }
+
+    // Update Mobile Floating Cart Bar
+    if (mobileCartBar) {
+      if (count > 0) {
+        mobileCartBar.classList.remove('hidden');
+        if (mobileCartBadge) mobileCartBadge.textContent = count;
+        if (mobileCartCount) mobileCartCount.textContent = `${count} ${count === 1 ? 'item' : 'itens'}`;
+        if (mobileCartTotal) mobileCartTotal.textContent = Utils.formatCurrency(subtotal);
+        document.body.classList.add('has-mobile-cart-bar');
+      } else {
+        mobileCartBar.classList.add('hidden');
+        document.body.classList.remove('has-mobile-cart-bar');
+      }
+    }
   }
 
   function renderCartItems(items) {
@@ -560,12 +582,14 @@
     cartSidebar.classList.add('active');
     cartOverlay.classList.add('active');
     document.body.style.overflow = 'hidden';
+    if (mobileCartBar) mobileCartBar.classList.add('cart-open');
   }
 
   function closeCart() {
     cartSidebar.classList.remove('active');
     cartOverlay.classList.remove('active');
     document.body.style.overflow = '';
+    if (mobileCartBar) mobileCartBar.classList.remove('cart-open');
   }
 
   // ===== CHECKOUT & DELIVERY LOGIC =====
@@ -761,11 +785,13 @@
     // Show modal
     checkoutModal.classList.add('active');
     document.body.style.overflow = 'hidden';
+    if (mobileCartBar) mobileCartBar.classList.add('cart-open');
   }
 
   function closeCheckout() {
     checkoutModal.classList.remove('active');
     document.body.style.overflow = '';
+    if (mobileCartBar) mobileCartBar.classList.remove('cart-open');
   }
 
   async function handleCheckoutSubmit(e) {
@@ -904,6 +930,17 @@
     btnOpenCart.addEventListener('click', openCart);
     btnCloseCart.addEventListener('click', closeCart);
     cartOverlay.addEventListener('click', closeCart);
+
+    // Mobile Floating Cart Bar
+    if (mobileCartInfo) {
+      mobileCartInfo.addEventListener('click', openCart);
+    }
+    if (btnMobileCheckout) {
+      btnMobileCheckout.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openCart();
+      });
+    }
 
     // Checkout open/close
     btnCheckout.addEventListener('click', openCheckout);
