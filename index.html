@@ -1,15 +1,20 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Carla Silva Buffet - Buffet infantil completo, bolos artesanais por quilo, kits festa, doces gourmet e salgados de forno. Encomende online!">
-  <meta name="keywords" content="buffet infantil, bolos, bolos artesanais, kits festa, doces gourmet, salgados, carla silva buffet">
+  <meta name="description"
+    content="Carla Silva Buffet - Buffet infantil completo, bolos artesanais por quilo, kits festa, doces gourmet e salgados de forno. Encomende online!">
+  <meta name="keywords"
+    content="buffet infantil, bolos, bolos artesanais, kits festa, doces gourmet, salgados, carla silva buffet">
   <meta name="theme-color" content="#D81B60">
   <title id="site-title">Carla Silva Buffet | Buffet Infantil, Bolos & Doces</title>
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧁</text></svg>">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧁</text></svg>">
 </head>
+
 <body>
 
   <!-- Toast Notification Container -->
@@ -60,7 +65,8 @@
     <div class="hero-content">
       <div class="hero-emoji" id="hero-emoji">🎂</div>
       <h1 id="hero-title">Bolos Artesanais Feitos com Amor</h1>
-      <p id="hero-subtitle">Cada bolo é uma obra de arte, preparado com ingredientes selecionados e muito carinho. Descubra sabores que vão encantar seu paladar.</p>
+      <p id="hero-subtitle">Cada bolo é uma obra de arte, preparado com ingredientes selecionados e muito carinho.
+        Descubra sabores que vão encantar seu paladar.</p>
       <a href="#products" class="hero-cta" id="hero-cta">
         ✨ Ver Cardápio
       </a>
@@ -96,7 +102,8 @@
       <div class="about-header">
         <span class="about-tagline" id="about-tagline">Nossa História</span>
         <h2 id="about-title">Nossa Paixão por Confeitaria Artesanal</h2>
-        <p id="about-text">Acreditamos que todo momento especial merece ser celebrado com um bolo único e inesquecível.</p>
+        <p id="about-text">Acreditamos que todo momento especial merece ser celebrado com um bolo único e inesquecível.
+        </p>
       </div>
       <div class="about-features" id="about-features">
         <!-- Populated by JS -->
@@ -161,10 +168,11 @@
         <button class="btn-close-modal" id="btn-close-checkout" aria-label="Fechar">✕</button>
       </div>
       <div class="modal-body">
-        
+
         <!-- Delivery Type Selection (Entrega vs Retirada) -->
         <div class="delivery-tabs-container">
-          <label style="font-size:0.88rem; font-weight:600; margin-bottom:6px; display:block;">Como deseja receber seu pedido?</label>
+          <label style="font-size:0.88rem; font-weight:600; margin-bottom:6px; display:block;">Como deseja receber seu
+            pedido?</label>
           <div class="delivery-tabs">
             <button type="button" class="delivery-tab-btn active" id="tab-delivery" data-type="delivery">
               <span class="tab-icon">🛵</span>
@@ -218,7 +226,8 @@
           <!-- Delivery Address Field (Hidden when Pickup selected) -->
           <div class="form-group" id="group-delivery-address">
             <label for="customer-address">Endereço Completo de Entrega <span class="required">*</span></label>
-            <input type="text" id="customer-address" class="form-control" placeholder="Rua, número, bairro, complemento" required>
+            <input type="text" id="customer-address" class="form-control" placeholder="Rua, número, bairro, complemento"
+              required>
           </div>
 
           <!-- Pickup Info Box (Shown when Pickup selected) -->
@@ -233,7 +242,8 @@
 
           <div class="form-group">
             <label for="customer-obs">Observações / Recado Especial</label>
-            <textarea id="customer-obs" class="form-control" rows="2" placeholder="Alguma preferência? Ex: Velinha de aniversário, recado para presente, horário..."></textarea>
+            <textarea id="customer-obs" class="form-control" rows="2"
+              placeholder="Alguma preferência? Ex: Velinha de aniversário, recado para presente, horário..."></textarea>
           </div>
 
           <!-- Payment Options -->
@@ -257,20 +267,23 @@
             <div class="pix-receiver-row">
               <span>Titular: <strong id="pix-receiver-name">Dolce Arte</strong></span>
             </div>
-            <p class="pix-instructions-text" id="pix-instructions-text">Transfira o valor do pedido e anexe o comprovante na conversa do WhatsApp para agilizarmos a produção.</p>
+            <p class="pix-instructions-text" id="pix-instructions-text">Transfira o valor do pedido e anexe o
+              comprovante na conversa do WhatsApp para agilizarmos a produção.</p>
           </div>
 
           <!-- Cash Change Field (shown when Dinheiro selected) -->
           <div class="cash-change-box hidden" id="cash-change-box">
             <div class="form-group" style="margin-bottom:0">
               <label for="customer-troco">Precisa de troco para quanto? (opcional)</label>
-              <input type="text" id="customer-troco" class="form-control" placeholder="Ex: Para R$ 100,00 ou Não preciso de troco">
+              <input type="text" id="customer-troco" class="form-control"
+                placeholder="Ex: Para R$ 100,00 ou Não preciso de troco">
             </div>
           </div>
 
           <button type="submit" class="btn-whatsapp" id="btn-send-whatsapp">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              <path
+                d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
             </svg>
             Enviar Pedido pelo WhatsApp
           </button>
@@ -303,7 +316,8 @@
             <span class="stock-dot"></span> Em estoque
           </div>
           <div class="product-modal-desc-section">
-            <h4 style="margin:0 0 8px 0; font-size:0.95rem; color:var(--text-primary); font-weight:700;">Detalhes do Produto:</h4>
+            <h4 style="margin:0 0 8px 0; font-size:0.95rem; color:var(--text-primary); font-weight:700;">Detalhes do
+              Produto:</h4>
             <div id="modal-product-description" class="product-modal-full-desc"></div>
           </div>
           <div class="product-modal-actions">
@@ -326,14 +340,14 @@
     <div class="footer-content">
       <div class="footer-brand" id="footer-brand">🧁 Carla Silva Buffet</div>
       <p class="footer-text" id="footer-tagline">Buffet Infantil, Bolos decorados por quilo, kits festa e salgados</p>
-      
+
       <div class="footer-info-grid">
         <div class="footer-info-item" id="footer-address-item">
-          <span>📍</span>
+          <span> </span>
           <span id="footer-address">Carla Silva Buffet & Confeitaria</span>
         </div>
         <div class="footer-info-item" id="footer-phone-item">
-          <span>📞</span>
+          <span> </span>
           <span id="footer-phone">(81) 99872-3560</span>
         </div>
       </div>
@@ -355,4 +369,5 @@
   <script src="js/data.js"></script>
   <script src="js/store.js"></script>
 </body>
+
 </html>
