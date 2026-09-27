@@ -52,24 +52,24 @@ END $$;
 -- 4. TABLE: SETTINGS (Single-row configuration)
 CREATE TABLE IF NOT EXISTS public.settings (
     id TEXT PRIMARY KEY DEFAULT 'main',
-    store_name TEXT DEFAULT 'Dolce Arte',
-    store_tagline TEXT DEFAULT 'Bolos Artesanais Feitos com Amor',
-    store_logo_emoji TEXT DEFAULT '🎂',
+    store_name TEXT DEFAULT 'Carla Silva Buffet',
+    store_tagline TEXT DEFAULT 'Buffet Infantil, Bolos & Doces Artesanais',
+    store_logo_emoji TEXT DEFAULT '🧁',
     store_logo_image TEXT DEFAULT '',
-    theme_color TEXT DEFAULT '#8B5E3C',
-    announcement_bar JSONB DEFAULT '{"active": true, "text": "🎉 Encomendas abertas! Ingredientes 100% nobres e artesanais. Faça seu pedido!"}'::jsonb,
-    hero JSONB DEFAULT '{"emoji": "🎂", "title": "Bolos Artesanais Feitos com Amor", "subtitle": "Cada bolo é uma obra de arte, preparado com ingredientes selecionados e muito carinho. Descubra sabores que vão encantar seu paladar.", "ctaText": "✨ Ver Cardápio"}'::jsonb,
-    about JSONB DEFAULT '{"active": true, "title": "Nossa Paixão por Confeitaria Artesanal", "subtitle": "Doces memórias e sabores inesquecíveis", "text": "Na Dolce Arte, acreditamos que todo momento especial merece ser celebrado com um bolo único. Cada receita nasce do amor pela confeitaria tradicional, combinada com técnicas modernas e ingredientes nobres como chocolates belgas, baunilhas puras e frutas frescas selecionadas diariamente.", "features": [{"desc": "Produção fresca e sem conservantes artificiais", "icon": "🌿", "title": "100% Artesanal"}, {"desc": "Chocolates belgas e matéria-prima selecionada", "icon": "🍫", "title": "Ingredientes Nobres"}, {"desc": "Sabor caseiro com apresentação refinada", "icon": "👩‍🍳", "title": "Receitas Autorais"}, {"desc": "Seu bolo chega impecável e protegido", "icon": "🛵", "title": "Entrega Cuidadosa"}]}'::jsonb,
-    delivery JSONB DEFAULT '{"deliveryEnabled": true, "deliveryFee": 10.00, "freeDeliveryThreshold": 120.00, "estimatedTime": "40 a 60 min", "pickupEnabled": true, "pickupAddress": "Rua das Flores, 123 - Centro (Confeitaria Dolce Arte)", "pickupEstimate": "Pronto em 30 min"}'::jsonb,
-    whatsapp_number TEXT DEFAULT '5511999999999',
-    contact_phone TEXT DEFAULT '(11) 99999-9999',
-    instagram TEXT DEFAULT '@dolcearte.bolos',
-    address TEXT DEFAULT 'Rua das Flores, 123 - São Paulo/SP',
-    footer_copyright TEXT DEFAULT '© 2026 Dolce Arte. Todos os direitos reservados.',
+    theme_color TEXT DEFAULT '#D81B60',
+    announcement_bar JSONB DEFAULT '{"active": true, "text": "🎉 Encomendas abertas! Bolos por kg, Kits Festa, Salgados, Doces Gourmet e Buffet Infantil Completo!"}'::jsonb,
+    hero JSONB DEFAULT '{"emoji": "🧁", "title": "Carla Silva Buffet & Confeitaria", "subtitle": "Tudo para sua festa ser inesquecível! Bolos confeitados por quilo, kits festa práticos, doces finos, salgados crocantes e buffet infantil completo.", "ctaText": "✨ Ver Cardápio & Encomendar"}'::jsonb,
+    about JSONB DEFAULT '{"active": true, "title": "Carla Silva Buffet", "subtitle": "Doces memórias e sabores inesquecíveis para o seu evento", "text": "No Carla Silva Buffet, cada comemoração é tratada como única e especial. Trabalhamos com ingredientes de primeira linha, bolos sob medida com massas e recheios generosos, kits festa prontinhos para celebrar, salgados crocantes fritos na hora ou assados de forno, e nosso serviço completo de Buffet Infantil com 3h de festa e equipe de apoio.", "features": [{"desc": "Estrutura completa com 3h de festa, fritura no local e apoio", "icon": "🎪", "title": "Buffet Infantil"}, {"desc": "Massas nobres e recheios generosos feitos sob medida", "icon": "🎂", "title": "Bolos por Quilo"}, {"desc": "Bolo confeitado, doces, salgados e topo de bolo inclusos", "icon": "🎉", "title": "Kits Festa Prontos"}, {"desc": "Doces gourmet com Nutella e salgados de forno especiais", "icon": "🥟", "title": "Doces & Salgados"}]}'::jsonb,
+    delivery JSONB DEFAULT '{"deliveryEnabled": true, "deliveryFee": 15.00, "freeDeliveryThreshold": 200.00, "estimatedTime": "Consulte data e horário", "pickupEnabled": true, "pickupAddress": "Retirada com horário agendado com a Carla Silva", "pickupEstimate": "Pronto na data agendada"}'::jsonb,
+    whatsapp_number TEXT DEFAULT '5581998723560',
+    contact_phone TEXT DEFAULT '(81) 99872-3560',
+    instagram TEXT DEFAULT '@Carlasilvacakes2',
+    address TEXT DEFAULT 'Carla Silva Buffet & Confeitaria - Atendimento e Encomendas',
+    footer_copyright TEXT DEFAULT '© 2026 Carla Silva Buffet. Todos os direitos reservados.',
     payment_methods JSONB DEFAULT '[{"active": true, "icon": "📱", "id": "pix", "name": "Pix"}, {"active": true, "icon": "💵", "id": "dinheiro", "name": "Dinheiro"}, {"active": true, "icon": "💳", "id": "credito", "name": "Cartão Crédito"}, {"active": true, "icon": "💳", "id": "debito", "name": "Cartão Débito"}, {"active": false, "icon": "🏦", "id": "transferencia", "name": "Transferência"}]'::jsonb,
-    pix_details JSONB DEFAULT '{"key": "(11) 99999-9999", "keyType": "Celular", "receiverName": "Dolce Arte Confeitaria Ltda", "instructions": "Transfira o valor do pedido e anexe o comprovante na conversa do WhatsApp para agilizarmos a produção."}'::jsonb,
+    pix_details JSONB DEFAULT '{"key": "(81) 99872-3560", "keyType": "Celular", "receiverName": "Carla Silva Buffet", "instructions": "Faça o Pix para a chave celular acima e envie o comprovante pelo WhatsApp (81) 99872-3560 para confirmar sua encomenda."}'::jsonb,
     store_open BOOLEAN DEFAULT true,
-    closed_custom_message TEXT DEFAULT 'Estamos fechados no momento. Nossos confeiteiros estão preparando novas delícias para você!',
+    closed_custom_message TEXT DEFAULT 'Estamos em horário de preparação de encomendas. Mande uma mensagem pelo WhatsApp para agendar sua data!',
     operating_hours JSONB DEFAULT '{"domingo": {"open": "00:00", "close": "00:00", "active": false}, "quarta": {"open": "08:00", "close": "18:00", "active": true}, "quinta": {"open": "08:00", "close": "18:00", "active": true}, "sabado": {"open": "09:00", "close": "14:00", "active": true}, "segunda": {"open": "08:00", "close": "18:00", "active": true}, "sexta": {"open": "08:00", "close": "18:00", "active": true}, "terca": {"open": "08:00", "close": "18:00", "active": true}}'::jsonb,
     closures JSONB DEFAULT '[]'::jsonb,
     updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
@@ -206,21 +206,29 @@ END $$;
 
 -- Insert Categories
 INSERT INTO public.categories (id, name, icon) VALUES
-    ('cat_choco', 'Chocolate', '🍫'),
-    ('cat_especial', 'Especial', '⭐'),
-    ('cat_tradicional', 'Tradicional', '🏠'),
-    ('cat_frutas', 'Frutas', '🍓'),
-    ('cat_festas', 'Festas', '🎉')
+    ('cat_buffet', 'Buffet', '🎪'),
+    ('cat_kits', 'Kits Festa', '🎉'),
+    ('cat_bolos', 'Bolos', '🎂'),
+    ('cat_doces', 'Doces', '🍬'),
+    ('cat_salgados', 'Salgados', '🥟')
 ON CONFLICT (id) DO NOTHING;
 
 -- Insert Default Products
 INSERT INTO public.products (id, name, description, price, image, category, badge, active, in_stock, promotion) VALUES
-    ('prod_001', 'Bolo de Chocolate Trufado', 'Irresistível bolo de chocolate com recheio de trufa e cobertura de ganache belga. Decorado com morangos frescos e raspas de chocolate.', 89.90, 'assets/images/cake_chocolate.jpg', 'Chocolate', 'Mais Vendido', true, true, '{"active": true, "discountPercent": 15}'::jsonb),
-    ('prod_002', 'Red Velvet Premium', 'Elegante bolo red velvet com cream cheese artesanal e cachos de chocolate branco. Perfeito para ocasiões especiais.', 95.00, 'assets/images/cake_red_velvet.jpg', 'Especial', 'Destaque', true, true, '{"active": false, "discountPercent": 0}'::jsonb),
-    ('prod_003', 'Bolo de Cenoura Gourmet', 'Tradicional bolo de cenoura com cobertura cremosa e nozes caramelizadas. Receita da vovó com toque gourmet.', 65.00, 'assets/images/cake_carrot.jpg', 'Tradicional', 'Receita de Família', true, true, '{"active": false, "discountPercent": 0}'::jsonb),
-    ('prod_004', 'Bolo de Limão Siciliano', 'Delicado bolo de limão siciliano com cobertura de merengue e flores comestíveis. Leveza e sofisticação em cada fatia.', 78.00, 'assets/images/cake_lemon.jpg', 'Especial', 'Refrescante', true, true, '{"active": true, "discountPercent": 10}'::jsonb),
-    ('prod_005', 'Bolo de Brigadeiro', 'Nosso clássico artesanal! Bolo de chocolate com recheio e cobertura de brigadeiro gourmet, decorado com brigadeiros enrolados à mão.', 85.00, 'assets/images/cake_brigadeiro.jpg', 'Chocolate', 'Favorito', true, true, '{"active": false, "discountPercent": 0}'::jsonb),
-    ('prod_006', 'Bolo de Coco Tropical', 'Bolo fofinho de coco com cobertura de coco ralado fresco e flores tropicais. Sabor que remete ao paraíso.', 72.00, 'assets/images/cake_coconut.jpg', 'Tradicional', 'Molhadinho', true, true, '{"active": false, "discountPercent": 0}'::jsonb)
+    ('prod_buffet_01', 'Buffet Infantil Completo (50 Convidados)', 'Buffet Infantil completo para 50 convidados (3h de festa). Inclui: Doces e salgados tradicionais, Doces Gourmet, Salgados de forno (Mini Pizza, Hambúrguer, Barquete, Mini lanches), Fritura no local, Refrigerantes, Água mineral, Suco da fruta, Descartáveis e 1 apoio de cozinha. Taxa de deslocamento a combinar.', 1499.00, 'assets/images/buffet_infantil.jpg', 'Buffet', 'Pacote 50 Pessoas', true, true, '{"active": false, "discountPercent": 0}'::jsonb),
+    ('prod_kit_01', 'Kit Festa 1 (1 kg Bolo + 20 Doces + 30 Salgados)', 'Ideal para comemorações íntimas. Inclui: 1 kg de bolo confeitado, 20 doces tradicionais, 30 salgados e Topo de bolo simples.', 120.00, 'assets/images/kit_festa.jpg', 'Kits Festa', 'Econômico', true, true, '{"active": false, "discountPercent": 0}'::jsonb),
+    ('prod_kit_02', 'Kit Festa 2 (1,5 kg Bolo + 30 Doces + 50 Salgados)', 'Perfeito para celebrar em família. Inclui: 1,5 kg de bolo confeitado, 30 doces tradicionais, 50 salgados e Topo de bolo simples.', 160.00, 'assets/images/kit_festa.jpg', 'Kits Festa', 'Mais Pedido', true, true, '{"active": false, "discountPercent": 0}'::jsonb),
+    ('prod_kit_03', 'Kit Festa 3 (2 kg Bolo + 50 Doces + 60 Salgados)', 'O preferido dos clientes! Inclui: 2 kg de bolo confeitado, 50 doces tradicionais, 60 salgados e Topo de bolo simples.', 199.90, 'assets/images/kit_festa.jpg', 'Kits Festa', 'Destaque', true, true, '{"active": false, "discountPercent": 0}'::jsonb),
+    ('prod_kit_04', 'Kit Festa 4 (3 kg Bolo + 80 Doces + 100 Salgados)', 'Festa completa com muita fartura! Inclui: 3 kg de bolo confeitado, 80 doces tradicionais, 100 salgados e Topo de bolo simples.', 299.00, 'assets/images/kit_festa.jpg', 'Kits Festa', 'Super Festa', true, true, '{"active": false, "discountPercent": 0}'::jsonb),
+    ('prod_bolo_1k', 'Bolo Decorado - 1 Kilo', 'Bolo confeitado artesanal (1 kg). Massas: Chocolate, Brigadeiro Branco, Baunilha ou Red Velvet. Recheios: Chocolate, Prestígio, Bem Casado, Ninho, Brigadeiro Branco ou Oreo.', 70.00, 'assets/images/bolo_decorado.jpg', 'Bolos', '1 kg', true, true, '{"active": false, "discountPercent": 0}'::jsonb),
+    ('prod_bolo_2k', 'Bolo Decorado - 2 Kilos', 'Bolo confeitado artesanal (2 kg - serve aprox. 20 fatias). Massas: Chocolate, Brigadeiro Branco, Baunilha ou Red Velvet. Recheios: Chocolate, Prestígio, Bem Casado, Ninho, Brigadeiro Branco ou Oreo.', 140.00, 'assets/images/bolo_decorado.jpg', 'Bolos', 'Mais Vendido', true, true, '{"active": false, "discountPercent": 0}'::jsonb),
+    ('prod_bolo_3k', 'Bolo Decorado - 3 Kilos', 'Bolo confeitado artesanal (3 kg - serve aprox. 30 fatias). Massas: Chocolate, Brigadeiro Branco, Baunilha ou Red Velvet. Recheios: Chocolate, Prestígio, Bem Casado, Ninho, Brigadeiro Branco ou Oreo.', 210.00, 'assets/images/bolo_decorado.jpg', 'Bolos', '3 kg', true, true, '{"active": false, "discountPercent": 0}'::jsonb),
+    ('prod_doce_trad_un', 'Doces Tradicionais (Unidade)', 'Docinho tradicional de festa (unidade). Sabores: Brigadeiro, Beijinho, Bem Casado, Moranguinho, Crespinho e Colorido.', 0.80, 'assets/images/doces_gourmet.jpg', 'Doces', 'R$ 0,80 un', true, true, '{"active": false, "discountPercent": 0}'::jsonb),
+    ('prod_doce_esp_un', 'Doces Especiais Gourmet (Unidade)', 'Docinho gourmet especial (unidade). Sabores: Brigadeiro Gourmet c/ Nutella, Ferrero Rocher c/ Nutella, Ninho com Nutella, Churros c/ Doce de Leite, Surpresa de Uva e Tortinha Doce.', 2.00, 'assets/images/doces_gourmet.jpg', 'Doces', 'Gourmet', true, true, '{"active": false, "discountPercent": 0}'::jsonb),
+    ('prod_salg_frito_un', 'Salgados Fritos Tradicionais (Unidade)', 'Salgadinho frito crocante (unidade). Sabores: Coxinha, Bolinho de Queijo, Croquete de Calabresa, Risole de Pizza, Bolinho de Charque e Enroladinho de Salsicha.', 0.80, 'assets/images/salgados_festa.jpg', 'Salgados', 'R$ 0,80 un', true, true, '{"active": false, "discountPercent": 0}'::jsonb),
+    ('prod_salg_pizza', 'Mini Pizza de Forno (Unidade)', 'Mini pizza assada de forno com molho de tomate caseiro, queijo derretido e tempero especial.', 1.50, 'assets/images/salgados_festa.jpg', 'Salgados', 'De Forno', true, true, '{"active": false, "discountPercent": 0}'::jsonb),
+    ('prod_salg_burguer', 'Mini Hambúrguer Artesanal (Unidade)', 'Mini hambúrguer artesanal no pão com gergelim, carne suculenta e queijo derretido. O preferido das crianças!', 2.50, 'assets/images/salgados_festa.jpg', 'Salgados', 'De Forno', true, true, '{"active": false, "discountPercent": 0}'::jsonb),
+    ('prod_salg_barquete', 'Barquete Recheada (Unidade)', 'Barquete crocante recheada com patê especial decorado, perfeita para recepções e buffets.', 1.20, 'assets/images/salgados_festa.jpg', 'Salgados', 'De Forno', true, true, '{"active": false, "discountPercent": 0}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 -- Insert Default Settings

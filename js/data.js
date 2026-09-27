@@ -14,73 +14,253 @@ const DB_KEYS = {
 // ===== DEFAULT DATA (Used for initial database seeding or offline fallback) =====
 const DEFAULT_PRODUCTS = [
   {
-    id: 'prod_001',
-    name: 'Bolo de Chocolate Trufado',
-    description: 'Irresistível bolo de chocolate com recheio de trufa e cobertura de ganache belga. Decorado com morangos frescos e raspas de chocolate.',
-    price: 89.90,
-    image: 'assets/images/cake_chocolate.jpg',
-    category: 'Chocolate',
-    badge: 'Mais Vendido',
+    id: 'prod_buffet_01',
+    name: 'Buffet Infantil Completo (50 Convidados)',
+    category: 'Buffet',
+    price: 1499.00,
+    badge: 'Pacote 50 Pessoas',
+    description: 'Buffet Infantil completo para 50 convidados (3h de festa). Inclui: Doces e salgados tradicionais, Doces Gourmet, Salgados de forno (Mini Pizza, Hambúrguer, Barquete, Mini lanches), Fritura no local, Refrigerantes, Água mineral, Suco da fruta, Descartáveis e 1 apoio de cozinha. Taxa de deslocamento a combinar.',
+    image: 'assets/images/buffet_infantil.jpg',
     active: true,
     inStock: true,
-    promotion: { active: true, discountPercent: 15 }
+    promotion: { active: false, discountPercent: 0 }
   },
   {
-    id: 'prod_002',
-    name: 'Red Velvet Premium',
-    description: 'Elegante bolo red velvet com cream cheese artesanal e cachos de chocolate branco. Perfeito para ocasiões especiais.',
-    price: 95.00,
-    image: 'assets/images/cake_red_velvet.jpg',
-    category: 'Especial',
+    id: 'prod_kit_01',
+    name: 'Kit Festa 1 (1 kg Bolo + 20 Doces + 30 Salgados)',
+    category: 'Kits Festa',
+    price: 120.00,
+    badge: 'Econômico',
+    description: 'Ideal para comemorações íntimas. Inclui: 1 kg de bolo confeitado, 20 doces tradicionais, 30 salgados e Topo de bolo simples.',
+    image: 'assets/images/kit_festa.jpg',
+    active: true,
+    inStock: true,
+    promotion: { active: false, discountPercent: 0 }
+  },
+  {
+    id: 'prod_kit_02',
+    name: 'Kit Festa 2 (1,5 kg Bolo + 30 Doces + 50 Salgados)',
+    category: 'Kits Festa',
+    price: 160.00,
+    badge: 'Mais Pedido',
+    description: 'Perfeito para celebrar em família. Inclui: 1,5 kg de bolo confeitado, 30 doces tradicionais, 50 salgados e Topo de bolo simples.',
+    image: 'assets/images/kit_festa.jpg',
+    active: true,
+    inStock: true,
+    promotion: { active: false, discountPercent: 0 }
+  },
+  {
+    id: 'prod_kit_03',
+    name: 'Kit Festa 3 (2 kg Bolo + 50 Doces + 60 Salgados)',
+    category: 'Kits Festa',
+    price: 199.90,
     badge: 'Destaque',
+    description: 'O preferido dos clientes! Inclui: 2 kg de bolo confeitado, 50 doces tradicionais, 60 salgados e Topo de bolo simples.',
+    image: 'assets/images/kit_festa.jpg',
     active: true,
     inStock: true,
     promotion: { active: false, discountPercent: 0 }
   },
   {
-    id: 'prod_003',
-    name: 'Bolo de Cenoura Gourmet',
-    description: 'Tradicional bolo de cenoura com cobertura cremosa e nozes caramelizadas. Receita da vovó com toque gourmet.',
-    price: 65.00,
-    image: 'assets/images/cake_carrot.jpg',
-    category: 'Tradicional',
-    badge: 'Receita de Família',
+    id: 'prod_kit_04',
+    name: 'Kit Festa 4 (3 kg Bolo + 80 Doces + 100 Salgados)',
+    category: 'Kits Festa',
+    price: 299.00,
+    badge: 'Super Festa',
+    description: 'Festa completa com muita fartura! Inclui: 3 kg de bolo confeitado, 80 doces tradicionais, 100 salgados e Topo de bolo simples.',
+    image: 'assets/images/kit_festa.jpg',
     active: true,
     inStock: true,
     promotion: { active: false, discountPercent: 0 }
   },
   {
-    id: 'prod_004',
-    name: 'Bolo de Limão Siciliano',
-    description: 'Delicado bolo de limão siciliano com cobertura de merengue e flores comestíveis. Leveza e sofisticação em cada fatia.',
-    price: 78.00,
-    image: 'assets/images/cake_lemon.jpg',
-    category: 'Especial',
-    badge: 'Refrescante',
-    active: true,
-    inStock: true,
-    promotion: { active: true, discountPercent: 10 }
-  },
-  {
-    id: 'prod_005',
-    name: 'Bolo de Brigadeiro',
-    description: 'Nosso clássico artesanal! Bolo de chocolate com recheio e cobertura de brigadeiro gourmet, decorado com brigadeiros enrolados à mão.',
-    price: 85.00,
-    image: 'assets/images/cake_brigadeiro.jpg',
-    category: 'Chocolate',
-    badge: 'Favorito',
+    id: 'prod_bolo_1k',
+    name: 'Bolo Decorado - 1 Kilo',
+    category: 'Bolos',
+    price: 70.00,
+    badge: '1 kg',
+    description: 'Bolo confeitado artesanal (1 kg). Massas: Chocolate, Brigadeiro Branco, Baunilha ou Red Velvet. Recheios: Chocolate, Prestígio, Bem Casado, Ninho, Brigadeiro Branco ou Oreo.',
+    image: 'assets/images/bolo_decorado.jpg',
     active: true,
     inStock: true,
     promotion: { active: false, discountPercent: 0 }
   },
   {
-    id: 'prod_006',
-    name: 'Bolo de Coco Tropical',
-    description: 'Bolo fofinho de coco com cobertura de coco ralado fresco e flores tropicais. Sabor que remete ao paraíso.',
-    price: 72.00,
-    image: 'assets/images/cake_coconut.jpg',
-    category: 'Tradicional',
-    badge: 'Molhadinho',
+    id: 'prod_bolo_2k',
+    name: 'Bolo Decorado - 2 Kilos',
+    category: 'Bolos',
+    price: 140.00,
+    badge: 'Mais Vendido',
+    description: 'Bolo confeitado artesanal (2 kg - serve aprox. 20 fatias). Massas: Chocolate, Brigadeiro Branco, Baunilha ou Red Velvet. Recheios: Chocolate, Prestígio, Bem Casado, Ninho, Brigadeiro Branco ou Oreo.',
+    image: 'assets/images/bolo_decorado.jpg',
+    active: true,
+    inStock: true,
+    promotion: { active: false, discountPercent: 0 }
+  },
+  {
+    id: 'prod_bolo_3k',
+    name: 'Bolo Decorado - 3 Kilos',
+    category: 'Bolos',
+    price: 210.00,
+    badge: '3 kg',
+    description: 'Bolo confeitado artesanal (3 kg - serve aprox. 30 fatias). Massas: Chocolate, Brigadeiro Branco, Baunilha ou Red Velvet. Recheios: Chocolate, Prestígio, Bem Casado, Ninho, Brigadeiro Branco ou Oreo.',
+    image: 'assets/images/bolo_decorado.jpg',
+    active: true,
+    inStock: true,
+    promotion: { active: false, discountPercent: 0 }
+  },
+  {
+    id: 'prod_bolo_4k',
+    name: 'Bolo Decorado - 4 Kilos',
+    category: 'Bolos',
+    price: 280.00,
+    badge: '4 kg',
+    description: 'Bolo confeitado sob medida (4 kg - serve aprox. 40 fatias). Massas e recheios nobres à sua escolha.',
+    image: 'assets/images/bolo_decorado.jpg',
+    active: true,
+    inStock: true,
+    promotion: { active: false, discountPercent: 0 }
+  },
+  {
+    id: 'prod_bolo_5k',
+    name: 'Bolo Decorado - 5 Kilos',
+    category: 'Bolos',
+    price: 350.00,
+    badge: '5 kg',
+    description: 'Bolo confeitado sob medida (5 kg - serve aprox. 50 fatias). Perfeito para eventos e celebrações.',
+    image: 'assets/images/bolo_decorado.jpg',
+    active: true,
+    inStock: true,
+    promotion: { active: false, discountPercent: 0 }
+  },
+  {
+    id: 'prod_bolo_8k',
+    name: 'Bolo Decorado - 8 Kilos',
+    category: 'Bolos',
+    price: 560.00,
+    badge: '8 kg',
+    description: 'Bolo monumental para grandes festas (8 kg - serve aprox. 80 fatias). Apresentação requintada e recheio generoso.',
+    image: 'assets/images/bolo_decorado.jpg',
+    active: true,
+    inStock: true,
+    promotion: { active: false, discountPercent: 0 }
+  },
+  {
+    id: 'prod_bolo_10k',
+    name: 'Bolo Decorado - 10 Kilos',
+    category: 'Bolos',
+    price: 700.00,
+    badge: '10 kg',
+    description: 'Bolo gigante de 10 kg (serve aprox. 100 fatias). Ideal para casamentos, formaturas e grandes eventos.',
+    image: 'assets/images/bolo_decorado.jpg',
+    active: true,
+    inStock: true,
+    promotion: { active: false, discountPercent: 0 }
+  },
+  {
+    id: 'prod_doce_trad_un',
+    name: 'Doces Tradicionais (Unidade)',
+    category: 'Doces',
+    price: 0.80,
+    badge: 'R$ 0,80 un',
+    description: 'Docinho tradicional de festa (unidade). Sabores: Brigadeiro, Beijinho, Bem Casado, Moranguinho, Crespinho e Colorido.',
+    image: 'assets/images/doces_gourmet.jpg',
+    active: true,
+    inStock: true,
+    promotion: { active: false, discountPercent: 0 }
+  },
+  {
+    id: 'prod_doce_trad_cento',
+    name: 'Cento de Doces Tradicionais (100 un)',
+    category: 'Doces',
+    price: 80.00,
+    badge: 'Cento 100 un',
+    description: 'Caixa com 100 docinhos tradicionais: Brigadeiro, Beijinho, Bem Casado, Moranguinho, Crespinho e Colorido.',
+    image: 'assets/images/doces_gourmet.jpg',
+    active: true,
+    inStock: true,
+    promotion: { active: false, discountPercent: 0 }
+  },
+  {
+    id: 'prod_doce_esp_un',
+    name: 'Doces Especiais Gourmet (Unidade)',
+    category: 'Doces',
+    price: 2.00,
+    badge: 'Gourmet',
+    description: 'Docinho gourmet especial (unidade). Sabores: Brigadeiro Gourmet c/ Nutella, Ferrero Rocher c/ Nutella, Ninho com Nutella, Churros c/ Doce de Leite, Surpresa de Uva e Tortinha Doce.',
+    image: 'assets/images/doces_gourmet.jpg',
+    active: true,
+    inStock: true,
+    promotion: { active: false, discountPercent: 0 }
+  },
+  {
+    id: 'prod_doce_esp_cento',
+    name: 'Cento de Doces Especiais Gourmet (100 un)',
+    category: 'Doces',
+    price: 200.00,
+    badge: 'Cento Gourmet',
+    description: 'Caixa com 100 doces finos gourmet: Ninho com Nutella, Brigadeiro Gourmet, Ferrero Rocher, Churros e Tortinha Doce.',
+    image: 'assets/images/doces_gourmet.jpg',
+    active: true,
+    inStock: true,
+    promotion: { active: false, discountPercent: 0 }
+  },
+  {
+    id: 'prod_salg_frito_un',
+    name: 'Salgados Fritos Tradicionais (Unidade)',
+    category: 'Salgados',
+    price: 0.80,
+    badge: 'R$ 0,80 un',
+    description: 'Salgadinho frito crocante (unidade). Sabores: Coxinha, Bolinho de Queijo, Croquete de Calabresa, Risole de Pizza, Bolinho de Charque e Enroladinho de Salsicha.',
+    image: 'assets/images/salgados_festa.jpg',
+    active: true,
+    inStock: true,
+    promotion: { active: false, discountPercent: 0 }
+  },
+  {
+    id: 'prod_salg_frito_cento',
+    name: 'Cento de Salgados Fritos (100 un)',
+    category: 'Salgados',
+    price: 80.00,
+    badge: 'Cento 100 un',
+    description: 'Cento com 100 salgadinhos fritos quentinhos e sequinhos: Coxinha, Bolinho de Queijo, Croquete de Calabresa, Risole de Pizza, Bolinho de Charque e Enroladinho de Salsicha.',
+    image: 'assets/images/salgados_festa.jpg',
+    active: true,
+    inStock: true,
+    promotion: { active: false, discountPercent: 0 }
+  },
+  {
+    id: 'prod_salg_pizza',
+    name: 'Mini Pizza de Forno (Unidade)',
+    category: 'Salgados',
+    price: 1.50,
+    badge: 'De Forno',
+    description: 'Mini pizza assada de forno com molho de tomate caseiro, queijo derretido e tempero especial.',
+    image: 'assets/images/salgados_festa.jpg',
+    active: true,
+    inStock: true,
+    promotion: { active: false, discountPercent: 0 }
+  },
+  {
+    id: 'prod_salg_burguer',
+    name: 'Mini Hambúrguer Artesanal (Unidade)',
+    category: 'Salgados',
+    price: 2.50,
+    badge: 'De Forno',
+    description: 'Mini hambúrguer artesanal no pão com gergelim, carne suculenta e queijo derretido. O preferido das crianças!',
+    image: 'assets/images/salgados_festa.jpg',
+    active: true,
+    inStock: true,
+    promotion: { active: false, discountPercent: 0 }
+  },
+  {
+    id: 'prod_salg_barquete',
+    name: 'Barquete Recheada (Unidade)',
+    category: 'Salgados',
+    price: 1.20,
+    badge: 'De Forno',
+    description: 'Barquete crocante recheada com patê especial decorado, perfeita para recepções e buffets.',
+    image: 'assets/images/salgados_festa.jpg',
     active: true,
     inStock: true,
     promotion: { active: false, discountPercent: 0 }
@@ -88,42 +268,42 @@ const DEFAULT_PRODUCTS = [
 ];
 
 const DEFAULT_CATEGORIES = [
-  { id: 'cat_choco', name: 'Chocolate', icon: '🍫' },
-  { id: 'cat_especial', name: 'Especial', icon: '⭐' },
-  { id: 'cat_tradicional', name: 'Tradicional', icon: '🏠' },
-  { id: 'cat_frutas', name: 'Frutas', icon: '🍓' },
-  { id: 'cat_festas', name: 'Festas', icon: '🎉' }
+  { id: 'cat_buffet', name: 'Buffet', icon: '🎪' },
+  { id: 'cat_kits', name: 'Kits Festa', icon: '🎉' },
+  { id: 'cat_bolos', name: 'Bolos', icon: '🎂' },
+  { id: 'cat_doces', name: 'Doces', icon: '🍬' },
+  { id: 'cat_salgados', name: 'Salgados', icon: '🥟' }
 ];
 
 const DEFAULT_SETTINGS = {
-  storeName: 'Dolce Arte',
-  storeTagline: 'Bolos Artesanais Feitos com Amor',
-  storeLogoEmoji: '🎂',
+  storeName: 'Carla Silva Buffet',
+  storeTagline: 'Buffet Infantil, Bolos & Doces Artesanais',
+  storeLogoEmoji: '🧁',
   storeLogoImage: '',
-  themeColor: '#8B5E3C',
+  themeColor: '#D81B60',
 
   announcementBar: {
     active: true,
-    text: '🎉 Encomendas abertas! Ingredientes 100% nobres e artesanais. Faça seu pedido!'
+    text: '🎉 Encomendas abertas! Bolos por kg, Kits Festa, Salgados, Doces Gourmet e Buffet Infantil Completo!'
   },
 
   hero: {
-    emoji: '🎂',
-    title: 'Bolos Artesanais Feitos com Amor',
-    subtitle: 'Cada bolo é uma obra de arte, preparado com ingredientes selecionados e muito carinho. Descubra sabores que vão encantar seu paladar.',
-    ctaText: '✨ Ver Cardápio'
+    emoji: '🧁',
+    title: 'Carla Silva Buffet & Confeitaria',
+    subtitle: 'Tudo para sua festa ser inesquecível! Bolos confeitados por quilo, kits festa práticos, doces finos, salgados crocantes e buffet infantil completo.',
+    ctaText: '✨ Ver Cardápio & Encomendar'
   },
 
   about: {
     active: true,
-    title: 'Nossa Paixão por Confeitaria Artesanal',
-    subtitle: 'Doces memórias e sabores inesquecíveis',
-    text: 'Na Dolce Arte, acreditamos que todo momento especial merece ser celebrado com um bolo único. Cada receita nasce do amor pela confeitaria tradicional, combinada com técnicas modernas e ingredientes nobres como chocolates belgas, baunilhas puras e frutas frescas selecionadas diariamente.',
+    title: 'Carla Silva Buffet',
+    subtitle: 'Doces memórias e sabores inesquecíveis para o seu evento',
+    text: 'No Carla Silva Buffet, cada comemoração é tratada como única e especial. Trabalhamos com ingredientes de primeira linha, bolos sob medida com massas e recheios generosos, kits festa prontinhos para celebrar, salgados crocantes fritos na hora ou assados de forno, e nosso serviço completo de Buffet Infantil com 3h de festa e equipe de apoio.',
     features: [
-      { icon: '🌿', title: '100% Artesanal', desc: 'Produção fresca e sem conservantes artificiais' },
-      { icon: '🍫', title: 'Ingredientes Nobres', desc: 'Chocolates belgas e matéria-prima selecionada' },
-      { icon: '👩‍🍳', title: 'Receitas Autorais', desc: 'Sabor caseiro com apresentação refinada' },
-      { icon: '🛵', title: 'Entrega Cuidadosa', desc: 'Seu bolo chega impecável e protegido' }
+      { icon: '🎪', title: 'Buffet Infantil', desc: 'Estrutura completa com 3h de festa, fritura no local e apoio' },
+      { icon: '🎂', title: 'Bolos por Quilo', desc: 'Massas nobres e recheios generosos feitos sob medida' },
+      { icon: '🎉', title: 'Kits Festa Prontos', desc: 'Bolo confeitado, doces, salgados e topo de bolo inclusos' },
+      { icon: '🥟', title: 'Doces & Salgados', desc: 'Doces gourmet com Nutella e salgados de forno especiais' }
     ]
   },
 
@@ -131,19 +311,19 @@ const DEFAULT_SETTINGS = {
 
   delivery: {
     deliveryEnabled: true,
-    deliveryFee: 10.00,
-    freeDeliveryThreshold: 120.00,
-    estimatedTime: '40 a 60 min',
+    deliveryFee: 15.00,
+    freeDeliveryThreshold: 200.00,
+    estimatedTime: 'Consulte data e horário',
     pickupEnabled: true,
-    pickupAddress: 'Rua das Flores, 123 - Centro (Confeitaria Dolce Arte)',
-    pickupEstimate: 'Pronto em 30 min'
+    pickupAddress: 'Retirada com horário agendado com a Carla Silva',
+    pickupEstimate: 'Pronto na data agendada'
   },
 
-  whatsappNumber: '5511999999999',
-  contactPhone: '(11) 99999-9999',
-  instagram: '@dolcearte.bolos',
-  address: 'Rua das Flores, 123 - São Paulo/SP',
-  footerCopyright: '© 2026 Dolce Arte. Todos os direitos reservados.',
+  whatsappNumber: '5581998723560',
+  contactPhone: '(81) 99872-3560',
+  instagram: '@Carlasilvacakes2',
+  address: 'Carla Silva Buffet & Confeitaria - Atendimento e Encomendas',
+  footerCopyright: '© 2026 Carla Silva Buffet. Todos os direitos reservados.',
 
   paymentMethods: [
     { id: 'pix', name: 'Pix', icon: '📱', active: true },
@@ -155,21 +335,21 @@ const DEFAULT_SETTINGS = {
 
   pixDetails: {
     keyType: 'Celular',
-    key: '(11) 99999-9999',
-    receiverName: 'Dolce Arte Confeitaria Ltda',
-    instructions: 'Transfira o valor do pedido e anexe o comprovante na conversa do WhatsApp para agilizarmos a produção.'
+    key: '(81) 99872-3560',
+    receiverName: 'Carla Silva Buffet',
+    instructions: 'Faça o Pix para a chave celular acima e envie o comprovante pelo WhatsApp (81) 99872-3560 para confirmar sua encomenda.'
   },
 
   storeOpen: true,
-  closedCustomMessage: 'Estamos fechados no momento. Nossos confeiteiros estão preparando novas delícias para você!',
+  closedCustomMessage: 'Estamos em horário de preparação de encomendas. Mande uma mensagem pelo WhatsApp para agendar sua data!',
   operatingHours: {
-    segunda: { open: '08:00', close: '18:00', active: true },
-    terca: { open: '08:00', close: '18:00', active: true },
-    quarta: { open: '08:00', close: '18:00', active: true },
-    quinta: { open: '08:00', close: '18:00', active: true },
-    sexta: { open: '08:00', close: '18:00', active: true },
-    sabado: { open: '09:00', close: '14:00', active: true },
-    domingo: { open: '00:00', close: '00:00', active: false },
+    segunda: { open: '08:00', close: '19:00', active: true },
+    terca: { open: '08:00', close: '19:00', active: true },
+    quarta: { open: '08:00', close: '19:00', active: true },
+    quinta: { open: '08:00', close: '19:00', active: true },
+    sexta: { open: '08:00', close: '19:00', active: true },
+    sabado: { open: '08:00', close: '18:00', active: true },
+    domingo: { open: '08:00', close: '14:00', active: true },
   },
   closures: [],
 
