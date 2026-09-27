@@ -1346,45 +1346,45 @@ const Utils = {
 
   buildWhatsAppMessage(order) {
     const settings = DataStore.getSettings();
-    let msg = `🎂 *NOVO PEDIDO - ${settings.storeName}*\n\n`;
-    msg += `📋 *Pedido:* ${order.id}\n`;
-    msg += `📅 *Data:* ${Utils.formatDate(order.date)}\n\n`;
+    let msg = `*NOVO PEDIDO - ${settings.storeName}*\n\n`;
+    msg += `*Pedido:* ${order.id}\n`;
+    msg += `*Data:* ${Utils.formatDate(order.date)}\n\n`;
 
-    msg += `👤 *Cliente:*\n`;
-    msg += `• Nome: ${order.customer.name}\n`;
-    msg += `• Telefone: ${order.customer.phone}\n`;
+    msg += `*Cliente:*\n`;
+    msg += `- Nome: ${order.customer.name}\n`;
+    msg += `- Telefone: ${order.customer.phone}\n`;
 
     if (order.deliveryType === 'pickup') {
-      msg += `• Modo: 🏬 *RETIRADA NO LOCAL*\n`;
-      msg += `• Local: ${settings.delivery.pickupAddress}\n`;
+      msg += `- Modo: *RETIRADA NO LOCAL*\n`;
+      msg += `- Local: ${settings.delivery.pickupAddress}\n`;
     } else {
-      msg += `• Modo: 🛵 *ENTREGA A DOMICÍLIO*\n`;
-      msg += `• Endereço: ${order.customer.address}\n`;
+      msg += `- Modo: *ENTREGA A DOMICÍLIO*\n`;
+      msg += `- Endereço: ${order.customer.address}\n`;
     }
 
     if (order.customer.observations) {
-      msg += `• Observações: ${order.customer.observations}\n`;
+      msg += `- Observações: ${order.customer.observations}\n`;
     }
 
-    msg += `\n🛒 *Itens do Pedido:*\n`;
+    msg += `\n*Itens do Pedido:*\n`;
     order.items.forEach(item => {
-      msg += `• ${item.qty}x ${item.name} - ${Utils.formatCurrency(item.subtotal)}\n`;
+      msg += `- ${item.qty}x ${item.name} - ${Utils.formatCurrency(item.subtotal)}\n`;
     });
 
-    msg += `\n💵 *Subtotal:* ${Utils.formatCurrency(order.subtotal)}`;
+    msg += `\n*Subtotal:* ${Utils.formatCurrency(order.subtotal)}`;
     if (order.deliveryType === 'delivery') {
-      msg += `\n🛵 *Taxa de Entrega:* ${order.deliveryFee === 0 ? 'GRÁTIS' : Utils.formatCurrency(order.deliveryFee)}`;
+      msg += `\n*Taxa de Entrega:* ${order.deliveryFee === 0 ? 'GRÁTIS' : Utils.formatCurrency(order.deliveryFee)}`;
     }
-    msg += `\n💰 *VALOR TOTAL: ${Utils.formatCurrency(order.total)}*\n`;
-    msg += `💳 *Forma de Pagamento:* ${order.paymentMethod}\n`;
+    msg += `\n*VALOR TOTAL: ${Utils.formatCurrency(order.total)}*\n`;
+    msg += `*Forma de Pagamento:* ${order.paymentMethod}\n`;
 
     if (order.paymentMethod.toLowerCase().includes('dinheiro') && order.customer.trocoPara) {
-      msg += `💵 *Troco para:* ${order.customer.trocoPara}\n`;
+      msg += `*Troco para:* ${order.customer.trocoPara}\n`;
     }
 
     if (order.paymentMethod.toLowerCase().includes('pix') && settings.pixDetails && settings.pixDetails.key) {
-      msg += `\n📱 *Chave Pix:* ${settings.pixDetails.key} (${settings.pixDetails.keyType})\n`;
-      msg += `👤 *Titular:* ${settings.pixDetails.receiverName}\n`;
+      msg += `\n*Chave Pix:* ${settings.pixDetails.key} (${settings.pixDetails.keyType})\n`;
+      msg += `*Titular:* ${settings.pixDetails.receiverName}\n`;
     }
 
     msg += `\n_Mensagem gerada pelo site ${settings.storeName}_`;

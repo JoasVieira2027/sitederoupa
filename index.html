@@ -259,6 +259,48 @@
     </div>
   </div>
 
+  <!-- Product Details Modal -->
+  <div class="modal-overlay" id="product-details-modal">
+    <div class="modal modal-product-details" role="dialog" aria-labelledby="modal-product-name">
+      <div class="modal-header">
+        <div class="product-modal-title-area">
+          <span class="product-card-category" id="modal-product-category">Categoria</span>
+          <h3 id="modal-product-name" style="margin:4px 0 0 0; font-size:1.35rem;">Nome do Produto</h3>
+        </div>
+        <button class="btn-close-modal" id="btn-close-product-modal" aria-label="Fechar">✕</button>
+      </div>
+      <div class="modal-body product-modal-body">
+        <div class="product-modal-image-wrapper">
+          <span class="product-badge badge-custom" id="modal-product-badge" style="display:none;"></span>
+          <img id="modal-product-image" src="" alt="" loading="lazy">
+        </div>
+        <div class="product-modal-details">
+          <div class="product-modal-price-row">
+            <span class="product-modal-price" id="modal-product-price">R$ 0,00</span>
+            <span class="product-modal-original-price" id="modal-product-original-price" style="display:none;"></span>
+          </div>
+          <div class="product-modal-stock" id="modal-product-stock">
+            <span class="stock-dot"></span> Em estoque
+          </div>
+          <div class="product-modal-desc-section">
+            <h4 style="margin:0 0 8px 0; font-size:0.95rem; color:var(--text-primary); font-weight:700;">Detalhes do Produto:</h4>
+            <div id="modal-product-description" class="product-modal-full-desc"></div>
+          </div>
+          <div class="product-modal-actions">
+            <div class="product-modal-qty-box">
+              <button type="button" class="qty-btn" id="btn-modal-qty-minus" aria-label="Diminuir quantidade">−</button>
+              <span id="modal-product-qty">1</span>
+              <button type="button" class="qty-btn" id="btn-modal-qty-plus" aria-label="Aumentar quantidade">+</button>
+            </div>
+            <button type="button" class="btn-modal-add-cart" id="btn-modal-add-cart">
+              🛒 Adicionar ao Carrinho
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Footer (Fully dynamic from Admin, NO admin links shown) -->
   <footer class="site-footer">
     <div class="footer-content">

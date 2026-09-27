@@ -954,13 +954,13 @@
 
   function openCustomerWhatsAppDialog(order) {
     const settings = DataStore.getSettings();
-    let statusText = 'está sendo processado';
-    if (order.status === 'preparo') statusText = 'já está em produção com todo carinho! 🎂';
-    if (order.status === 'entrega') statusText = 'saiu para entrega e logo chegará até você! 🛵';
-    if (order.status === 'concluido') statusText = 'foi finalizado! Esperamos que goste muito das nossas delícias. ✨';
+    let statusText = 'esta sendo processado';
+    if (order.status === 'preparo') statusText = 'ja esta em producao com todo carinho!';
+    if (order.status === 'entrega') statusText = 'saiu para entrega e logo chegara ate voce!';
+    if (order.status === 'concluido') statusText = 'foi finalizado! Esperamos que goste muito das nossas delicias.';
     if (order.status === 'cancelado') statusText = 'foi cancelado.';
 
-    const msg = `Olá *${order.customer.name}*! Agradecemos pela preferência na *${settings.storeName}*.\n\nInformamos que seu pedido *${order.id}* ${statusText}\n\nQualquer dúvida, estamos à disposição!`;
+    const msg = `Ola *${order.customer.name}*! Agradecemos pela preferencia na *${settings.storeName}*.\n\nInformamos que seu pedido *${order.id}* ${statusText}\n\nQualquer duvida, estamos a disposicao!`;
     Utils.sendWhatsAppToCustomer(order.customer.phone, msg);
   }
 

@@ -66,6 +66,24 @@
   const btnCloseCheckout = $('#btn-close-checkout');
   const paymentOptions = $('#payment-options');
 
+  // Product Details Modal
+  const productDetailsModal = $('#product-details-modal');
+  const modalProductName = $('#modal-product-name');
+  const modalProductCategory = $('#modal-product-category');
+  const modalProductImage = $('#modal-product-image');
+  const modalProductBadge = $('#modal-product-badge');
+  const modalProductPrice = $('#modal-product-price');
+  const modalProductOriginalPrice = $('#modal-product-original-price');
+  const modalProductStock = $('#modal-product-stock');
+  const modalProductDescription = $('#modal-product-description');
+  const modalProductQty = $('#modal-product-qty');
+  const btnModalQtyMinus = $('#btn-modal-qty-minus');
+  const btnModalQtyPlus = $('#btn-modal-qty-plus');
+  const btnModalAddCart = $('#btn-modal-add-cart');
+  const btnCloseProductModal = $('#btn-close-product-modal');
+  let modalCurrentProductId = null;
+  let modalQty = 1;
+
   // Delivery & Pickup tabs
   const tabDelivery = $('#tab-delivery');
   const tabPickup = $('#tab-pickup');
@@ -309,9 +327,14 @@
                 ${hasPromo ? `<span class="original-price">${Utils.formatCurrency(product.price)}</span>` : ''}
                 <span class="current-price ${hasPromo ? 'promo-price' : ''}">${Utils.formatCurrency(hasPromo ? promoPrice : product.price)}</span>
               </div>
-              <button class="btn-add-cart" data-id="${Utils.escapeHTML(product.id)}" ${isOutOfStock ? 'disabled' : ''}>
-                ${isOutOfStock ? '😔 Esgotado' : '🛒 Adicionar'}
-              </button>
+              <div class="product-card-actions">
+                <button class="btn-view-details" data-id="${Utils.escapeHTML(product.id)}" title="Ver detalhes">
+                  👁️ Detalhes
+                </button>
+                <button class="btn-add-cart" data-id="${Utils.escapeHTML(product.id)}" ${isOutOfStock ? 'disabled' : ''}>
+                  ${isOutOfStock ? '😔 Esgotado' : '🛒 Adicionar'}
+                </button>
+              </div>
             </div>
           </div>
         </article>
@@ -322,9 +345,118 @@
     productsGrid.querySelectorAll('.btn-add-cart:not([disabled])').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
+        e.stopPropagation();
         addToCart(btn.dataset.id);
       });
     });
+
+    // Bind "Ver Detalhes" buttons
+    productsGrid.querySelectorAll('.btn-view-details').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openProductDetails(btn.dataset.id);
+      });
+    });
+
+    // Bind click on product image and name to open details
+    productsGrid.querySelectorAll('.product-card').forEach(card => {
+      const productId = card.dataset.productId;
+      const imageArea = card.querySelector('.product-card-image');
+      const nameArea = card.querySelector('.product-card-name');
+      const descArea = card.querySelector('.product-card-description');
+
+      if (imageArea) {
+        imageArea.addEventListener('click', (e) => {
+          if (e.target.closest('.btn-add-cart') || e.target.closest('.btn-view-details')) return;
+          openProductDetails(productId);
+        });
+      }
+      if (nameArea) {
+        nameArea.addEventListener('click', () => openProductDetails(productId));
+      }
+      if (descArea) {
+        descArea.addEventListener('click', () => openProductDetails(productId));
+      }
+    });
+  }
+
+  // ===== PRODUCT DETAILS MODAL =====
+  function openProductDetails(productId) {
+    const product = DataStore.getProductById(productId);
+    if (!product) return;
+
+    modalCurrentProductId = productId;
+    modalQty = 1;
+
+    // Fill modal content
+    modalProductName.textContent = product.name;
+    modalProductCategory.textContent = product.category || '';
+    modalProductImage.src = product.image || 'assets/images/cake_chocolate.jpg';
+    modalProductImage.alt = product.name;
+    modalProductImage.onerror = function() { this.src = 'assets/images/cake_chocolate.jpg'; };
+
+    // Description
+    modalProductDescription.textContent = product.description || 'Sem descrição disponível.';
+
+    // Price (check promo)
+    const hasPromo = product.promotion && product.promotion.active;
+    const promoPrice = hasPromo
+      ? product.price * (1 - product.promotion.discountPercent / 100)
+      : product.price;
+
+    modalProductPrice.textContent = Utils.formatCurrency(hasPromo ? promoPrice : product.price);
+    if (hasPromo) {
+      modalProductPrice.classList.add('promo-price');
+    } else {
+      modalProductPrice.classList.remove('promo-price');
+    }
+
+    if (hasPromo) {
+      modalProductOriginalPrice.textContent = Utils.formatCurrency(product.price);
+      modalProductOriginalPrice.style.display = 'inline';
+    } else {
+      modalProductOriginalPrice.style.display = 'none';
+    }
+
+    // Badge
+    if (product.badge && product.inStock) {
+      modalProductBadge.textContent = product.badge;
+      modalProductBadge.style.display = 'inline-block';
+    } else if (hasPromo && product.inStock) {
+      modalProductBadge.textContent = `-${product.promotion.discountPercent}%`;
+      modalProductBadge.style.display = 'inline-block';
+      modalProductBadge.className = 'product-badge badge-promo';
+    } else {
+      modalProductBadge.style.display = 'none';
+    }
+
+    // Stock
+    if (product.inStock) {
+      modalProductStock.innerHTML = '<span class="stock-dot"></span> Em estoque';
+      modalProductStock.classList.remove('out-of-stock');
+      btnModalAddCart.disabled = false;
+      btnModalAddCart.textContent = '🛒 Adicionar ao Carrinho';
+    } else {
+      modalProductStock.innerHTML = '<span class="stock-dot"></span> Esgotado';
+      modalProductStock.classList.add('out-of-stock');
+      btnModalAddCart.disabled = true;
+      btnModalAddCart.textContent = '😔 Produto Esgotado';
+    }
+
+    // Quantity
+    modalProductQty.textContent = modalQty;
+
+    // Show modal
+    productDetailsModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeProductDetails() {
+    productDetailsModal.classList.remove('active');
+    document.body.style.overflow = '';
+    modalCurrentProductId = null;
+    modalQty = 1;
   }
 
   // ===== CART =====
@@ -783,11 +915,54 @@
     // Checkout form submit
     checkoutForm.addEventListener('submit', handleCheckoutSubmit);
 
+    // Product Details Modal
+    if (btnCloseProductModal) {
+      btnCloseProductModal.addEventListener('click', closeProductDetails);
+    }
+    if (productDetailsModal) {
+      productDetailsModal.addEventListener('click', (e) => {
+        if (e.target === productDetailsModal) closeProductDetails();
+      });
+    }
+    if (btnModalQtyMinus) {
+      btnModalQtyMinus.addEventListener('click', () => {
+        if (modalQty > 1) {
+          modalQty--;
+          modalProductQty.textContent = modalQty;
+        }
+      });
+    }
+    if (btnModalQtyPlus) {
+      btnModalQtyPlus.addEventListener('click', () => {
+        modalQty++;
+        modalProductQty.textContent = modalQty;
+      });
+    }
+    if (btnModalAddCart) {
+      btnModalAddCart.addEventListener('click', () => {
+        if (!modalCurrentProductId) return;
+        if (!storeIsOpen) {
+          Utils.showToast('A loja está fechada no momento.', 'warning');
+          return;
+        }
+        for (let i = 0; i < modalQty; i++) {
+          Cart.addItem(modalCurrentProductId);
+        }
+        const product = DataStore.getProductById(modalCurrentProductId);
+        Utils.showToast(`${modalQty}x ${product ? product.name : 'Produto'} adicionado ao carrinho!`, 'success');
+        updateCartUI();
+        cartCountEl.classList.add('animate');
+        setTimeout(() => cartCountEl.classList.remove('animate'), 400);
+        closeProductDetails();
+      });
+    }
+
     // Keyboard ESC
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         closeCart();
         closeCheckout();
+        closeProductDetails();
       }
     });
   }
