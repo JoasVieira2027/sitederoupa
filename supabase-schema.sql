@@ -28,7 +28,8 @@ CREATE TABLE IF NOT EXISTS public.products (
     badge TEXT,
     active BOOLEAN DEFAULT true,
     in_stock BOOLEAN DEFAULT true,
-    -- Variantes: Array de {color, sizes: [{size, qty}]}
+    featured BOOLEAN DEFAULT false,
+    -- Variantes: Array de {color, colorHex, image, sizes: [{size, qty}]}
     variants JSONB DEFAULT '[]'::jsonb,
     -- Promoção
     promotion JSONB DEFAULT '{"active": false, "discountPercent": 0}'::jsonb,
@@ -60,6 +61,7 @@ CREATE TABLE IF NOT EXISTS public.settings (
     store_logo_image TEXT DEFAULT '',
     theme_color TEXT DEFAULT '#059669',
     announcement_bar JSONB DEFAULT '{"active": true, "text": "⚡ FRETE GRÁTIS nas compras acima de R$ 199 | Peças Zero Transparência!"}'::jsonb,
+    featured_collection JSONB DEFAULT '{"active": true, "title": "Nova Coleção 2026", "subtitle": "Lançamentos e peças exclusivas com tecnologia seamless e alta compressão"}'::jsonb,
     hero JSONB DEFAULT '{"emoji": "⚡", "title": "Treine com Estilo, Supere Limites", "subtitle": "Activewear premium com modelagem anatômica, alta compressão e zero transparência para seu melhor desempenho.", "ctaText": "⚡ Ver Coleção Fitness"}'::jsonb,
     about JSONB DEFAULT '{"active": true, "title": "Tecnologia, Conforto & Performance", "subtitle": "Feito para mover o seu melhor", "text": "A Fit Vibe desenvolve peças esportivas com tecidos nobres e tecnologia têxtil de ponta. Modelagens exclusivas que valorizam a silhueta, oferecem sustentação máxima e acompanham cada movimento do seu dia com total segurança.", "features": [{"desc": "Gramatura reforçada para agachamentos sem medo", "icon": "🛡️", "title": "Zero Transparência"}, {"desc": "Respirabilidade máxima que evapora o suor rapidamente", "icon": "💨", "title": "Tecnologia Dry-Fit"}, {"desc": "Cós anatômico duplo que não enrola durante o treino", "icon": "⚡", "title": "Alta Compressão"}, {"desc": "Primeira troca 100% grátis e sem burocracia", "icon": "🔄", "title": "Troca Fácil"}]}'::jsonb,
     delivery JSONB DEFAULT '{"deliveryEnabled": true, "deliveryFee": 15.00, "freeDeliveryThreshold": 199.00, "estimatedTime": "2 a 5 dias úteis", "pickupEnabled": true, "pickupAddress": "Consulte o ponto de retirada pelo WhatsApp", "pickupEstimate": "Pronto em até 2 horas"}'::jsonb,

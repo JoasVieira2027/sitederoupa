@@ -27,10 +27,11 @@ const DEFAULT_PRODUCTS = [
     image: 'assets/images/legging_fitness.jpg',
     active: true,
     inStock: true,
+    featured: true,
     variants: [
-      { color: 'Grafite Mescla', colorHex: '#4A4A4A', sizes: [{ size: 'PP', qty: 4 }, { size: 'P', qty: 8 }, { size: 'M', qty: 10 }, { size: 'G', qty: 6 }, { size: 'GG', qty: 3 }] },
-      { color: 'Preto Ônix', colorHex: '#1E1E1E', sizes: [{ size: 'PP', qty: 5 }, { size: 'P', qty: 12 }, { size: 'M', qty: 14 }, { size: 'G', qty: 8 }, { size: 'GG', qty: 4 }] },
-      { color: 'Verde Militar', colorHex: '#3A4D39', sizes: [{ size: 'P', qty: 6 }, { size: 'M', qty: 8 }, { size: 'G', qty: 5 }] }
+      { color: 'Grafite Mescla', colorHex: '#4A4A4A', image: 'assets/images/legging_fitness.jpg', sizes: [{ size: 'PP', qty: 4 }, { size: 'P', qty: 8 }, { size: 'M', qty: 10 }, { size: 'G', qty: 6 }, { size: 'GG', qty: 3 }] },
+      { color: 'Preto Ônix', colorHex: '#1E1E1E', image: 'assets/images/legging_fitness.jpg', sizes: [{ size: 'PP', qty: 5 }, { size: 'P', qty: 12 }, { size: 'M', qty: 14 }, { size: 'G', qty: 8 }, { size: 'GG', qty: 4 }] },
+      { color: 'Verde Militar', colorHex: '#3A4D39', image: 'assets/images/legging_fitness.jpg', sizes: [{ size: 'P', qty: 6 }, { size: 'M', qty: 8 }, { size: 'G', qty: 5 }] }
     ],
     promotion: { active: true, discountPercent: 10 }
   },
@@ -44,10 +45,11 @@ const DEFAULT_PRODUCTS = [
     image: 'assets/images/top_fitness.jpg',
     active: true,
     inStock: true,
+    featured: true,
     variants: [
-      { color: 'Grafite Mescla', colorHex: '#4A4A4A', sizes: [{ size: 'PP', qty: 5 }, { size: 'P', qty: 10 }, { size: 'M', qty: 9 }, { size: 'G', qty: 5 }, { size: 'GG', qty: 2 }] },
-      { color: 'Preto Ônix', colorHex: '#1E1E1E', sizes: [{ size: 'P', qty: 8 }, { size: 'M', qty: 10 }, { size: 'G', qty: 6 }] },
-      { color: 'Vinho Borgonha', colorHex: '#5A1827', sizes: [{ size: 'P', qty: 4 }, { size: 'M', qty: 6 }, { size: 'G', qty: 3 }] }
+      { color: 'Grafite Mescla', colorHex: '#4A4A4A', image: 'assets/images/top_fitness.jpg', sizes: [{ size: 'PP', qty: 5 }, { size: 'P', qty: 10 }, { size: 'M', qty: 9 }, { size: 'G', qty: 5 }, { size: 'GG', qty: 2 }] },
+      { color: 'Preto Ônix', colorHex: '#1E1E1E', image: 'assets/images/top_fitness.jpg', sizes: [{ size: 'P', qty: 8 }, { size: 'M', qty: 10 }, { size: 'G', qty: 6 }] },
+      { color: 'Vinho Borgonha', colorHex: '#5A1827', image: 'assets/images/top_fitness.jpg', sizes: [{ size: 'P', qty: 4 }, { size: 'M', qty: 6 }, { size: 'G', qty: 3 }] }
     ],
     promotion: { active: false, discountPercent: 0 }
   },
@@ -61,10 +63,11 @@ const DEFAULT_PRODUCTS = [
     image: 'assets/images/conjunto_fitness.jpg',
     active: true,
     inStock: true,
+    featured: true,
     variants: [
-      { color: 'Verde Oliva', colorHex: '#556B2F', sizes: [{ size: 'P', qty: 6 }, { size: 'M', qty: 9 }, { size: 'G', qty: 5 }, { size: 'GG', qty: 2 }] },
-      { color: 'Preto Carbono', colorHex: '#1A1A1A', sizes: [{ size: 'P', qty: 7 }, { size: 'M', qty: 8 }, { size: 'G', qty: 4 }] },
-      { color: 'Terracota', colorHex: '#A0522D', sizes: [{ size: 'P', qty: 3 }, { size: 'M', qty: 5 }, { size: 'G', qty: 2 }] }
+      { color: 'Verde Oliva', colorHex: '#556B2F', image: 'assets/images/conjunto_fitness.jpg', sizes: [{ size: 'P', qty: 6 }, { size: 'M', qty: 9 }, { size: 'G', qty: 5 }, { size: 'GG', qty: 2 }] },
+      { color: 'Preto Carbono', colorHex: '#1A1A1A', image: 'assets/images/conjunto_fitness.jpg', sizes: [{ size: 'P', qty: 7 }, { size: 'M', qty: 8 }, { size: 'G', qty: 4 }] },
+      { color: 'Terracota', colorHex: '#A0522D', image: 'assets/images/conjunto_fitness.jpg', sizes: [{ size: 'P', qty: 3 }, { size: 'M', qty: 5 }, { size: 'G', qty: 2 }] }
     ],
     promotion: { active: false, discountPercent: 0 }
   },
@@ -78,10 +81,11 @@ const DEFAULT_PRODUCTS = [
     image: 'assets/images/short_fitness.jpg',
     active: true,
     inStock: true,
+    featured: true,
     variants: [
-      { color: 'Preto Ônix', colorHex: '#1E1E1E', sizes: [{ size: 'PP', qty: 4 }, { size: 'P', qty: 10 }, { size: 'M', qty: 12 }, { size: 'G', qty: 8 }, { size: 'GG', qty: 4 }] },
-      { color: 'Azul Marinho', colorHex: '#1B263B', sizes: [{ size: 'P', qty: 5 }, { size: 'M', qty: 6 }, { size: 'G', qty: 4 }] },
-      { color: 'Chumbo', colorHex: '#3D3D3D', sizes: [{ size: 'P', qty: 4 }, { size: 'M', qty: 5 }, { size: 'G', qty: 3 }] }
+      { color: 'Preto Ônix', colorHex: '#1E1E1E', image: 'assets/images/short_fitness.jpg', sizes: [{ size: 'PP', qty: 4 }, { size: 'P', qty: 10 }, { size: 'M', qty: 12 }, { size: 'G', qty: 8 }, { size: 'GG', qty: 4 }] },
+      { color: 'Azul Marinho', colorHex: '#1B263B', image: 'assets/images/short_fitness.jpg', sizes: [{ size: 'P', qty: 5 }, { size: 'M', qty: 6 }, { size: 'G', qty: 4 }] },
+      { color: 'Chumbo', colorHex: '#3D3D3D', image: 'assets/images/short_fitness.jpg', sizes: [{ size: 'P', qty: 4 }, { size: 'M', qty: 5 }, { size: 'G', qty: 3 }] }
     ],
     promotion: { active: true, discountPercent: 15 }
   }
@@ -105,6 +109,11 @@ const DEFAULT_SETTINGS = {
   storeLogoImage: '',
   themeColor: '#059669',
   announcementBar: { active: true, text: '⚡ FRETE GRÁTIS nas compras acima de R$ 199 | Peças Zero Transparência!' },
+  featuredCollection: {
+    active: true,
+    title: 'Nova Coleção 2026',
+    subtitle: 'Lançamentos e peças exclusivas com tecnologia seamless e alta compressão'
+  },
   hero: {
     emoji: '⚡',
     title: 'Treine com Estilo, <em>Supere Limites</em>',
@@ -214,7 +223,13 @@ const DataStore = (function () {
       badge: row.badge || '',
       active: row.active !== false,
       inStock: row.in_stock !== false,
-      variants: Array.isArray(v) ? v : [],
+      featured: row.featured === true || Boolean(row.badge && row.badge.toLowerCase().includes('destaque')),
+      variants: Array.isArray(v) ? v.map(item => ({
+        color: item.color || '',
+        colorHex: item.colorHex || '#059669',
+        image: item.image || '',
+        sizes: Array.isArray(item.sizes) ? item.sizes : []
+      })) : [],
       promotion: row.promotion || { active: false, discountPercent: 0 },
       createdAt: row.created_at,
       updatedAt: row.updated_at
@@ -234,6 +249,7 @@ const DataStore = (function () {
       storeLogoImage: row.store_logo_image || '',
       themeColor: row.theme_color || DEFAULT_SETTINGS.themeColor,
       announcementBar: parseJsonField(row.announcement_bar, DEFAULT_SETTINGS.announcementBar),
+      featuredCollection: parseJsonField(row.featured_collection, DEFAULT_SETTINGS.featuredCollection),
       hero: parseJsonField(row.hero, DEFAULT_SETTINGS.hero),
       about: parseJsonField(row.about, DEFAULT_SETTINGS.about),
       delivery: parseJsonField(row.delivery, DEFAULT_SETTINGS.delivery),
@@ -474,11 +490,24 @@ const DataStore = (function () {
       };
       if (isNew) row.created_at = product.createdAt;
 
-      const { error } = isNew
-        ? await _supabase.from('products').insert([row])
-        : await _supabase.from('products').update(row).eq('id', product.id);
-
-      if (error) throw error;
+      // Try saving with featured flag first, fallback if column doesn't exist
+      try {
+        const rowWithFeatured = { ...row, featured: product.featured === true };
+        const { error: fErr } = isNew
+          ? await _supabase.from('products').insert([rowWithFeatured])
+          : await _supabase.from('products').update(rowWithFeatured).eq('id', product.id);
+        if (fErr) {
+          const { error } = isNew
+            ? await _supabase.from('products').insert([row])
+            : await _supabase.from('products').update(row).eq('id', product.id);
+          if (error) throw error;
+        }
+      } catch (err) {
+        const { error } = isNew
+          ? await _supabase.from('products').insert([row])
+          : await _supabase.from('products').update(row).eq('id', product.id);
+        if (error) throw error;
+      }
     }
 
     const idx = _products.findIndex(p => p.id === product.id);
@@ -487,6 +516,26 @@ const DataStore = (function () {
 
     _saveLocal(DB_KEYS.PRODUCTS, _products);
     return product;
+  }
+
+  function getFeaturedProducts() {
+    const s = getSettings();
+    const f = s.featuredCollection || {};
+    if (f.active === false) return [];
+
+    let featured = _products.filter(p => p.active && (p.featured || (p.badge && p.badge.toLowerCase().includes('destaque'))));
+    if (!featured.length) {
+      featured = _products.filter(p => p.active).slice(0, 4);
+    }
+    return featured;
+  }
+
+  async function toggleProductFeatured(id) {
+    const p = getProductById(id);
+    if (!p) return false;
+    p.featured = !p.featured;
+    await saveProduct(p);
+    return p.featured;
   }
 
   async function deleteProduct(id) {
@@ -579,8 +628,17 @@ const DataStore = (function () {
         updated_at: new Date().toISOString()
       };
 
-      const { error } = await _supabase.from('settings').upsert([row]);
-      if (error) throw error;
+      try {
+        const rowWithFeatured = { ...row, featured_collection: _settings.featuredCollection };
+        const { error: fErr } = await _supabase.from('settings').upsert([rowWithFeatured]);
+        if (fErr) {
+          const { error } = await _supabase.from('settings').upsert([row]);
+          if (error) throw error;
+        }
+      } catch (err) {
+        const { error } = await _supabase.from('settings').upsert([row]);
+        if (error) throw error;
+      }
     }
 
     _saveLocal(DB_KEYS.SETTINGS, _settings);
@@ -684,6 +742,8 @@ const DataStore = (function () {
     decrementStock,
     saveCategory,
     deleteCategory,
+    getFeaturedProducts,
+    toggleProductFeatured,
     updateSettings,
     updateSetting,
     saveOrder,

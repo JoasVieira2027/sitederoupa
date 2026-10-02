@@ -135,6 +135,7 @@
                       <th>Categoria</th>
                       <th>Preço</th>
                       <th>Estoque</th>
+                      <th>Destaque</th>
                       <th>Status</th>
                       <th>Ações</th>
                     </tr>
@@ -378,6 +379,31 @@
           </div>
 
           <div class="admin-card">
+            <div class="admin-card-header">
+              <h3>⭐ Nova Coleção / Destaques da Loja</h3>
+              <label class="toggle-switch">
+                <input type="checkbox" id="v-featured-active" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="admin-card-body" id="v-featured-body">
+              <div class="admin-form-grid">
+                <div class="form-group">
+                  <label>Título da Seção</label>
+                  <input type="text" id="v-featured-title" class="form-control" placeholder="Ex: Nova Coleção 2026">
+                </div>
+                <div class="form-group">
+                  <label>Subtítulo / Chamada</label>
+                  <input type="text" id="v-featured-subtitle" class="form-control" placeholder="Ex: Lançamentos e peças exclusivas com tecnologia de ponta">
+                </div>
+              </div>
+              <p style="font-size:0.8rem;color:var(--text-muted);">
+                💡 Marque os produtos com a estrela ⭐ na listagem de produtos ou no formulário de cadastro para exibi-los nesta seção com botão de compra rápida!
+              </p>
+            </div>
+          </div>
+
+          <div class="admin-card">
             <div class="admin-card-header"><h3>📞 Contato & Redes Sociais</h3></div>
             <div class="admin-card-body">
               <div class="admin-form-grid">
@@ -555,6 +581,12 @@
               <label style="display:flex;align-items:center;gap:10px;">
                 <label class="toggle-switch"><input type="checkbox" id="pf-active" checked><span class="toggle-slider"></span></label>
                 Produto Ativo (visível no site)
+              </label>
+            </div>
+            <div class="form-group">
+              <label style="display:flex;align-items:center;gap:10px;">
+                <label class="toggle-switch"><input type="checkbox" id="pf-featured"><span class="toggle-slider"></span></label>
+                ⭐ Destaque na Nova Coleção
               </label>
             </div>
           </div>

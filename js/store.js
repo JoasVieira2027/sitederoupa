@@ -127,6 +127,7 @@
     applyBranding();
     applyStoreStatus();
     renderCategories();
+    renderFeaturedCollection();
     renderProducts();
     renderAbout();
     renderFooter();
@@ -249,12 +250,35 @@
 
     productsGrid.innerHTML = products.map((p, i) => renderProductCard(p, i)).join('');
 
-    // Bind card clicks
+    // Bind card clicks & mini swatches
     productsGrid.querySelectorAll('.product-card').forEach(card => {
+      const id = card.dataset.id;
+
       card.addEventListener('click', e => {
-        if (e.target.closest('.btn-add-cart')) return;
-        const id = card.dataset.id;
+        if (e.target.closest('.btn-add-cart') || e.target.closest('.color-swatch-mini')) return;
         openProductModal(id);
+      });
+
+      card.querySelectorAll('.color-swatch-mini').forEach(swatch => {
+        swatch.addEventListener('click', e => {
+          e.stopPropagation();
+          const color = swatch.dataset.color;
+          openProductModal(id, color);
+        });
+        swatch.addEventListener('mouseenter', () => {
+          const img = swatch.dataset.image;
+          const cardImg = card.querySelector('img');
+          if (cardImg && img) {
+            cardImg.dataset.origSrc = cardImg.dataset.origSrc || cardImg.src;
+            cardImg.src = img;
+          }
+        });
+        swatch.addEventListener('mouseleave', () => {
+          const cardImg = card.querySelector('img');
+          if (cardImg && cardImg.dataset.origSrc) {
+            cardImg.src = cardImg.dataset.origSrc;
+          }
+        });
       });
     });
 
@@ -288,9 +312,9 @@
     }
 
     // Color swatches preview
-    const colors = (p.variants || []).slice(0, 4);
+    const colors = (p.variants || []).slice(0, 5);
     const colorSwatches = colors.map(v =>
-      `<span class="color-swatch-mini" style="background:${v.colorHex || '#ccc'}" title="${v.color}"></span>`
+      `<span class="color-swatch-mini" style="background:${v.colorHex || '#ccc'}" title="${Utils.sanitize(v.color)}" data-color="${Utils.sanitize(v.color)}" data-image="${Utils.sanitize(v.image || '')}"></span>`
     ).join('');
 
     // Stock info
@@ -336,8 +360,129 @@
       </div>`;
   }
 
+  // ===== FEATURED / NOVA COLEÇÃO =====
+  function renderFeaturedCollection() {
+    const featuredSection = $('featured-section');
+    const featuredGrid = $('featured-grid');
+    if (!featuredSection || !featuredGrid) return;
+
+    const s = DataStore.getSettings();
+    const fc = s.featuredCollection || {};
+    if (fc.active === false) {
+      featuredSection.classList.add('hidden');
+      return;
+    }
+
+    const featuredProducts = DataStore.getFeaturedProducts();
+    if (!featuredProducts || !featuredProducts.length) {
+      featuredSection.classList.add('hidden');
+      return;
+    }
+
+    featuredSection.classList.remove('hidden');
+    if ($('featured-title')) $('featured-title').textContent = fc.title || 'Nova Coleção 2026';
+    if ($('featured-subtitle')) $('featured-subtitle').textContent = fc.subtitle || 'Peças exclusivas com modelagem anatômica e zero transparência';
+
+    featuredGrid.innerHTML = featuredProducts.map((p, i) => renderFeaturedCard(p, i)).join('');
+
+    // Bind card and buy clicks & swatches
+    featuredGrid.querySelectorAll('.product-card').forEach(card => {
+      const id = card.dataset.id;
+      card.addEventListener('click', e => {
+        if (e.target.closest('.btn-buy-featured') || e.target.closest('.color-swatch-mini')) return;
+        openProductModal(id);
+      });
+
+      card.querySelectorAll('.color-swatch-mini').forEach(swatch => {
+        swatch.addEventListener('click', e => {
+          e.stopPropagation();
+          const color = swatch.dataset.color;
+          openProductModal(id, color);
+        });
+        swatch.addEventListener('mouseenter', () => {
+          const img = swatch.dataset.image;
+          const cardImg = card.querySelector('img');
+          if (cardImg && img) {
+            cardImg.dataset.origSrc = cardImg.dataset.origSrc || cardImg.src;
+            cardImg.src = img;
+          }
+        });
+        swatch.addEventListener('mouseleave', () => {
+          const cardImg = card.querySelector('img');
+          if (cardImg && cardImg.dataset.origSrc) {
+            cardImg.src = cardImg.dataset.origSrc;
+          }
+        });
+      });
+    });
+
+    featuredGrid.querySelectorAll('.btn-buy-featured').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const id = btn.dataset.id;
+        openProductModal(id);
+      });
+    });
+  }
+
+  function renderFeaturedCard(p, index) {
+    const finalPrice = Utils.calcDiscountedPrice(p.price, p.promotion);
+    const hasPromo = p.promotion && p.promotion.active && p.promotion.discountPercent > 0;
+    const totalStock = DataStore.getProductTotalStock(p.id);
+    const isOut = !p.inStock || totalStock === 0;
+
+    const imageHtml = p.image
+      ? `<img src="${Utils.sanitize(p.image)}" alt="${Utils.sanitize(p.name)}" loading="lazy" class="featured-card-img">`
+      : `<div class="product-no-image">⚡<span>${Utils.sanitize(p.category)}</span></div>`;
+
+    const colors = (p.variants || []).slice(0, 5);
+    const colorSwatches = colors.map(v =>
+      `<span class="color-swatch-mini" style="background:${v.colorHex || '#ccc'}" title="${Utils.sanitize(v.color)}" data-color="${Utils.sanitize(v.color)}" data-image="${Utils.sanitize(v.image || '')}"></span>`
+    ).join('');
+
+    let badgeHtml = `<span class="product-badge badge-destaque">⭐ Destaque</span>`;
+    if (isOut) {
+      badgeHtml = `<span class="product-badge badge-esgotado">Esgotado</span>`;
+    } else if (hasPromo) {
+      badgeHtml = `<span class="product-badge badge-promo">-${p.promotion.discountPercent}% OFF</span>`;
+    } else if (p.badge) {
+      badgeHtml = `<span class="product-badge">${Utils.sanitize(p.badge)}</span>`;
+    }
+
+    let priceHtml = '';
+    if (hasPromo) {
+      priceHtml = `
+        <div class="product-price-block">
+          <span class="product-price">${Utils.formatCurrency(finalPrice)}</span>
+          <span class="product-price-original">${Utils.formatCurrency(p.price)}</span>
+        </div>`;
+    } else {
+      priceHtml = `<div class="product-price-block"><span class="product-price">${Utils.formatCurrency(p.price)}</span></div>`;
+    }
+
+    return `
+      <div class="product-card featured-product-card ${isOut ? 'out-of-stock' : ''}" data-id="${p.id}" style="animation-delay:${index * 70}ms">
+        <div class="product-card-image-wrapper">
+          ${imageHtml}
+          ${badgeHtml}
+          ${colorSwatches ? `<div class="product-colors-preview">${colorSwatches}</div>` : ''}
+          <div class="product-card-quick-view">⚡ Escolher Cor & Tamanho</div>
+        </div>
+        <div class="product-card-body">
+          <span class="product-card-category">${Utils.sanitize(p.category)}</span>
+          <div class="product-card-name">${Utils.sanitize(p.name)}</div>
+          <div class="product-card-footer" style="margin-top:8px;">
+            ${priceHtml}
+          </div>
+          <button type="button" class="btn-buy-featured" data-id="${p.id}" ${isOut ? 'disabled' : ''}>
+            ${isOut ? 'Esgotado' : '⚡ Comprar Agora'}
+          </button>
+        </div>
+      </div>`;
+  }
+
   // ===== PRODUCT MODAL =====
-  function openProductModal(id) {
+  function openProductModal(id, preselectedColor = null) {
     const product = DataStore.getProductById(id);
     if (!product || !product.active) return;
 
@@ -369,20 +514,20 @@
       else modalProductBadge.style.display = 'none';
     }
 
-    // Image
+    // Image (base product image)
     if (product.image) {
       if (modalProductImage) { modalProductImage.src = product.image; modalProductImage.alt = product.name; modalProductImage.style.display = 'block'; }
       if (modalProductPlaceholder) modalProductPlaceholder.style.display = 'none';
     } else {
       if (modalProductImage) modalProductImage.style.display = 'none';
-      if (modalProductPlaceholder) { modalProductPlaceholder.textContent = '👗'; modalProductPlaceholder.style.display = 'flex'; }
+      if (modalProductPlaceholder) { modalProductPlaceholder.textContent = '⚡'; modalProductPlaceholder.style.display = 'flex'; }
     }
 
     // Description
     if (modalProductDescription) modalProductDescription.textContent = product.description || '';
 
-    // Color selector
-    renderColorSelector(product);
+    // Color selector with preselected color support
+    renderColorSelector(product, preselectedColor);
 
     // Stock summary
     updateModalStockIndicator();
@@ -392,7 +537,7 @@
     document.body.style.overflow = 'hidden';
   }
 
-  function renderColorSelector(product) {
+  function renderColorSelector(product, preselectedColor = null) {
     if (!modalColorSelector) return;
     const variants = product.variants || [];
 
@@ -416,23 +561,55 @@
       </div>`;
     }).join('');
 
+    function selectColor(colorName) {
+      modalColorSelector.querySelectorAll('.color-option').forEach(o => {
+        if (o.dataset.color === colorName) o.classList.add('selected');
+        else o.classList.remove('selected');
+      });
+      modalSelectedColor = colorName;
+      if (modalSelectedColorName) modalSelectedColorName.textContent = colorName;
+
+      // Troca imagem para a foto da cor escolhida se cadastrada
+      const variant = (product.variants || []).find(v => v.color === modalSelectedColor);
+      const targetImg = (variant && variant.image) ? variant.image : product.image;
+      if (modalProductImage && targetImg) {
+        modalProductImage.style.transition = 'opacity 0.15s ease';
+        modalProductImage.style.opacity = '0.35';
+        setTimeout(() => {
+          modalProductImage.src = targetImg;
+          modalProductImage.style.opacity = '1';
+        }, 120);
+      }
+
+      modalSelectedSizeVal = null;
+      renderSizeSelector(product, modalSelectedColor);
+      updateModalStockIndicator();
+      updateModalAddCartBtn();
+    }
+
     modalColorSelector.querySelectorAll('.color-option:not(.out-of-stock)').forEach(opt => {
       opt.addEventListener('click', () => {
-        $$('.color-option').forEach(o => o.classList.remove('selected'));
-        opt.classList.add('selected');
-        modalSelectedColor = opt.dataset.color;
-        if (modalSelectedColorName) modalSelectedColorName.textContent = opt.dataset.color;
-        modalSelectedSizeVal = null;
-        renderSizeSelector(product, modalSelectedColor);
-        updateModalStockIndicator();
-        updateModalAddCartBtn();
+        selectColor(opt.dataset.color);
       });
     });
 
-    // Clear size selector until color selected
-    if (modalSizeSelector) modalSizeSelector.innerHTML = '<span style="font-size:0.8rem;color:var(--text-muted);">Selecione uma cor primeiro</span>';
-    if (modalSelectedSize) modalSelectedSize.textContent = '—';
-    updateModalAddCartBtn();
+    // Auto-select preselectedColor OR first available in-stock color
+    let colorToSelect = null;
+    if (preselectedColor && variants.some(v => v.color === preselectedColor)) {
+      colorToSelect = preselectedColor;
+    } else {
+      const firstInStock = variants.find(v => (v.sizes || []).reduce((s, sz) => s + sz.qty, 0) > 0);
+      if (firstInStock) colorToSelect = firstInStock.color;
+      else if (variants.length) colorToSelect = variants[0].color;
+    }
+
+    if (colorToSelect) {
+      selectColor(colorToSelect);
+    } else {
+      if (modalSizeSelector) modalSizeSelector.innerHTML = '<span style="font-size:0.8rem;color:var(--text-muted);">Selecione uma cor primeiro</span>';
+      if (modalSelectedSize) modalSelectedSize.textContent = '—';
+      updateModalAddCartBtn();
+    }
   }
 
   function renderSizeSelector(product, selectedColor) {
@@ -783,12 +960,24 @@
   function openCheckout() {
     if (cart.length === 0) { Utils.showToast('Adicione produtos ao carrinho!', 'warning'); return; }
     closeCart();
-    renderCheckoutSummary();
-    renderPaymentOptions();
 
-    // Set delivery type
-    deliveryType = 'delivery';
+    // Determine delivery type based on what is enabled in Admin settings
+    const s = DataStore.getSettings();
+    const d = s.delivery || {};
+    const deliveryOn = d.deliveryEnabled !== false;
+    const pickupOn   = d.pickupEnabled  !== false;
+
+    // Set initial delivery type strictly respecting disabled settings
+    if (deliveryOn) {
+      deliveryType = 'delivery';
+    } else if (pickupOn) {
+      deliveryType = 'pickup';
+    } else {
+      deliveryType = 'pickup'; // fallback
+    }
+
     updateDeliveryUI();
+    renderPaymentOptions();
 
     if (checkoutModal) checkoutModal.classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -891,10 +1080,44 @@
   }
 
   function updateDeliveryUI() {
+    const s = DataStore.getSettings();
+    const d = s.delivery || {};
+    const deliveryOn = d.deliveryEnabled !== false;
+    const pickupOn   = d.pickupEnabled  !== false;
+
+    // Strict guard: if delivery is disabled, force pickup!
+    if (!deliveryOn && deliveryType === 'delivery') {
+      deliveryType = 'pickup';
+    } else if (!pickupOn && deliveryType === 'pickup' && deliveryOn) {
+      deliveryType = 'delivery';
+    }
+
     const tabD = $('tab-delivery');
     const tabP = $('tab-pickup');
-    if (tabD) tabD.classList.toggle('active', deliveryType === 'delivery');
-    if (tabP) tabP.classList.toggle('active', deliveryType === 'pickup');
+    if (tabD) {
+      tabD.style.display = deliveryOn ? '' : 'none';
+      tabD.classList.toggle('active', deliveryType === 'delivery');
+    }
+    if (tabP) {
+      tabP.style.display = pickupOn ? '' : 'none';
+      tabP.classList.toggle('active', deliveryType === 'pickup');
+    }
+
+    const tabsContainer = document.querySelector('.delivery-tabs-container');
+    if (tabsContainer) {
+      if (!deliveryOn && !pickupOn) {
+        tabsContainer.style.display = 'none';
+      } else {
+        tabsContainer.style.display = '';
+        const titleLabel = tabsContainer.querySelector('label');
+        if (titleLabel) {
+          if (!deliveryOn && pickupOn) titleLabel.textContent = 'Modalidade: Retirada no Local';
+          else if (deliveryOn && !pickupOn) titleLabel.textContent = 'Modalidade: Entrega a Domicílio';
+          else titleLabel.textContent = 'Como deseja receber seu pedido?';
+        }
+      }
+    }
+
     renderCheckoutSummary();
   }
 
@@ -960,7 +1183,11 @@
       return;
     }
 
-    if (deliveryType === 'delivery' && !address) {
+    const s = DataStore.getSettings();
+    const d = s.delivery || {};
+    const deliveryOn = d.deliveryEnabled !== false;
+
+    if (deliveryType === 'delivery' && deliveryOn && !address) {
       Utils.showToast('Informe seu endereço de entrega!', 'error');
       return;
     }
@@ -981,8 +1208,7 @@
       }
     }
 
-    const s = DataStore.getSettings();
-    const delivery = s.delivery || {};
+    const delivery = d;
     const subtotal = getCartTotal();
     const fee = deliveryType === 'delivery' && delivery.deliveryEnabled
       ? (subtotal >= (delivery.freeDeliveryThreshold || 999999) ? 0 : (delivery.deliveryFee || 0))
@@ -1061,12 +1287,26 @@
     });
 
     // Delivery tabs
-    [$('tab-delivery'), $('tab-pickup')].forEach(btn => {
-      if (btn) btn.addEventListener('click', () => {
-        deliveryType = btn.dataset.type;
-        updateDeliveryUI();
+    const tabDelivery = $('tab-delivery');
+    const tabPickup   = $('tab-pickup');
+    if (tabDelivery) {
+      tabDelivery.addEventListener('click', () => {
+        const s = DataStore.getSettings();
+        if ((s.delivery || {}).deliveryEnabled !== false) {
+          deliveryType = 'delivery';
+          updateDeliveryUI();
+        }
       });
-    });
+    }
+    if (tabPickup) {
+      tabPickup.addEventListener('click', () => {
+        const s = DataStore.getSettings();
+        if ((s.delivery || {}).pickupEnabled !== false) {
+          deliveryType = 'pickup';
+          updateDeliveryUI();
+        }
+      });
+    }
 
     // Copy Pix
     const btnCopyPix = $('btn-copy-pix');

@@ -113,6 +113,11 @@
     // Global modals
     bindGlobalModals();
 
+    // Pre-initialize configuration sections so DOM values are loaded
+    renderDelivery();
+    renderVisual();
+    renderPayments();
+
     // Open dashboard
     navigateTo('dashboard');
 
@@ -274,6 +279,14 @@
         </td>
         <td>${stockChips || `<span style="color:var(--text-muted);font-size:0.8rem;">${totalStock} un</span>`}</td>
         <td>
+          <button type="button" class="btn btn-sm ${p.featured ? 'btn-primary' : 'btn-secondary'}" 
+            onclick="AdminPanel.toggleFeatured('${p.id}')" 
+            style="font-size:0.75rem;padding:4px 9px;border-radius:var(--radius-full);cursor:pointer;white-space:nowrap;"
+            title="Alternar presença na Nova Coleção / Destaques">
+            ${p.featured ? '⭐ Sim' : '☆ Não'}
+          </button>
+        </td>
+        <td>
           <span class="status-badge ${p.active ? 'active' : 'inactive'}">${p.active ? 'Ativo' : 'Inativo'}</span>
           ${!p.inStock || totalStock === 0 ? '<br><span class="status-badge" style="background:var(--danger-bg);color:var(--danger);font-size:0.65rem;">Esgotado</span>' : ''}
         </td>
@@ -284,7 +297,7 @@
           </div>
         </td>
       </tr>`;
-    }).join('') || `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px;">Nenhum produto cadastrado.</td></tr>`;
+    }).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px;">Nenhum produto cadastrado.</td></tr>`;
   }
 
   function buildStockChips(product) {
@@ -330,6 +343,7 @@
       if ($('pf-description')) $('pf-description').value = product.description || '';
       if ($('pf-image-url')) $('pf-image-url').value = product.image || '';
       if ($('pf-active')) $('pf-active').checked = product.active !== false;
+      if ($('pf-featured')) $('pf-featured').checked = product.featured === true;
 
       if (product.image) {
         if ($('pf-image-preview')) { $('pf-image-preview').src = product.image; $('pf-image-preview').style.display = 'block'; }
@@ -341,16 +355,17 @@
       if ($('pf-promo-section')) $('pf-promo-section').style.display = promo.active ? '' : 'none';
 
       // Load variants
+      const settings = DataStore.getSettings();
+      const allSizes = settings.availableSizes || ['PP', 'P', 'M', 'G', 'GG', 'XGG'];
       variantList = (product.variants || []).map(v => {
         const sizesObj = {};
-        const settings = DataStore.getSettings();
-        const allSizes = settings.availableSizes || ['PP', 'P', 'M', 'G', 'GG', 'XGG'];
         allSizes.forEach(sz => { sizesObj[sz] = 0; });
         (v.sizes || []).forEach(s => { sizesObj[s.size] = s.qty; });
-        return { color: v.color, colorHex: v.colorHex || '#C2185B', sizes: sizesObj };
+        return { color: v.color, colorHex: v.colorHex || '#059669', image: v.image || '', sizes: sizesObj };
       });
     } else {
       if ($('pf-active')) $('pf-active').checked = true;
+      if ($('pf-featured')) $('pf-featured').checked = false;
       variantList = [];
     }
 
@@ -366,18 +381,31 @@
 
     if (!variantList.length) {
       builder.innerHTML = `<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:20px;">
-        Clique em "+ Adicionar Cor" para cadastrar variantes de cor e tamanho.</p>`;
+        Clique em "+ Adicionar Cor" para cadastrar variantes com foto, cor e quantidade por tamanho.</p>`;
       return;
     }
 
     builder.innerHTML = variantList.map((v, idx) => `
       <div class="variant-row" data-idx="${idx}">
-        <button type="button" class="btn-remove-variant" onclick="AdminPanel.removeVariant(${idx})">✕ Remover</button>
+        <button type="button" class="btn-remove-variant" onclick="AdminPanel.removeVariant(${idx})">✕ Remover Cor</button>
         <div class="variant-row-header">
           <div class="color-picker-wrap">
             <label>Cor:</label>
             <input type="color" value="${v.colorHex}" onchange="AdminPanel.updateVariantColor(${idx}, 'hex', this.value)">
             <input type="text" value="${Utils.sanitize(v.color)}" placeholder="Nome da cor" onchange="AdminPanel.updateVariantColor(${idx}, 'name', this.value)" style="font-weight:600;">
+          </div>
+          <div class="variant-image-wrap">
+            <div class="variant-img-preview-thumb" id="variant-thumb-${idx}">
+              ${v.image ? `<img src="${Utils.sanitize(v.image)}" alt="Foto da cor">` : '📷'}
+            </div>
+            <div class="variant-img-input-box">
+              <input type="text" class="variant-img-url-input" value="${Utils.sanitize(v.image || '')}" placeholder="URL da foto desta cor" onchange="AdminPanel.updateVariantImage(${idx}, this.value)">
+              <label class="btn-variant-upload-label">
+                📁 Foto
+                <input type="file" accept="image/*" style="display:none;" onchange="AdminPanel.uploadVariantImage(${idx}, this)">
+              </label>
+              ${v.image ? `<button type="button" class="btn-variant-clear-img" onclick="AdminPanel.clearVariantImage(${idx})" title="Remover foto desta cor">✕</button>` : ''}
+            </div>
           </div>
         </div>
         <div class="size-qty-grid">
@@ -399,7 +427,7 @@
     const allSizes = settings.availableSizes || ['PP', 'P', 'M', 'G', 'GG', 'XGG'];
     const sizesObj = {};
     allSizes.forEach(s => { sizesObj[s] = 0; });
-    variantList.push({ color: `Cor ${variantList.length + 1}`, colorHex: '#C2185B', sizes: sizesObj });
+    variantList.push({ color: `Cor ${variantList.length + 1}`, colorHex: '#059669', image: '', sizes: sizesObj });
     renderVariantBuilder();
   };
 
@@ -412,6 +440,56 @@
     if (!variantList[idx]) return;
     if (field === 'hex') variantList[idx].colorHex = val;
     else variantList[idx].color = val;
+  };
+
+  window.AdminPanel.updateVariantImage = function (idx, val) {
+    if (!variantList[idx]) return;
+    variantList[idx].image = val.trim();
+    renderVariantBuilder();
+  };
+
+  window.AdminPanel.clearVariantImage = function (idx) {
+    if (!variantList[idx]) return;
+    variantList[idx].image = '';
+    renderVariantBuilder();
+  };
+
+  window.AdminPanel.uploadVariantImage = async function (idx, inputEl) {
+    if (!variantList[idx] || !inputEl.files || !inputEl.files[0]) return;
+    const file = inputEl.files[0];
+    if (file.size > 5 * 1024 * 1024) {
+      Utils.showToast('Imagem muito grande! Máx. 5MB.', 'error');
+      return;
+    }
+    try {
+      Utils.showToast('Enviando foto da cor...', 'info');
+      if (window.SupabaseService && window.SupabaseService.isConfigured()) {
+        const url = await window.SupabaseService.uploadImage(file, 'products');
+        variantList[idx].image = url;
+        Utils.showToast('Foto da cor enviada com sucesso!', 'success');
+        renderVariantBuilder();
+      } else {
+        const reader = new FileReader();
+        reader.onload = e => {
+          variantList[idx].image = e.target.result;
+          renderVariantBuilder();
+          Utils.showToast('Foto da cor carregada!', 'success');
+        };
+        reader.readAsDataURL(file);
+      }
+    } catch (err) {
+      Utils.showToast('Erro ao enviar foto: ' + (err.message || ''), 'error');
+    }
+  };
+
+  window.AdminPanel.toggleFeatured = async function (id) {
+    try {
+      const isFeatured = await DataStore.toggleProductFeatured(id);
+      Utils.showToast(isFeatured ? '⭐ Produto adicionado à Nova Coleção!' : 'Produto removido da Nova Coleção.', 'info');
+      renderProducts();
+    } catch (err) {
+      Utils.showToast('Erro: ' + (err.message || ''), 'error');
+    }
   };
 
   window.AdminPanel.updateVariantSize = function (idx, size, val) {
@@ -531,10 +609,12 @@
         const variants = variantList.map(v => ({
           color: v.color,
           colorHex: v.colorHex,
+          image: v.image || '',
           sizes: Object.entries(v.sizes).map(([size, qty]) => ({ size, qty: parseInt(qty) || 0 }))
         }));
 
         const totalStock = variants.reduce((t, v) => t + v.sizes.reduce((s, sz) => s + sz.qty, 0), 0);
+        const featured = $('pf-featured') ? $('pf-featured').checked : false;
 
         const product = {
           id: editingProductId || null,
@@ -545,6 +625,7 @@
           description,
           image: typeof productImageData === 'string' && productImageData.startsWith('http') ? productImageData : (imageUrl || ''),
           active,
+          featured,
           inStock: totalStock > 0,
           variants,
           promotion: { active: promoActv, discountPercent: promoPercent }
@@ -953,7 +1034,10 @@
 
     const btn = $('btn-save-delivery');
     if (btn) btn.onclick = async () => {
+      const origText = btn.textContent;
       try {
+        btn.disabled = true;
+        btn.textContent = 'Salvando...';
         await DataStore.updateSetting('delivery', {
           deliveryEnabled: $('delivery-enabled').checked,
           deliveryFee: parseFloat($('delivery-fee').value) || 0,
@@ -963,9 +1047,12 @@
           pickupAddress: $('pickup-address').value.trim(),
           pickupEstimate: 'Pronto em até 1 hora'
         });
-        Utils.showToast('Configurações salvas!', 'success');
+        Utils.showToast('Configurações de entrega salvas com sucesso!', 'success');
       } catch (err) {
-        Utils.showToast('Erro: ' + (err.message || ''), 'error');
+        Utils.showToast('Erro ao salvar entrega: ' + (err.message || ''), 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = origText;
       }
     };
   }
@@ -1086,13 +1173,20 @@
     const s = DataStore.getSettings();
     if ($('v-store-name')) $('v-store-name').value = s.storeName || '';
     if ($('v-store-tagline')) $('v-store-tagline').value = s.storeTagline || '';
-    if ($('v-logo-emoji')) $('v-logo-emoji').value = s.storeLogoEmoji || '👗';
-    if ($('v-theme-color')) $('v-theme-color').value = s.themeColor || '#C2185B';
+    if ($('v-logo-emoji')) $('v-logo-emoji').value = s.storeLogoEmoji || '⚡';
+    if ($('v-theme-color')) $('v-theme-color').value = s.themeColor || '#059669';
     if ($('v-hero-title')) $('v-hero-title').value = (s.hero || {}).title || '';
     if ($('v-hero-subtitle')) $('v-hero-subtitle').value = (s.hero || {}).subtitle || '';
     if ($('v-hero-cta')) $('v-hero-cta').value = (s.hero || {}).ctaText || '';
     if ($('v-ann-active')) $('v-ann-active').checked = (s.announcementBar || {}).active || false;
     if ($('v-ann-text')) $('v-ann-text').value = (s.announcementBar || {}).text || '';
+
+    // Featured Collection settings
+    const f = s.featuredCollection || {};
+    if ($('v-featured-active')) $('v-featured-active').checked = f.active !== false;
+    if ($('v-featured-title')) $('v-featured-title').value = f.title || 'Nova Coleção 2026';
+    if ($('v-featured-subtitle')) $('v-featured-subtitle').value = f.subtitle || '';
+
     if ($('v-whatsapp')) $('v-whatsapp').value = s.whatsappNumber || '';
     if ($('v-phone')) $('v-phone').value = s.contactPhone || '';
     if ($('v-instagram')) $('v-instagram').value = s.instagram || '';
@@ -1104,7 +1198,7 @@
         await DataStore.updateSettings({
           storeName: $('v-store-name').value.trim(),
           storeTagline: $('v-store-tagline').value.trim(),
-          storeLogoEmoji: $('v-logo-emoji').value.trim() || '👗',
+          storeLogoEmoji: $('v-logo-emoji').value.trim() || '⚡',
           themeColor: $('v-theme-color').value,
           hero: {
             ...(DataStore.getSettings().hero || {}),
@@ -1115,6 +1209,11 @@
           announcementBar: {
             active: $('v-ann-active').checked,
             text: $('v-ann-text').value.trim()
+          },
+          featuredCollection: {
+            active: $('v-featured-active') ? $('v-featured-active').checked : true,
+            title: $('v-featured-title') ? $('v-featured-title').value.trim() : 'Nova Coleção 2026',
+            subtitle: $('v-featured-subtitle') ? $('v-featured-subtitle').value.trim() : ''
           },
           whatsappNumber: $('v-whatsapp').value.trim(),
           contactPhone: $('v-phone').value.trim(),
