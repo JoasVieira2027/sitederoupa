@@ -1187,6 +1187,48 @@
     if ($('v-featured-title')) $('v-featured-title').value = f.title || 'Nova Coleção 2026';
     if ($('v-featured-subtitle')) $('v-featured-subtitle').value = f.subtitle || '';
 
+    // Instagram Feed settings
+    const ig = s.instagramFeed || {};
+    if ($('v-ig-active')) $('v-ig-active').checked = ig.active !== false;
+    if ($('v-ig-profile')) $('v-ig-profile').value = ig.profileUrl || ig.handle || '';
+    if ($('v-ig-limit')) $('v-ig-limit').value = String(ig.postsLimit || 6);
+    if ($('v-ig-cache')) $('v-ig-cache').value = String(ig.cacheMinutes || 60);
+    if ($('v-ig-title')) $('v-ig-title').value = ig.title || 'Siga no Instagram';
+    if ($('v-ig-subtitle')) $('v-ig-subtitle').value = ig.subtitle || '';
+
+    // Test Instagram Connection
+    const testIgBtn = $('btn-test-instagram');
+    async function checkInstagramStatus() {
+      const badge = $('admin-ig-status-badge');
+      if (!badge) return;
+      badge.textContent = 'Testando...';
+      badge.className = 'status-badge';
+      try {
+        const res = await fetch('/api/instagram?limit=1');
+        const data = await res.json();
+        if (data.configured && data.ok) {
+          badge.textContent = `🟢 Conectado (${data.posts?.length || 0} posts)`;
+          badge.className = 'status-badge active';
+        } else if (data.configured && !data.ok) {
+          badge.textContent = '⚠️ Token Inválido / Expirado';
+          badge.className = 'status-badge inactive';
+        } else {
+          badge.textContent = '⚠️ Sem Token (.env)';
+          badge.className = 'status-badge inactive';
+        }
+      } catch (e) {
+        badge.textContent = 'ℹ️ Servidor Local';
+        badge.className = 'status-badge';
+      }
+    }
+    if (testIgBtn) {
+      testIgBtn.onclick = async () => {
+        await checkInstagramStatus();
+        Utils.showToast('Status do Instagram verificado!', 'info');
+      };
+    }
+    checkInstagramStatus();
+
     if ($('v-whatsapp')) $('v-whatsapp').value = s.whatsappNumber || '';
     if ($('v-phone')) $('v-phone').value = s.contactPhone || '';
     if ($('v-instagram')) $('v-instagram').value = s.instagram || '';
@@ -1214,6 +1256,14 @@
             active: $('v-featured-active') ? $('v-featured-active').checked : true,
             title: $('v-featured-title') ? $('v-featured-title').value.trim() : 'Nova Coleção 2026',
             subtitle: $('v-featured-subtitle') ? $('v-featured-subtitle').value.trim() : ''
+          },
+          instagramFeed: {
+            active: $('v-ig-active') ? $('v-ig-active').checked : true,
+            profileUrl: $('v-ig-profile') ? $('v-ig-profile').value.trim() : '',
+            postsLimit: $('v-ig-limit') ? (parseInt($('v-ig-limit').value, 10) || 6) : 6,
+            cacheMinutes: $('v-ig-cache') ? (parseInt($('v-ig-cache').value, 10) || 60) : 60,
+            title: $('v-ig-title') ? $('v-ig-title').value.trim() : 'Siga no Instagram',
+            subtitle: $('v-ig-subtitle') ? $('v-ig-subtitle').value.trim() : ''
           },
           whatsappNumber: $('v-whatsapp').value.trim(),
           contactPhone: $('v-phone').value.trim(),

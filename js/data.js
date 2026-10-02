@@ -142,6 +142,15 @@ const DEFAULT_SETTINGS = {
     pickupAddress: 'Consulte o ponto de retirada pelo WhatsApp',
     pickupEstimate: 'Pronto em até 2 horas'
   },
+  instagramFeed: {
+    active: true,
+    title: 'Siga no Instagram',
+    subtitle: 'Acompanhe nosso dia a dia, novidades e bastidores',
+    profileUrl: 'https://instagram.com',
+    handle: '@fitvibe',
+    postsLimit: 6,
+    cacheMinutes: 60
+  },
   whatsappNumber: '5511999999999',
   contactPhone: '(11) 99999-9999',
   instagram: '@fitvibe.activewear',
@@ -253,6 +262,7 @@ const DataStore = (function () {
       hero: parseJsonField(row.hero, DEFAULT_SETTINGS.hero),
       about: parseJsonField(row.about, DEFAULT_SETTINGS.about),
       delivery: parseJsonField(row.delivery, DEFAULT_SETTINGS.delivery),
+      instagramFeed: parseJsonField(row.instagram_feed, DEFAULT_SETTINGS.instagramFeed),
       whatsappNumber: row.whatsapp_number || DEFAULT_SETTINGS.whatsappNumber,
       contactPhone: row.contact_phone || DEFAULT_SETTINGS.contactPhone,
       instagram: row.instagram || '',
@@ -629,8 +639,12 @@ const DataStore = (function () {
       };
 
       try {
-        const rowWithFeatured = { ...row, featured_collection: _settings.featuredCollection };
-        const { error: fErr } = await _supabase.from('settings').upsert([rowWithFeatured]);
+        const rowWithExtras = {
+          ...row,
+          featured_collection: _settings.featuredCollection,
+          instagram_feed: _settings.instagramFeed
+        };
+        const { error: fErr } = await _supabase.from('settings').upsert([rowWithExtras]);
         if (fErr) {
           const { error } = await _supabase.from('settings').upsert([row]);
           if (error) throw error;
