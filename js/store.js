@@ -120,7 +120,8 @@
 
   // ===== INIT =====
   async function init() {
-    await DataStore.init({ enableRealtime: true, isAdmin: false });
+    // enableRealtime: false para loja pública poupa conexões e limites do Supabase
+    await DataStore.init({ enableRealtime: false, isAdmin: false });
     settings = DataStore.getSettings();
 
     applyBranding();
@@ -1039,11 +1040,6 @@
 
   // ===== EVENTS =====
   function bindEvents() {
-    // Navbar scroll
-    window.addEventListener('scroll', () => {
-      if (navbar) navbar.classList.toggle('scrolled', window.scrollY > 50);
-    }, { passive: true });
-
     // Cart open
     if (btnOpenCart) btnOpenCart.addEventListener('click', openCart);
     if (cartOverlay) cartOverlay.addEventListener('click', closeCart);
@@ -1153,9 +1149,20 @@
       }
     });
 
-    // Parallax hero
+    // High-performance RAF scroll handler (navbar + GPU accelerated parallax)
+    let isScrollTicking = false;
     window.addEventListener('scroll', () => {
-      if (heroBg) heroBg.style.transform = `translateY(${window.scrollY * 0.4}px)`;
+      if (!isScrollTicking) {
+        window.requestAnimationFrame(() => {
+          const sy = window.scrollY;
+          if (navbar) navbar.classList.toggle('scrolled', sy > 40);
+          if (heroBg && sy < 800) {
+            heroBg.style.transform = `translate3d(0, ${(sy * 0.35).toFixed(1)}px, 0)`;
+          }
+          isScrollTicking = false;
+        });
+        isScrollTicking = true;
+      }
     }, { passive: true });
   }
 
