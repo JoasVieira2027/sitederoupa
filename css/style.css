@@ -451,6 +451,38 @@ body {
   transform: translateY(-3px);
 }
 
+.hero-image-container {
+  position: absolute;
+  right: 5%;
+  bottom: 0;
+  height: 90%;
+  max-height: 700px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.hero-image-container img {
+  height: 100%;
+  width: auto;
+  object-fit: contain;
+  object-position: bottom right;
+  display: block;
+  animation: fadeInUp 1s ease 0.4s both;
+  filter: drop-shadow(-10px 0px 30px rgba(0,0,0,0.25));
+}
+
+@media (max-width: 992px) {
+  .hero-image-container {
+    right: -10%;
+    opacity: 0.5;
+  }
+}
+@media (max-width: 768px) {
+  .hero-image-container {
+    display: none !important;
+  }
+}
+
 /* ===== CONTAINER ===== */
 .container {
   max-width: 1280px;

@@ -1179,6 +1179,27 @@
     if ($('v-hero-title')) $('v-hero-title').value = (s.hero || {}).title || '';
     if ($('v-hero-subtitle')) $('v-hero-subtitle').value = (s.hero || {}).subtitle || '';
     if ($('v-hero-cta')) $('v-hero-cta').value = (s.hero || {}).ctaText || '';
+    if ($('v-hero-image')) $('v-hero-image').value = (s.hero || {}).image || '';
+    
+    if ($('v-hero-image-upload')) {
+      $('v-hero-image-upload').onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { Utils.showToast('Máx. 5MB.', 'error'); return; }
+        try {
+          Utils.showToast('Enviando...', 'info');
+          if (window.SupabaseService && window.SupabaseService.isConfigured()) {
+            const url = await window.SupabaseService.uploadImage(file, 'hero');
+            if ($('v-hero-image')) $('v-hero-image').value = url;
+            Utils.showToast('Enviada!', 'success');
+          } else {
+            const reader = new FileReader();
+            reader.onload = ev => { if ($('v-hero-image')) $('v-hero-image').value = ev.target.result; };
+            reader.readAsDataURL(file);
+          }
+        } catch (err) { Utils.showToast('Erro: ' + (err.message || ''), 'error'); }
+      };
+    }
     if ($('v-ann-active')) $('v-ann-active').checked = (s.announcementBar || {}).active || false;
     if ($('v-ann-text')) $('v-ann-text').value = (s.announcementBar || {}).text || '';
 
@@ -1303,7 +1324,8 @@
             ...(DataStore.getSettings().hero || {}),
             title: $('v-hero-title').value.trim(),
             subtitle: $('v-hero-subtitle').value.trim(),
-            ctaText: $('v-hero-cta').value.trim()
+            ctaText: $('v-hero-cta').value.trim(),
+            image: $('v-hero-image') ? $('v-hero-image').value.trim() : ''
           },
           announcementBar: {
             active: $('v-ann-active').checked,

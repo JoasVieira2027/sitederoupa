@@ -176,6 +176,18 @@
     if (heroBg) {
       heroBg.style.backgroundImage = `url('assets/images/hero_fashion.jpg')`;
     }
+    
+    // Hero image (Right side)
+    const heroImageContainer = $('hero-image-container');
+    const heroImage = $('hero-image');
+    if (heroImageContainer && heroImage) {
+      if (hero.image) {
+        heroImage.src = hero.image;
+        heroImageContainer.style.display = 'block';
+      } else {
+        heroImageContainer.style.display = 'none';
+      }
+    }
 
     // WhatsApp button in hero
     const wa = settings.whatsappNumber ? `https://wa.me/${settings.whatsappNumber}` : '#';
@@ -198,6 +210,15 @@
       closedBanner.classList.remove('hidden');
     } else if (closedBanner) {
       closedBanner.classList.add('hidden');
+    }
+
+    // Handle button disable state if closed
+    if (!open) {
+      if (heroWhatsappBtn) heroWhatsappBtn.style.display = 'none';
+      if (footerWhatsapp) footerWhatsapp.style.pointerEvents = 'none';
+    } else {
+      if (heroWhatsappBtn) heroWhatsappBtn.style.display = '';
+      if (footerWhatsapp) footerWhatsapp.style.pointerEvents = '';
     }
   }
 
@@ -296,6 +317,7 @@
     const finalPrice = Utils.calcDiscountedPrice(p.price, p.promotion);
     const hasPromo = p.promotion && p.promotion.active && p.promotion.discountPercent > 0;
     const totalStock = DataStore.getProductTotalStock(p.id);
+    const isClosed = !DataStore.isStoreOpen();
     const isOut = !p.inStock || totalStock === 0;
 
     const imageHtml = p.image
@@ -355,7 +377,7 @@
           <div class="product-card-stock-info">${stockInfo}</div>
           <div class="product-card-footer">
             ${priceHtml}
-            <button class="btn-add-cart" data-id="${p.id}" ${isOut ? 'disabled' : ''} aria-label="Selecionar opções">🛒</button>
+            <button class="btn-add-cart" data-id="${p.id}" ${(isOut || isClosed) ? 'disabled' : ''} aria-label="Selecionar opções">🛒</button>
           </div>
         </div>
       </div>`;
@@ -430,6 +452,7 @@
     const finalPrice = Utils.calcDiscountedPrice(p.price, p.promotion);
     const hasPromo = p.promotion && p.promotion.active && p.promotion.discountPercent > 0;
     const totalStock = DataStore.getProductTotalStock(p.id);
+    const isClosed = !DataStore.isStoreOpen();
     const isOut = !p.inStock || totalStock === 0;
 
     const imageHtml = p.image
@@ -475,8 +498,8 @@
           <div class="product-card-footer" style="margin-top:8px;">
             ${priceHtml}
           </div>
-          <button type="button" class="btn-buy-featured" data-id="${p.id}" ${isOut ? 'disabled' : ''}>
-            ${isOut ? 'Esgotado' : '⚡ Comprar Agora'}
+          <button type="button" class="btn-buy-featured" data-id="${p.id}" ${(isOut || isClosed) ? 'disabled' : ''}>
+            ${isClosed ? 'Loja Fechada' : (isOut ? 'Esgotado' : '⚡ Comprar Agora')}
           </button>
         </div>
       </div>`;
@@ -690,6 +713,14 @@
 
   function updateModalAddCartBtn() {
     if (!btnModalAddCart) return;
+    
+    const isClosed = !DataStore.isStoreOpen();
+    if (isClosed) {
+      btnModalAddCart.disabled = true;
+      btnModalAddCart.textContent = 'Loja Fechada';
+      return;
+    }
+
     const hasVariants = (currentProduct.variants || []).length > 0;
 
     if (!hasVariants) {
@@ -846,6 +877,10 @@
   }
 
   function addToCart(product, color, colorHex, size, qty = 1) {
+    if (!DataStore.isStoreOpen()) {
+      Utils.showToast('A loja está fechada no momento.', 'error');
+      return false;
+    }
     // Check stock
     const hasVariants = (product.variants || []).length > 0;
     if (hasVariants) {
@@ -944,6 +979,17 @@
     if (mobileCartBadge) mobileCartBadge.textContent = count;
     if (mobileCartCount) mobileCartCount.textContent = `${count} ${count === 1 ? 'item' : 'itens'}`;
     if (mobileCartTotal) mobileCartTotal.textContent = Utils.formatCurrency(total);
+    
+    // Disable checkout if closed
+    const isClosed = !DataStore.isStoreOpen();
+    if (btnCheckout) {
+      btnCheckout.disabled = isClosed;
+      btnCheckout.textContent = isClosed ? 'Loja Fechada' : 'Finalizar Pedido';
+    }
+    if (btnMobileCheckout) {
+      btnMobileCheckout.disabled = isClosed;
+      btnMobileCheckout.innerHTML = isClosed ? 'Loja Fechada' : 'Finalizar <span>→</span>';
+    }
   }
 
   function renderCartItems() {
