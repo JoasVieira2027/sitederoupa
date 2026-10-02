@@ -345,6 +345,15 @@ body {
   margin: 0 auto;
   padding: 80px 32px;
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.hero-text {
+  flex: 0 0 55%;
+  max-width: 55%;
 }
 
 .hero-badge {
@@ -377,7 +386,7 @@ body {
 
 .hero h1 {
   font-family: var(--font-display);
-  font-size: clamp(2.2rem, 6vw, 4.2rem);
+  font-size: clamp(1.9rem, 4.5vw, 3.8rem);
   font-weight: 700;
   color: white;
   line-height: 1.15;
@@ -392,9 +401,9 @@ body {
 }
 
 .hero p {
-  font-size: clamp(1rem, 2vw, 1.2rem);
+  font-size: clamp(0.95rem, 1.8vw, 1.1rem);
   color: rgba(255,255,255,0.88);
-  max-width: 560px;
+  max-width: 480px;
   line-height: 1.7;
   margin-bottom: 36px;
   text-shadow: 0 1px 8px rgba(0,0,0,0.2);
@@ -451,36 +460,49 @@ body {
   transform: translateY(-3px);
 }
 
+@keyframes heroFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-14px); }
+}
+
+@keyframes heroGlow {
+  0%, 100% { filter: drop-shadow(-8px 0 28px rgba(0,0,0,0.22)) drop-shadow(0 0 0px rgba(16,185,129,0)); }
+  50%       { filter: drop-shadow(-8px 0 28px rgba(0,0,0,0.22)) drop-shadow(0 0 32px rgba(16,185,129,0.25)); }
+}
+
 .hero-image-container {
-  position: absolute;
-  right: 5%;
-  bottom: 0;
-  height: 90%;
-  max-height: 700px;
+  flex: 0 0 42%;
+  max-width: 42%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  position: relative;
   z-index: 2;
   pointer-events: none;
+  animation: fadeInUp 1s ease 0.4s both;
 }
 
 .hero-image-container img {
-  height: 100%;
-  width: auto;
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  max-height: 75vh;
   object-fit: contain;
-  object-position: bottom right;
+  object-position: bottom center;
   display: block;
-  animation: fadeInUp 1s ease 0.4s both;
-  filter: drop-shadow(-10px 0px 30px rgba(0,0,0,0.25));
+  animation: heroFloat 4s ease-in-out infinite, heroGlow 4s ease-in-out infinite;
 }
 
-@media (max-width: 992px) {
-  .hero-image-container {
-    right: -10%;
-    opacity: 0.5;
-  }
+@media (max-width: 1100px) {
+  .hero-text { flex: 0 0 60%; max-width: 60%; }
+  .hero-image-container { flex: 0 0 38%; max-width: 38%; }
+  .hero-image-container img { max-width: 340px; }
 }
-@media (max-width: 768px) {
-  .hero-image-container {
-    display: none !important;
-  }
+
+@media (max-width: 900px) {
+  .hero-content { flex-direction: column; gap: 0; }
+  .hero-text { flex: unset; max-width: 100%; }
+  .hero-image-container { display: none !important; }
 }
 
 /* ===== CONTAINER ===== */
