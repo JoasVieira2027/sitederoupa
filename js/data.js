@@ -276,6 +276,7 @@ const DataStore = (function () {
         sizes: Array.isArray(item.sizes) ? item.sizes : []
       })) : [],
       promotion: row.promotion || { active: false, discountPercent: 0 },
+      displayOrder: row.display_order || 0,
       createdAt: row.created_at,
       updatedAt: row.updated_at
     };
@@ -392,9 +393,9 @@ const DataStore = (function () {
     }
     if (_supabase) {
       try {
-        const { data, error } = await _supabase.from('products').select('*').order('created_at', { ascending: false });
+        const { data, error } = await _supabase.from('products').select('*');
         if (!error && data) {
-          _products = data.map(_mapProduct);
+          _products = data.map(_mapProduct).sort((a, b) => a.displayOrder - b.displayOrder || new Date(b.createdAt) - new Date(a.createdAt));
           _saveLocal(DB_KEYS.PRODUCTS, _products);
           return;
         }
@@ -402,6 +403,7 @@ const DataStore = (function () {
     }
     const local = _loadLocal(DB_KEYS.PRODUCTS);
     _products = local && local.length ? local : [...DEFAULT_PRODUCTS];
+    _products.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
   }
 
   async function _loadSettings() {
@@ -542,12 +544,12 @@ const DataStore = (function () {
       };
       if (isNew) row.created_at = product.createdAt;
 
-      // Try saving with featured flag first, fallback if column doesn't exist
+      // Try saving with extra fields first, fallback if column doesn't exist
       try {
-        const rowWithFeatured = { ...row, featured: product.featured === true };
+        const rowWithExtra = { ...row, featured: product.featured === true, display_order: product.displayOrder || 0 };
         const { error: fErr } = isNew
-          ? await _supabase.from('products').insert([rowWithFeatured])
-          : await _supabase.from('products').update(rowWithFeatured).eq('id', product.id);
+          ? await _supabase.from('products').insert([rowWithExtra])
+          : await _supabase.from('products').update(rowWithExtra).eq('id', product.id);
         if (fErr) {
           const { error } = isNew
             ? await _supabase.from('products').insert([row])

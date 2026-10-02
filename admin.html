@@ -135,6 +135,7 @@
                       <th>Categoria</th>
                       <th>Preço</th>
                       <th>Estoque</th>
+                      <th>Posição</th>
                       <th>Destaque</th>
                       <th>Status</th>
                       <th>Ações</th>
@@ -651,6 +652,13 @@
                 <label class="toggle-switch"><input type="checkbox" id="pf-featured"><span class="toggle-slider"></span></label>
                 ⭐ Destaque na Nova Coleção
               </label>
+            </div>
+            <div class="form-group">
+              <label>Posição na Vitrine</label>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <input type="number" id="pf-display-order" class="form-control" min="0" max="9999" value="0" style="width:90px;">
+                <span style="font-size:0.8rem;color:var(--text-muted);">0 = primeiro &middot; número maior = mais ao fundo</span>
+              </div>
             </div>
           </div>
 

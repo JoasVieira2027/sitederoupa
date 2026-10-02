@@ -280,6 +280,15 @@
         </td>
         <td>${stockChips || `<span style="color:var(--text-muted);font-size:0.8rem;">${totalStock} un</span>`}</td>
         <td>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-size:0.85rem;font-weight:700;min-width:24px;text-align:center;">${p.displayOrder || 0}</span>
+            <div style="display:flex;flex-direction:column;gap:2px;">
+              <button type="button" class="btn btn-secondary btn-sm" style="padding:1px 6px;font-size:0.7rem;line-height:1.2;" onclick="AdminPanel.moveProduct('${p.id}', -1)" title="Mover para frente">↑</button>
+              <button type="button" class="btn btn-secondary btn-sm" style="padding:1px 6px;font-size:0.7rem;line-height:1.2;" onclick="AdminPanel.moveProduct('${p.id}', 1)" title="Mover para trás">↓</button>
+            </div>
+          </div>
+        </td>
+        <td>
           <button type="button" class="btn btn-sm ${p.featured ? 'btn-primary' : 'btn-secondary'}" 
             onclick="AdminPanel.toggleFeatured('${p.id}')" 
             style="font-size:0.75rem;padding:4px 9px;border-radius:var(--radius-full);cursor:pointer;white-space:nowrap;"
@@ -298,7 +307,7 @@
           </div>
         </td>
       </tr>`;
-    }).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px;">Nenhum produto cadastrado.</td></tr>`;
+    }).join('') || `<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:40px;">Nenhum produto cadastrado.</td></tr>`;
   }
 
   function buildStockChips(product) {
@@ -345,6 +354,7 @@
       if ($('pf-image-url')) $('pf-image-url').value = product.image || '';
       if ($('pf-active')) $('pf-active').checked = product.active !== false;
       if ($('pf-featured')) $('pf-featured').checked = product.featured === true;
+      if ($('pf-display-order')) $('pf-display-order').value = product.displayOrder || 0;
 
       if (product.image) {
         if ($('pf-image-preview')) { $('pf-image-preview').src = product.image; $('pf-image-preview').style.display = 'block'; }
@@ -367,6 +377,7 @@
     } else {
       if ($('pf-active')) $('pf-active').checked = true;
       if ($('pf-featured')) $('pf-featured').checked = false;
+      if ($('pf-display-order')) $('pf-display-order').value = 0;
       variantList = [];
     }
 
@@ -493,6 +504,37 @@
     }
   };
 
+  window.AdminPanel.moveProduct = async function (id, direction) {
+    try {
+      const allProducts = DataStore.getProducts({ includeInactive: true });
+      const sorted = [...allProducts].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+      const idx = sorted.findIndex(p => p.id === id);
+      const targetIdx = idx + direction;
+      if (targetIdx < 0 || targetIdx >= sorted.length) return;
+
+      // Swap display orders
+      const currentOrder = sorted[idx].displayOrder || idx;
+      const targetOrder = sorted[targetIdx].displayOrder || targetIdx;
+
+      sorted[idx].displayOrder = targetOrder;
+      sorted[targetIdx].displayOrder = currentOrder;
+
+      // If orders were the same, assign distinct values
+      if (currentOrder === targetOrder) {
+        sorted.forEach((p, i) => { p.displayOrder = i; });
+      }
+
+      await Promise.all([
+        DataStore.saveProduct(sorted[idx]),
+        DataStore.saveProduct(sorted[targetIdx])
+      ]);
+
+      renderProducts();
+    } catch (err) {
+      Utils.showToast('Erro ao mover: ' + (err.message || ''), 'error');
+    }
+  };
+
   window.AdminPanel.updateVariantSize = function (idx, size, val) {
     if (!variantList[idx]) return;
     variantList[idx].sizes[size] = Math.max(0, parseInt(val) || 0);
@@ -616,6 +658,7 @@
 
         const totalStock = variants.reduce((t, v) => t + v.sizes.reduce((s, sz) => s + sz.qty, 0), 0);
         const featured = $('pf-featured') ? $('pf-featured').checked : false;
+        const displayOrder = $('pf-display-order') ? (parseInt($('pf-display-order').value) || 0) : 0;
 
         const product = {
           id: editingProductId || null,
@@ -627,6 +670,7 @@
           image: typeof productImageData === 'string' && productImageData.startsWith('http') ? productImageData : (imageUrl || ''),
           active,
           featured,
+          displayOrder,
           inStock: totalStock > 0,
           variants,
           promotion: { active: promoActv, discountPercent: promoPercent }
