@@ -1233,7 +1233,7 @@
         try {
           Utils.showToast('Enviando...', 'info');
           if (window.SupabaseService && window.SupabaseService.isConfigured()) {
-            const url = await window.SupabaseService.uploadImage(file, 'hero');
+            const url = await window.SupabaseService.uploadImage(file, 'products');
             if ($('v-hero-image')) $('v-hero-image').value = url;
             Utils.showToast('Enviada!', 'success');
           } else {
@@ -1329,7 +1329,7 @@
       try {
         Utils.showToast('Enviando...', 'info');
         if (window.SupabaseService && window.SupabaseService.isConfigured()) {
-          const url = await window.SupabaseService.uploadImage(file, 'instagram');
+          const url = await window.SupabaseService.uploadImage(file, 'products');
           igPostsList[idx].image = url;
           AdminPanel.renderIgPostsManager();
           Utils.showToast('Enviada!', 'success');
