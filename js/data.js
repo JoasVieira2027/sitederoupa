@@ -144,12 +144,48 @@ const DEFAULT_SETTINGS = {
   },
   instagramFeed: {
     active: true,
-    title: 'Siga no Instagram',
-    subtitle: 'Acompanhe nosso dia a dia, novidades e bastidores',
-    profileUrl: 'https://instagram.com',
-    handle: '@fitvibe',
-    postsLimit: 6,
-    cacheMinutes: 60
+    title: 'Siga nosso Instagram',
+    subtitle: 'Confira nossos treinos, novidades e bastidores exclusivos',
+    handle: '@fitvibe.activewear',
+    profileUrl: 'https://instagram.com/fitvibe.activewear',
+    bio: 'Activewear premium com modelagem anatômica e zero transparência',
+    posts: [
+      {
+        id: 'ig_post_1',
+        image: 'assets/images/legging_fitness.jpg',
+        postUrl: 'https://instagram.com',
+        caption: 'Legging Seamless Compressão Máxima. Zero transparência no agachamento.',
+        featured: true
+      },
+      {
+        id: 'ig_post_2',
+        image: 'assets/images/top_fitness.jpg',
+        postUrl: 'https://instagram.com',
+        caption: 'Top Nadador com sustentação reforçada e tecido tecnológico dry-fit.',
+        featured: false
+      },
+      {
+        id: 'ig_post_3',
+        image: 'assets/images/conjunto_fitness.jpg',
+        postUrl: 'https://instagram.com',
+        caption: 'Conjunto Verde Oliva: conforto e elegância em cada treino.',
+        featured: false
+      },
+      {
+        id: 'ig_post_4',
+        image: 'assets/images/short_fitness.jpg',
+        postUrl: 'https://instagram.com',
+        caption: 'Short Runner com cós duplo anatômico que não enrola.',
+        featured: false
+      },
+      {
+        id: 'ig_post_5',
+        image: 'assets/images/hero_fitness.jpg',
+        postUrl: 'https://instagram.com',
+        caption: 'Nova Coleção: tecnologia têxtil para acompanhar sua melhor performance.',
+        featured: false
+      }
+    ]
   },
   whatsappNumber: '5511999999999',
   contactPhone: '(11) 99999-9999',
@@ -262,7 +298,13 @@ const DataStore = (function () {
       hero: parseJsonField(row.hero, DEFAULT_SETTINGS.hero),
       about: parseJsonField(row.about, DEFAULT_SETTINGS.about),
       delivery: parseJsonField(row.delivery, DEFAULT_SETTINGS.delivery),
-      instagramFeed: parseJsonField(row.instagram_feed, DEFAULT_SETTINGS.instagramFeed),
+      instagramFeed: (function () {
+        const parsed = parseJsonField(row.instagram_feed, DEFAULT_SETTINGS.instagramFeed);
+        if (!parsed || !Array.isArray(parsed.posts)) {
+          return { ...DEFAULT_SETTINGS.instagramFeed, ...(parsed || {}), posts: DEFAULT_SETTINGS.instagramFeed.posts };
+        }
+        return parsed;
+      })(),
       whatsappNumber: row.whatsapp_number || DEFAULT_SETTINGS.whatsappNumber,
       contactPhone: row.contact_phone || DEFAULT_SETTINGS.contactPhone,
       instagram: row.instagram || '',

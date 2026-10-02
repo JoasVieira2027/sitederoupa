@@ -3246,6 +3246,11 @@ button, input, select, textarea, .nav-icon-btn, .color-option, .size-chip, .deli
   transition: transform 0.35s ease;
 }
 
+.featured-ig-post {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
 .instagram-post-card:hover img {
   transform: scale(1.06);
 }

@@ -774,99 +774,37 @@
     const profileBtn = $('btn-instagram-profile');
     if (profileBtn) profileBtn.href = profileUrl;
 
-    const limit = Math.max(1, Math.min(ig.postsLimit || 6, 12));
-    const cacheMinutes = ig.cacheMinutes || 60;
-
-    // Se já carregou na sessão atual, não refaz
-    if (igFeedLoaded && grid.children.length > 0) return;
-
-    // Exibir skeletons enquanto carrega
-    grid.innerHTML = Array(limit).fill(0).map(() => '<div class="instagram-skeleton"></div>').join('');
-    if (fallback) fallback.classList.add('hidden');
-
-    // Usar sessionStorage para cache do cliente (10 min) evitando chamadas na navegação
-    const clientCacheKey = `fitvibe_ig_posts_${limit}`;
-    try {
-      const cached = sessionStorage.getItem(clientCacheKey);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (parsed.timestamp && Date.now() - parsed.timestamp < 10 * 60 * 1000 && parsed.posts?.length > 0) {
-          renderInstagramPosts(parsed.posts);
-          igFeedLoaded = true;
-          return;
-        }
-      }
-    } catch (e) {}
-
-    // Carregamento otimizado usando IntersectionObserver
-    function fetchPosts() {
-      fetch(`/api/instagram?limit=${limit}&cacheMinutes=${cacheMinutes}`)
-        .then(res => res.json())
-        .then(data => {
-          igFeedLoaded = true;
-          if (data && data.ok && Array.isArray(data.posts) && data.posts.length > 0) {
-            renderInstagramPosts(data.posts);
-            try {
-              sessionStorage.setItem(clientCacheKey, JSON.stringify({ timestamp: Date.now(), posts: data.posts }));
-            } catch (e) {}
-          } else {
-            showInstagramFallback(profileUrl, ig.handle || s.instagram || '@fitvibe');
-          }
-        })
-        .catch(err => {
-          console.warn('[Instagram] Erro ao carregar feed:', err);
-          showInstagramFallback(profileUrl, ig.handle || s.instagram || '@fitvibe');
-        });
-    }
-
-    if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver((entries, obs) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            obs.disconnect();
-            fetchPosts();
-          }
-        });
-      }, { rootMargin: '200px' });
-      observer.observe(section);
+    const posts = ig.posts || [];
+    
+    if (posts.length > 0) {
+      if (fallback) fallback.classList.add('hidden');
+      grid.innerHTML = posts.map(post => {
+        const href = post.postUrl || profileUrl;
+        const imgClass = post.featured ? 'instagram-post-card featured-ig-post' : 'instagram-post-card';
+        return `
+          <a href="${Utils.sanitize(href)}" target="_blank" rel="noopener noreferrer" 
+             class="${imgClass}" title="${Utils.sanitize(post.caption || 'Ver no Instagram')}">
+            <img src="${Utils.sanitize(post.image)}" alt="${Utils.sanitize(post.caption || 'Foto Instagram')}" loading="lazy">
+            <div class="instagram-post-overlay">
+              ${post.caption ? `<div class="instagram-post-caption">${Utils.sanitize(post.caption)}</div>` : ''}
+              <span class="instagram-post-action">Ver no Instagram ↗</span>
+            </div>
+          </a>
+        `;
+      }).join('');
     } else {
-      setTimeout(fetchPosts, 300);
-    }
-  }
-
-  function renderInstagramPosts(posts) {
-    const grid = $('instagram-grid');
-    const fallback = $('instagram-fallback');
-    if (!grid) return;
-    if (fallback) fallback.classList.add('hidden');
-
-    grid.innerHTML = posts.map(post => `
-      <a href="${Utils.sanitize(post.permalink)}" target="_blank" rel="noopener noreferrer" 
-         class="instagram-post-card" title="${Utils.sanitize(post.caption || 'Ver publicação no Instagram')}">
-        <img src="${Utils.sanitize(post.mediaUrl)}" alt="${Utils.sanitize(post.caption || 'Foto Instagram')}" loading="lazy">
-        ${post.mediaType === 'VIDEO' ? '<span class="instagram-video-badge" title="Vídeo">▶</span>' : ''}
-        <div class="instagram-post-overlay">
-          ${post.caption ? `<div class="instagram-post-caption">${Utils.sanitize(post.caption)}</div>` : ''}
-          <span class="instagram-post-action">Ver no Instagram ↗</span>
-        </div>
-      </a>
-    `).join('');
-  }
-
-  function showInstagramFallback(profileUrl, handle) {
-    const grid = $('instagram-grid');
-    const fallback = $('instagram-fallback');
-    if (grid) grid.innerHTML = '';
-    if (fallback) {
-      fallback.classList.remove('hidden');
-      fallback.innerHTML = `
-        <span class="instagram-fallback-icon">📸</span>
-        <h3>Acompanhe nossa Comunidade no Instagram</h3>
-        <p>Confira novidades diárias, lançamentos fitness, bastidores e clientes reais usando nossas peças em <strong>${Utils.sanitize(handle)}</strong>.</p>
-        <a href="${profileUrl}" target="_blank" rel="noopener noreferrer" class="btn-instagram-profile" style="margin-top:4px;">
-          Seguir ${Utils.sanitize(handle)} no Instagram ↗
-        </a>
-      `;
+      if (grid) grid.innerHTML = '';
+      if (fallback) {
+        fallback.classList.remove('hidden');
+        fallback.innerHTML = `
+          <span class="instagram-fallback-icon">📸</span>
+          <h3>Acompanhe nossa Comunidade no Instagram</h3>
+          <p>${Utils.sanitize(ig.bio || 'Confira novidades diárias, lançamentos e bastidores no nosso Instagram!')}</p>
+          <a href="${profileUrl}" target="_blank" rel="noopener noreferrer" class="btn-instagram-profile" style="margin-top:4px;">
+            Seguir ${Utils.sanitize(ig.handle || '@loja')} no Instagram ↗
+          </a>
+        `;
+      }
     }
   }
 

@@ -405,7 +405,7 @@
 
           <div class="admin-card">
             <div class="admin-card-header">
-              <h3>📸 Feed do Instagram Oficial (Meta Graph API)</h3>
+              <h3>Publicações do Instagram</h3>
               <label class="toggle-switch">
                 <input type="checkbox" id="v-ig-active" checked>
                 <span class="toggle-slider"></span>
@@ -414,60 +414,45 @@
             <div class="admin-card-body" id="v-ig-body">
               <div class="admin-form-grid">
                 <div class="form-group">
-                  <label>Link / Perfil do Instagram</label>
-                  <input type="text" id="v-ig-profile" class="form-control" placeholder="https://instagram.com/fitvibe ou @fitvibe">
+                  <label>Usuário / Perfil (@)</label>
+                  <input type="text" id="v-ig-handle" class="form-control" placeholder="@sua_loja">
                 </div>
                 <div class="form-group">
-                  <label>Quantidade de Posts</label>
-                  <select id="v-ig-limit" class="form-control">
-                    <option value="4">4 posts (1 linha no desktop)</option>
-                    <option value="6" selected>6 posts (recomendado)</option>
-                    <option value="8">8 posts (2 linhas)</option>
-                    <option value="12">12 posts (vitrine expandida)</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label>Intervalo de Cache (Atualização)</label>
-                  <select id="v-ig-cache" class="form-control">
-                    <option value="30">30 minutos</option>
-                    <option value="60" selected>1 hora (recomendado pela Meta)</option>
-                    <option value="120">2 horas</option>
-                    <option value="240">4 horas</option>
-                  </select>
+                  <label>Link Direto do Perfil</label>
+                  <input type="text" id="v-ig-profile" class="form-control" placeholder="https://instagram.com/sua_loja">
                 </div>
                 <div class="form-group">
                   <label>Título da Seção</label>
-                  <input type="text" id="v-ig-title" class="form-control" placeholder="Ex: Siga no Instagram">
+                  <input type="text" id="v-ig-title" class="form-control" placeholder="Siga nosso Instagram">
+                </div>
+                <div class="form-group">
+                  <label>Subtítulo da Seção</label>
+                  <input type="text" id="v-ig-subtitle" class="form-control" placeholder="Acompanhe novidades, treinos e bastidores">
                 </div>
               </div>
 
               <div class="form-group">
-                <label>Subtítulo da Seção</label>
-                <input type="text" id="v-ig-subtitle" class="form-control" placeholder="Ex: Acompanhe nossos treinos, novidades e bastidores">
+                <label>Bio / Linha de Destaque do Perfil</label>
+                <input type="text" id="v-ig-bio" class="form-control" placeholder="Activewear premium com modelagem anatômica e zero transparência">
               </div>
 
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding:12px 14px;background:var(--bg-alt, #f9fafb);border-radius:var(--radius);border:1px solid var(--border);flex-wrap:wrap;">
-                <div style="font-size:0.83rem;color:var(--text-secondary);">
-                  <strong>Status da Conexão Meta:</strong> <span id="admin-ig-status-badge" class="status-badge">Verificando...</span>
+              <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+                  <div>
+                    <h4 style="margin:0;font-size:0.95rem;font-weight:700;color:var(--text-primary);">Fotos e Publicações</h4>
+                    <small style="color:var(--text-muted);font-size:0.8rem;">Adicione fotos, links dos posts no Instagram e defina destaques</small>
+                  </div>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-add-ig-post">+ Nova Foto</button>
                 </div>
-                <button type="button" class="btn btn-secondary btn-sm" id="btn-test-instagram">🔄 Testar Conexão Oficial</button>
+
+                <div id="ig-posts-manager-list" class="ig-posts-manager-list">
+                  <!-- Populated by JS -->
+                </div>
               </div>
 
-              <details style="margin-top:14px;font-size:0.82rem;color:var(--text-muted);background:var(--cream);padding:10px 14px;border-radius:var(--radius);border:1px solid var(--border);">
-                <summary style="font-weight:700;cursor:pointer;color:var(--text-primary);">📖 Como configurar o Token Oficial da Meta (Passo a Passo)</summary>
-                <div style="margin-top:10px;line-height:1.6;">
-                  <ol style="padding-left:18px;margin:0;">
-                    <li>Acesse o <a href="https://developers.facebook.com" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;">Meta for Developers</a> e crie um App (tipo <em>Empresa</em> ou <em>Consumidor</em>).</li>
-                    <li>Adicione o produto <strong>Instagram Graph API</strong> (ou <em>Instagram Login</em>).</li>
-                    <li>Vincule sua conta Instagram Professional (Comercial ou Criador de Conteúdo).</li>
-                    <li>Gere um <strong>User Access Token</strong> com a permissão <code>instagram_basic</code> e converta para <strong>Long-Lived Token (60 dias)</strong>.</li>
-                    <li>Adicione a variável de ambiente <code>INSTAGRAM_ACCESS_TOKEN</code> no painel da Vercel (<em>Settings &gt; Environment Variables</em>) ou no arquivo local <code>.env</code>.</li>
-                  </ol>
-                  <p style="margin:8px 0 0;color:var(--text-secondary);font-size:0.78rem;">
-                    🔒 <strong>Segurança Garantida:</strong> O token é lido apenas pelo backend da Vercel (serverless) e nunca é exposto no código aberto ou aos clientes no navegador.
-                  </p>
-                </div>
-              </details>
+              <p style="font-size:0.8rem;color:var(--text-muted);margin-top:14px;">
+                Dica: O link da publicação e a legenda são opcionais. Ao informar o link do post, o visitante poderá clicar na foto no site para abrir a publicação oficial no Instagram.
+              </p>
             </div>
           </div>
 

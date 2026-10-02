@@ -17,6 +17,7 @@
   let currentOrderFilter = 'all';
   let confirmCallback = null;
   let variantList = []; // [{color, colorHex, sizes: {PP:0, P:0, ...}}]
+  let igPostsList = []; // Manual Instagram posts manager
 
   // ===== 1. LOGIN =====
   async function initLogin() {
@@ -1191,43 +1192,99 @@
     const ig = s.instagramFeed || {};
     if ($('v-ig-active')) $('v-ig-active').checked = ig.active !== false;
     if ($('v-ig-profile')) $('v-ig-profile').value = ig.profileUrl || ig.handle || '';
-    if ($('v-ig-limit')) $('v-ig-limit').value = String(ig.postsLimit || 6);
-    if ($('v-ig-cache')) $('v-ig-cache').value = String(ig.cacheMinutes || 60);
     if ($('v-ig-title')) $('v-ig-title').value = ig.title || 'Siga no Instagram';
     if ($('v-ig-subtitle')) $('v-ig-subtitle').value = ig.subtitle || '';
+    if ($('v-ig-handle')) $('v-ig-handle').value = ig.handle || '';
+    if ($('v-ig-bio')) $('v-ig-bio').value = ig.bio || '';
 
-    // Test Instagram Connection
-    const testIgBtn = $('btn-test-instagram');
-    async function checkInstagramStatus() {
-      const badge = $('admin-ig-status-badge');
-      if (!badge) return;
-      badge.textContent = 'Testando...';
-      badge.className = 'status-badge';
-      try {
-        const res = await fetch('/api/instagram?limit=1');
-        const data = await res.json();
-        if (data.configured && data.ok) {
-          badge.textContent = `🟢 Conectado (${data.posts?.length || 0} posts)`;
-          badge.className = 'status-badge active';
-        } else if (data.configured && !data.ok) {
-          badge.textContent = '⚠️ Token Inválido / Expirado';
-          badge.className = 'status-badge inactive';
-        } else {
-          badge.textContent = '⚠️ Sem Token (.env)';
-          badge.className = 'status-badge inactive';
-        }
-      } catch (e) {
-        badge.textContent = 'ℹ️ Servidor Local';
-        badge.className = 'status-badge';
+    // Instagram Manager
+    igPostsList = [...(ig.posts || [])];
+    
+    window.AdminPanel.renderIgPostsManager = function() {
+      const container = $('ig-posts-manager-list');
+      if (!container) return;
+      if (igPostsList.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;">Nenhuma foto cadastrada. Clique em "+ Nova Foto".</p>';
+        return;
       }
-    }
-    if (testIgBtn) {
-      testIgBtn.onclick = async () => {
-        await checkInstagramStatus();
-        Utils.showToast('Status do Instagram verificado!', 'info');
+      container.innerHTML = igPostsList.map((post, idx) => `
+        <div class="ig-manager-card" style="display:flex;gap:12px;padding:12px;border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:12px;background:var(--bg-body);">
+          <div style="width:100px;height:100px;background:var(--border);border-radius:4px;overflow:hidden;flex-shrink:0;position:relative;">
+            ${post.image ? `<img src="${Utils.sanitize(post.image)}" style="width:100%;height:100%;object-fit:cover;">` : '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2rem;">📷</span>'}
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="text" class="form-control" style="flex:1;padding:4px 8px;font-size:0.85rem;" placeholder="URL da Foto ou faça upload" value="${Utils.sanitize(post.image || '')}" onchange="AdminPanel.updateIgPost(${idx}, 'image', this.value)">
+              <label class="btn btn-secondary btn-sm" style="cursor:pointer;padding:4px 8px;font-size:0.8rem;">
+                📁 Upload
+                <input type="file" accept="image/*" style="display:none;" onchange="AdminPanel.uploadIgPostImage(${idx}, this)">
+              </label>
+            </div>
+            <input type="text" class="form-control" style="padding:4px 8px;font-size:0.85rem;" placeholder="Link para o post oficial (opcional)" value="${Utils.sanitize(post.postUrl || '')}" onchange="AdminPanel.updateIgPost(${idx}, 'postUrl', this.value)">
+            <input type="text" class="form-control" style="padding:4px 8px;font-size:0.85rem;" placeholder="Legenda (opcional)" value="${Utils.sanitize(post.caption || '')}" onchange="AdminPanel.updateIgPost(${idx}, 'caption', this.value)">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <label style="font-size:0.8rem;display:flex;align-items:center;gap:6px;">
+                <input type="checkbox" ${post.featured ? 'checked' : ''} onchange="AdminPanel.updateIgPost(${idx}, 'featured', this.checked)"> Destaque (maior)
+              </label>
+              <div style="display:flex;gap:4px;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="AdminPanel.moveIgPost(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Subir">⬆️</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="AdminPanel.moveIgPost(${idx}, 1)" ${idx === igPostsList.length - 1 ? 'disabled' : ''} title="Descer">⬇️</button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="AdminPanel.removeIgPost(${idx})" title="Remover">✕</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    };
+
+    window.AdminPanel.updateIgPost = function(idx, field, val) {
+      if (!igPostsList[idx]) return;
+      igPostsList[idx][field] = val;
+      if (field === 'image') AdminPanel.renderIgPostsManager();
+    };
+
+    window.AdminPanel.removeIgPost = function(idx) {
+      igPostsList.splice(idx, 1);
+      AdminPanel.renderIgPostsManager();
+    };
+
+    window.AdminPanel.moveIgPost = function(idx, dir) {
+      const newIdx = idx + dir;
+      if (newIdx < 0 || newIdx >= igPostsList.length) return;
+      const temp = igPostsList[idx];
+      igPostsList[idx] = igPostsList[newIdx];
+      igPostsList[newIdx] = temp;
+      AdminPanel.renderIgPostsManager();
+    };
+
+    window.AdminPanel.uploadIgPostImage = async function(idx, inputEl) {
+      if (!igPostsList[idx] || !inputEl.files || !inputEl.files[0]) return;
+      const file = inputEl.files[0];
+      if (file.size > 5 * 1024 * 1024) { Utils.showToast('Máx. 5MB.', 'error'); return; }
+      try {
+        Utils.showToast('Enviando...', 'info');
+        if (window.SupabaseService && window.SupabaseService.isConfigured()) {
+          const url = await window.SupabaseService.uploadImage(file, 'instagram');
+          igPostsList[idx].image = url;
+          AdminPanel.renderIgPostsManager();
+          Utils.showToast('Enviada!', 'success');
+        } else {
+          const reader = new FileReader();
+          reader.onload = e => { igPostsList[idx].image = e.target.result; AdminPanel.renderIgPostsManager(); };
+          reader.readAsDataURL(file);
+        }
+      } catch (err) { Utils.showToast('Erro: ' + (err.message || ''), 'error'); }
+    };
+
+    const btnAddIg = $('btn-add-ig-post');
+    if (btnAddIg) {
+      btnAddIg.onclick = () => {
+        igPostsList.push({ id: 'ig_' + Date.now(), image: '', postUrl: '', caption: '', featured: false });
+        AdminPanel.renderIgPostsManager();
       };
     }
-    checkInstagramStatus();
+    
+    AdminPanel.renderIgPostsManager();
 
     if ($('v-whatsapp')) $('v-whatsapp').value = s.whatsappNumber || '';
     if ($('v-phone')) $('v-phone').value = s.contactPhone || '';
@@ -1259,11 +1316,12 @@
           },
           instagramFeed: {
             active: $('v-ig-active') ? $('v-ig-active').checked : true,
+            handle: $('v-ig-handle') ? $('v-ig-handle').value.trim() : '',
             profileUrl: $('v-ig-profile') ? $('v-ig-profile').value.trim() : '',
-            postsLimit: $('v-ig-limit') ? (parseInt($('v-ig-limit').value, 10) || 6) : 6,
-            cacheMinutes: $('v-ig-cache') ? (parseInt($('v-ig-cache').value, 10) || 60) : 60,
             title: $('v-ig-title') ? $('v-ig-title').value.trim() : 'Siga no Instagram',
-            subtitle: $('v-ig-subtitle') ? $('v-ig-subtitle').value.trim() : ''
+            subtitle: $('v-ig-subtitle') ? $('v-ig-subtitle').value.trim() : '',
+            bio: $('v-ig-bio') ? $('v-ig-bio').value.trim() : '',
+            posts: igPostsList
           },
           whatsappNumber: $('v-whatsapp').value.trim(),
           contactPhone: $('v-phone').value.trim(),
