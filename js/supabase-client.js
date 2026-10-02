@@ -17,14 +17,30 @@
      * Fetch configuration from /api/config or localStorage fallback
      */
     async fetchConfig() {
-      // 1. Try Vercel Serverless Function /api/config
+      // 1. Try sessionStorage cache first to avoid multiple /api/config calls during navigation
       try {
-        const res = await fetch('/api/config', {
-          headers: { 'Cache-Control': 'no-cache' }
-        });
+        const cached = sessionStorage.getItem('fashion_api_config');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed.supabaseUrl && parsed.supabaseAnonKey) {
+            return {
+              url: parsed.supabaseUrl,
+              anonKey: parsed.supabaseAnonKey,
+              source: 'vercel_env_cached'
+            };
+          }
+        }
+      } catch (e) {}
+
+      // 2. Try Vercel Serverless Function /api/config
+      try {
+        const res = await fetch('/api/config');
         if (res.ok) {
           const data = await res.json();
           if (data.supabaseUrl && data.supabaseAnonKey) {
+            try {
+              sessionStorage.setItem('fashion_api_config', JSON.stringify(data));
+            } catch (e) {}
             return {
               url: data.supabaseUrl,
               anonKey: data.supabaseAnonKey,
@@ -36,9 +52,9 @@
         // Not running on web server with /api/config or running locally via file://
       }
 
-      // 2. Check localStorage override (useful for local development or admin panel config)
+      // 3. Check localStorage override (useful for local development or admin panel config)
       try {
-        const stored = localStorage.getItem('dolcearte_supabase_config');
+        const stored = localStorage.getItem('fashion_supabase_config');
         if (stored) {
           const parsed = JSON.parse(stored);
           if (parsed.url && parsed.anonKey) {
@@ -51,7 +67,7 @@
         }
       } catch (e) {}
 
-      // 3. Check window global override if defined
+      // 4. Check window global override if defined
       if (window.__SUPABASE_CONFIG__ && window.__SUPABASE_CONFIG__.url && window.__SUPABASE_CONFIG__.anonKey) {
         return {
           url: window.__SUPABASE_CONFIG__.url,
@@ -60,12 +76,8 @@
         };
       }
 
-      // 4. Default project credentials (fallback if not defined in Vercel env or localStorage)
-      return {
-        url: 'https://nhcpeuwrfljlcujxnlmp.supabase.co',
-        anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oY3BldXdyZmxqbGN1anhubG1wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0MzQ0OTIsImV4cCI6MjEwNjAxMDQ5Mn0.UvonxRI8rjOihlyuqCWqbtHFWpFlKE_0Qynjg5-4JyQ',
-        source: 'default_project'
-      };
+      // No credentials in frontend code - secure architecture
+      return null;
     },
 
     /**
@@ -89,7 +101,7 @@
                 persistSession: true,
                 autoRefreshToken: true,
                 detectSessionInUrl: true,
-                storageKey: 'dolcearte_sb_auth'
+                storageKey: 'fashion_sb_auth'
               },
               realtime: {
                 params: {
@@ -102,7 +114,7 @@
             console.warn('[Supabase] Biblioteca @supabase/supabase-js não carregada');
           }
         } else {
-          console.warn('[Supabase] Credenciais não configuradas. Acesse /api/config ou defina as variáveis na Vercel.');
+          console.info('[Supabase] Credenciais não detectadas no servidor. O site continuará operando com persistência local de alta velocidade.');
         }
       } catch (err) {
         console.error('[Supabase] Erro ao inicializar:', err);
@@ -133,13 +145,13 @@
     saveManualConfig(url, anonKey) {
       if (!url || !anonKey) return false;
       const config = { url: url.trim(), anonKey: anonKey.trim() };
-      localStorage.setItem('dolcearte_supabase_config', JSON.stringify(config));
+      localStorage.setItem('fashion_supabase_config', JSON.stringify(config));
       clientInstance = null;
       return this.init();
     },
 
     clearManualConfig() {
-      localStorage.removeItem('dolcearte_supabase_config');
+      localStorage.removeItem('fashion_supabase_config');
       clientInstance = null;
     },
 
@@ -163,7 +175,7 @@
           await clientInstance.auth.signOut();
         } catch (e) {}
       }
-      sessionStorage.removeItem('dolcearte_admin_logged');
+      sessionStorage.removeItem('fashion_admin_logged');
     },
 
     async getSession() {
@@ -200,7 +212,7 @@
 
       const { data, error } = await client.storage
         .from(bucket)
-        .upload(filePath, file, { cacheControl: '3600', upsert: true });
+        .upload(filePath, file, { cacheControl: '604800', upsert: true });
 
       if (error) throw error;
 

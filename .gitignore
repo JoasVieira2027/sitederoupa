@@ -5,3 +5,6 @@ node_modules/
 .idea/
 backups/
 *.zip
+.env
+.env.local
+.env.*.local

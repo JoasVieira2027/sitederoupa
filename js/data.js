@@ -1,1407 +1,749 @@
 /**
- * data.js - Data Management Layer with Supabase as Primary Database
- * Handles cloud persistence for products, orders, settings, and categories.
- * All changes are saved to Supabase PostgreSQL and synced across all devices.
+ * data.js - Camada de Dados para Loja de Roupas
+ * Suporte completo a variantes: cor, tamanho e quantidade por SKU.
+ * Persistência no Supabase com fallback em localStorage.
  */
 
 const DB_KEYS = {
-  PRODUCTS: 'dolcearte_products',
-  ORDERS: 'dolcearte_orders',
-  SETTINGS: 'dolcearte_settings',
-  CATEGORIES: 'dolcearte_categories'
+  PRODUCTS: 'fashion_products',
+  ORDERS: 'fashion_orders',
+  SETTINGS: 'fashion_settings',
+  CATEGORIES: 'fashion_categories',
+  CACHE_META: 'fashion_cache_meta'
 };
 
-// ===== DEFAULT DATA (Used for initial database seeding or offline fallback) =====
+// Cache TTL de 10 minutos para visitantes públicos
+const CACHE_TTL_MS = 10 * 60 * 1000;
+
+// ===== DEFAULT PRODUCTS (FITNESS) =====
 const DEFAULT_PRODUCTS = [
   {
-    id: 'prod_buffet_01',
-    name: 'Buffet Infantil Completo (50 Convidados)',
-    category: 'Buffet',
-    price: 1499.00,
-    badge: 'Pacote 50 Pessoas',
-    description: 'Buffet Infantil completo para 50 convidados (3h de festa). Inclui: Doces e salgados tradicionais, Doces Gourmet, Salgados de forno (Mini Pizza, Hambúrguer, Barquete, Mini lanches), Fritura no local, Refrigerantes, Água mineral, Suco da fruta, Descartáveis e 1 apoio de cozinha. Taxa de deslocamento a combinar.',
-    image: 'assets/images/buffet_infantil.jpg',
+    id: 'prod_legging_sculpt',
+    name: 'Legging Sculpt Sem Costura Cós Alto',
+    category: 'Leggings',
+    price: 139.90,
+    badge: 'Zero Transparência',
+    description: 'Legging com tecnologia seamless (sem costura lateral), compressão ideal que modela e empina o bumbum sem apertar. Cós alto duplo anatômico que não enrola durante o agachamento ou corrida. Tecido respirável e 100% à prova de agachamento.',
+    image: 'assets/images/legging_fitness.jpg',
     active: true,
     inStock: true,
+    variants: [
+      { color: 'Grafite Mescla', colorHex: '#4A4A4A', sizes: [{ size: 'PP', qty: 4 }, { size: 'P', qty: 8 }, { size: 'M', qty: 10 }, { size: 'G', qty: 6 }, { size: 'GG', qty: 3 }] },
+      { color: 'Preto Ônix', colorHex: '#1E1E1E', sizes: [{ size: 'PP', qty: 5 }, { size: 'P', qty: 12 }, { size: 'M', qty: 14 }, { size: 'G', qty: 8 }, { size: 'GG', qty: 4 }] },
+      { color: 'Verde Militar', colorHex: '#3A4D39', sizes: [{ size: 'P', qty: 6 }, { size: 'M', qty: 8 }, { size: 'G', qty: 5 }] }
+    ],
+    promotion: { active: true, discountPercent: 10 }
+  },
+  {
+    id: 'prod_top_cross',
+    name: 'Top Fitness Alta Sustentação Alças Cruzadas',
+    category: 'Tops & Croppeds',
+    price: 79.90,
+    badge: 'Alta Sustentação',
+    description: 'Top fitness projetado para treinos de médio e alto impacto. Costas com alças cruzadas que distribuem o peso e garantem total mobilidade para membros superiores. Acompanha bojo removível e forro interno antibacteriano.',
+    image: 'assets/images/top_fitness.jpg',
+    active: true,
+    inStock: true,
+    variants: [
+      { color: 'Grafite Mescla', colorHex: '#4A4A4A', sizes: [{ size: 'PP', qty: 5 }, { size: 'P', qty: 10 }, { size: 'M', qty: 9 }, { size: 'G', qty: 5 }, { size: 'GG', qty: 2 }] },
+      { color: 'Preto Ônix', colorHex: '#1E1E1E', sizes: [{ size: 'P', qty: 8 }, { size: 'M', qty: 10 }, { size: 'G', qty: 6 }] },
+      { color: 'Vinho Borgonha', colorHex: '#5A1827', sizes: [{ size: 'P', qty: 4 }, { size: 'M', qty: 6 }, { size: 'G', qty: 3 }] }
+    ],
     promotion: { active: false, discountPercent: 0 }
   },
   {
-    id: 'prod_kit_01',
-    name: 'Kit Festa 1 (1 kg Bolo + 20 Doces + 30 Salgados)',
-    category: 'Kits Festa',
-    price: 120.00,
-    badge: 'Econômico',
-    description: 'Ideal para comemorações íntimas. Inclui: 1 kg de bolo confeitado, 20 doces tradicionais, 30 salgados e Topo de bolo simples.',
-    image: 'assets/images/kit_festa.jpg',
-    active: true,
-    inStock: true,
-    promotion: { active: false, discountPercent: 0 }
-  },
-  {
-    id: 'prod_kit_02',
-    name: 'Kit Festa 2 (1,5 kg Bolo + 30 Doces + 50 Salgados)',
-    category: 'Kits Festa',
-    price: 160.00,
-    badge: 'Mais Pedido',
-    description: 'Perfeito para celebrar em família. Inclui: 1,5 kg de bolo confeitado, 30 doces tradicionais, 50 salgados e Topo de bolo simples.',
-    image: 'assets/images/kit_festa.jpg',
-    active: true,
-    inStock: true,
-    promotion: { active: false, discountPercent: 0 }
-  },
-  {
-    id: 'prod_kit_03',
-    name: 'Kit Festa 3 (2 kg Bolo + 50 Doces + 60 Salgados)',
-    category: 'Kits Festa',
-    price: 199.90,
-    badge: 'Destaque',
-    description: 'O preferido dos clientes! Inclui: 2 kg de bolo confeitado, 50 doces tradicionais, 60 salgados e Topo de bolo simples.',
-    image: 'assets/images/kit_festa.jpg',
-    active: true,
-    inStock: true,
-    promotion: { active: false, discountPercent: 0 }
-  },
-  {
-    id: 'prod_kit_04',
-    name: 'Kit Festa 4 (3 kg Bolo + 80 Doces + 100 Salgados)',
-    category: 'Kits Festa',
-    price: 299.00,
-    badge: 'Super Festa',
-    description: 'Festa completa com muita fartura! Inclui: 3 kg de bolo confeitado, 80 doces tradicionais, 100 salgados e Topo de bolo simples.',
-    image: 'assets/images/kit_festa.jpg',
-    active: true,
-    inStock: true,
-    promotion: { active: false, discountPercent: 0 }
-  },
-  {
-    id: 'prod_bolo_1k',
-    name: 'Bolo Decorado - 1 Kilo',
-    category: 'Bolos',
-    price: 70.00,
-    badge: '1 kg',
-    description: 'Bolo confeitado artesanal (1 kg). Massas: Chocolate, Brigadeiro Branco, Baunilha ou Red Velvet. Recheios: Chocolate, Prestígio, Bem Casado, Ninho, Brigadeiro Branco ou Oreo.',
-    image: 'assets/images/bolo_decorado.jpg',
-    active: true,
-    inStock: true,
-    promotion: { active: false, discountPercent: 0 }
-  },
-  {
-    id: 'prod_bolo_2k',
-    name: 'Bolo Decorado - 2 Kilos',
-    category: 'Bolos',
-    price: 140.00,
+    id: 'prod_conjunto_active',
+    name: 'Conjunto Activewear Seamless Wave (Top + Biker)',
+    category: 'Conjuntos',
+    price: 189.90,
     badge: 'Mais Vendido',
-    description: 'Bolo confeitado artesanal (2 kg - serve aprox. 20 fatias). Massas: Chocolate, Brigadeiro Branco, Baunilha ou Red Velvet. Recheios: Chocolate, Prestígio, Bem Casado, Ninho, Brigadeiro Branco ou Oreo.',
-    image: 'assets/images/bolo_decorado.jpg',
+    description: 'Conjunto fitness completo com top estruturado e short biker de alta compressão. Confeccionado em poliamida premium com elastano, toque gelado, secagem rápida e proteção UV50+. Combinação perfeita de estilo e praticidade para o treino.',
+    image: 'assets/images/conjunto_fitness.jpg',
     active: true,
     inStock: true,
+    variants: [
+      { color: 'Verde Oliva', colorHex: '#556B2F', sizes: [{ size: 'P', qty: 6 }, { size: 'M', qty: 9 }, { size: 'G', qty: 5 }, { size: 'GG', qty: 2 }] },
+      { color: 'Preto Carbono', colorHex: '#1A1A1A', sizes: [{ size: 'P', qty: 7 }, { size: 'M', qty: 8 }, { size: 'G', qty: 4 }] },
+      { color: 'Terracota', colorHex: '#A0522D', sizes: [{ size: 'P', qty: 3 }, { size: 'M', qty: 5 }, { size: 'G', qty: 2 }] }
+    ],
     promotion: { active: false, discountPercent: 0 }
   },
   {
-    id: 'prod_bolo_3k',
-    name: 'Bolo Decorado - 3 Kilos',
-    category: 'Bolos',
-    price: 210.00,
-    badge: '3 kg',
-    description: 'Bolo confeitado artesanal (3 kg - serve aprox. 30 fatias). Massas: Chocolate, Brigadeiro Branco, Baunilha ou Red Velvet. Recheios: Chocolate, Prestígio, Bem Casado, Ninho, Brigadeiro Branco ou Oreo.',
-    image: 'assets/images/bolo_decorado.jpg',
+    id: 'prod_short_biker',
+    name: 'Short Biker Compressão com Bolso Lateral para Celular',
+    category: 'Shorts & Bermudas',
+    price: 99.90,
+    badge: 'Com Bolso',
+    description: 'Bermuda ciclista fitness com bolso lateral profundo perfeito para celular, chave ou documentos. Comprimento meia coxa que não sobe ao caminhar, correr ou pedalar. Costuras reforçadas planas (flatlock) que não marcam a pele.',
+    image: 'assets/images/short_fitness.jpg',
     active: true,
     inStock: true,
-    promotion: { active: false, discountPercent: 0 }
-  },
-  {
-    id: 'prod_bolo_4k',
-    name: 'Bolo Decorado - 4 Kilos',
-    category: 'Bolos',
-    price: 280.00,
-    badge: '4 kg',
-    description: 'Bolo confeitado sob medida (4 kg - serve aprox. 40 fatias). Massas e recheios nobres à sua escolha.',
-    image: 'assets/images/bolo_decorado.jpg',
-    active: true,
-    inStock: true,
-    promotion: { active: false, discountPercent: 0 }
-  },
-  {
-    id: 'prod_bolo_5k',
-    name: 'Bolo Decorado - 5 Kilos',
-    category: 'Bolos',
-    price: 350.00,
-    badge: '5 kg',
-    description: 'Bolo confeitado sob medida (5 kg - serve aprox. 50 fatias). Perfeito para eventos e celebrações.',
-    image: 'assets/images/bolo_decorado.jpg',
-    active: true,
-    inStock: true,
-    promotion: { active: false, discountPercent: 0 }
-  },
-  {
-    id: 'prod_bolo_8k',
-    name: 'Bolo Decorado - 8 Kilos',
-    category: 'Bolos',
-    price: 560.00,
-    badge: '8 kg',
-    description: 'Bolo monumental para grandes festas (8 kg - serve aprox. 80 fatias). Apresentação requintada e recheio generoso.',
-    image: 'assets/images/bolo_decorado.jpg',
-    active: true,
-    inStock: true,
-    promotion: { active: false, discountPercent: 0 }
-  },
-  {
-    id: 'prod_bolo_10k',
-    name: 'Bolo Decorado - 10 Kilos',
-    category: 'Bolos',
-    price: 700.00,
-    badge: '10 kg',
-    description: 'Bolo gigante de 10 kg (serve aprox. 100 fatias). Ideal para casamentos, formaturas e grandes eventos.',
-    image: 'assets/images/bolo_decorado.jpg',
-    active: true,
-    inStock: true,
-    promotion: { active: false, discountPercent: 0 }
-  },
-  {
-    id: 'prod_doce_trad_un',
-    name: 'Doces Tradicionais (Unidade)',
-    category: 'Doces',
-    price: 0.80,
-    badge: 'R$ 0,80 un',
-    description: 'Docinho tradicional de festa (unidade). Sabores: Brigadeiro, Beijinho, Bem Casado, Moranguinho, Crespinho e Colorido.',
-    image: 'assets/images/doces_gourmet.jpg',
-    active: true,
-    inStock: true,
-    promotion: { active: false, discountPercent: 0 }
-  },
-  {
-    id: 'prod_doce_trad_cento',
-    name: 'Cento de Doces Tradicionais (100 un)',
-    category: 'Doces',
-    price: 80.00,
-    badge: 'Cento 100 un',
-    description: 'Caixa com 100 docinhos tradicionais: Brigadeiro, Beijinho, Bem Casado, Moranguinho, Crespinho e Colorido.',
-    image: 'assets/images/doces_gourmet.jpg',
-    active: true,
-    inStock: true,
-    promotion: { active: false, discountPercent: 0 }
-  },
-  {
-    id: 'prod_doce_esp_un',
-    name: 'Doces Especiais Gourmet (Unidade)',
-    category: 'Doces',
-    price: 2.00,
-    badge: 'Gourmet',
-    description: 'Docinho gourmet especial (unidade). Sabores: Brigadeiro Gourmet c/ Nutella, Ferrero Rocher c/ Nutella, Ninho com Nutella, Churros c/ Doce de Leite, Surpresa de Uva e Tortinha Doce.',
-    image: 'assets/images/doces_gourmet.jpg',
-    active: true,
-    inStock: true,
-    promotion: { active: false, discountPercent: 0 }
-  },
-  {
-    id: 'prod_doce_esp_cento',
-    name: 'Cento de Doces Especiais Gourmet (100 un)',
-    category: 'Doces',
-    price: 200.00,
-    badge: 'Cento Gourmet',
-    description: 'Caixa com 100 doces finos gourmet: Ninho com Nutella, Brigadeiro Gourmet, Ferrero Rocher, Churros e Tortinha Doce.',
-    image: 'assets/images/doces_gourmet.jpg',
-    active: true,
-    inStock: true,
-    promotion: { active: false, discountPercent: 0 }
-  },
-  {
-    id: 'prod_salg_frito_un',
-    name: 'Salgados Fritos Tradicionais (Unidade)',
-    category: 'Salgados',
-    price: 0.80,
-    badge: 'R$ 0,80 un',
-    description: 'Salgadinho frito crocante (unidade). Sabores: Coxinha, Bolinho de Queijo, Croquete de Calabresa, Risole de Pizza, Bolinho de Charque e Enroladinho de Salsicha.',
-    image: 'assets/images/salgados_festa.jpg',
-    active: true,
-    inStock: true,
-    promotion: { active: false, discountPercent: 0 }
-  },
-  {
-    id: 'prod_salg_frito_cento',
-    name: 'Cento de Salgados Fritos (100 un)',
-    category: 'Salgados',
-    price: 80.00,
-    badge: 'Cento 100 un',
-    description: 'Cento com 100 salgadinhos fritos quentinhos e sequinhos: Coxinha, Bolinho de Queijo, Croquete de Calabresa, Risole de Pizza, Bolinho de Charque e Enroladinho de Salsicha.',
-    image: 'assets/images/salgados_festa.jpg',
-    active: true,
-    inStock: true,
-    promotion: { active: false, discountPercent: 0 }
-  },
-  {
-    id: 'prod_salg_pizza',
-    name: 'Mini Pizza de Forno (Unidade)',
-    category: 'Salgados',
-    price: 1.50,
-    badge: 'De Forno',
-    description: 'Mini pizza assada de forno com molho de tomate caseiro, queijo derretido e tempero especial.',
-    image: 'assets/images/salgados_festa.jpg',
-    active: true,
-    inStock: true,
-    promotion: { active: false, discountPercent: 0 }
-  },
-  {
-    id: 'prod_salg_burguer',
-    name: 'Mini Hambúrguer Artesanal (Unidade)',
-    category: 'Salgados',
-    price: 2.50,
-    badge: 'De Forno',
-    description: 'Mini hambúrguer artesanal no pão com gergelim, carne suculenta e queijo derretido. O preferido das crianças!',
-    image: 'assets/images/salgados_festa.jpg',
-    active: true,
-    inStock: true,
-    promotion: { active: false, discountPercent: 0 }
-  },
-  {
-    id: 'prod_salg_barquete',
-    name: 'Barquete Recheada (Unidade)',
-    category: 'Salgados',
-    price: 1.20,
-    badge: 'De Forno',
-    description: 'Barquete crocante recheada com patê especial decorado, perfeita para recepções e buffets.',
-    image: 'assets/images/salgados_festa.jpg',
-    active: true,
-    inStock: true,
-    promotion: { active: false, discountPercent: 0 }
+    variants: [
+      { color: 'Preto Ônix', colorHex: '#1E1E1E', sizes: [{ size: 'PP', qty: 4 }, { size: 'P', qty: 10 }, { size: 'M', qty: 12 }, { size: 'G', qty: 8 }, { size: 'GG', qty: 4 }] },
+      { color: 'Azul Marinho', colorHex: '#1B263B', sizes: [{ size: 'P', qty: 5 }, { size: 'M', qty: 6 }, { size: 'G', qty: 4 }] },
+      { color: 'Chumbo', colorHex: '#3D3D3D', sizes: [{ size: 'P', qty: 4 }, { size: 'M', qty: 5 }, { size: 'G', qty: 3 }] }
+    ],
+    promotion: { active: true, discountPercent: 15 }
   }
 ];
 
+// ===== DEFAULT CATEGORIES (FITNESS) =====
 const DEFAULT_CATEGORIES = [
-  { id: 'cat_buffet', name: 'Buffet', icon: '🎪' },
-  { id: 'cat_kits', name: 'Kits Festa', icon: '🎉' },
-  { id: 'cat_bolos', name: 'Bolos', icon: '🎂' },
-  { id: 'cat_doces', name: 'Doces', icon: '🍬' },
-  { id: 'cat_salgados', name: 'Salgados', icon: '🥟' }
+  { id: 'cat_leggings', name: 'Leggings', icon: '👖' },
+  { id: 'cat_tops', name: 'Tops & Croppeds', icon: '🎽' },
+  { id: 'cat_conjuntos', name: 'Conjuntos', icon: '⚡' },
+  { id: 'cat_shorts', name: 'Shorts & Bermudas', icon: '🩳' },
+  { id: 'cat_macacoes', name: 'Macacões', icon: '🧘‍♀️' },
+  { id: 'cat_acessorios', name: 'Acessórios', icon: '🎒' }
 ];
 
+// ===== DEFAULT SETTINGS (FITNESS) =====
 const DEFAULT_SETTINGS = {
-  storeName: 'Carla Silva Buffet',
-  storeTagline: 'Buffet Infantil, Bolos & Doces Artesanais',
-  storeLogoEmoji: '🧁',
+  storeName: 'Fit Vibe Activewear',
+  storeTagline: 'Roupas Fitness de Alta Performance',
+  storeLogoEmoji: '⚡',
   storeLogoImage: '',
-  themeColor: '#D81B60',
-
-  announcementBar: {
-    active: true,
-    text: '🎉 Encomendas abertas! Bolos por kg, Kits Festa, Salgados, Doces Gourmet e Buffet Infantil Completo!'
-  },
-
+  themeColor: '#059669',
+  announcementBar: { active: true, text: '⚡ FRETE GRÁTIS nas compras acima de R$ 199 | Peças Zero Transparência!' },
   hero: {
-    emoji: '🧁',
-    title: 'Carla Silva Buffet & Confeitaria',
-    subtitle: 'Tudo para sua festa ser inesquecível! Bolos confeitados por quilo, kits festa práticos, doces finos, salgados crocantes e buffet infantil completo.',
-    ctaText: '✨ Ver Cardápio & Encomendar'
+    emoji: '⚡',
+    title: 'Treine com Estilo, <em>Supere Limites</em>',
+    subtitle: 'Activewear premium com modelagem anatômica, alta compressão e zero transparência para seu melhor desempenho.',
+    ctaText: '⚡ Ver Coleção Fitness',
+    badgeText: 'Alta Performance'
   },
-
   about: {
     active: true,
-    title: 'Carla Silva Buffet',
-    subtitle: 'Doces memórias e sabores inesquecíveis para o seu evento',
-    text: 'No Carla Silva Buffet, cada comemoração é tratada como única e especial. Trabalhamos com ingredientes de primeira linha, bolos sob medida com massas e recheios generosos, kits festa prontinhos para celebrar, salgados crocantes fritos na hora ou assados de forno, e nosso serviço completo de Buffet Infantil com 3h de festa e equipe de apoio.',
+    title: 'Tecnologia, Conforto & Performance',
+    subtitle: 'Criado para mover o seu melhor',
+    text: 'A Fit Vibe desenvolve peças esportivas com tecidos nobres e tecnologia têxtil de ponta. Modelagens exclusivas que valorizam a silhueta, oferecem sustentação máxima e acompanham cada movimento do seu dia com total segurança.',
     features: [
-      { icon: '🎪', title: 'Buffet Infantil', desc: 'Estrutura completa com 3h de festa, fritura no local e apoio' },
-      { icon: '🎂', title: 'Bolos por Quilo', desc: 'Massas nobres e recheios generosos feitos sob medida' },
-      { icon: '🎉', title: 'Kits Festa Prontos', desc: 'Bolo confeitado, doces, salgados e topo de bolo inclusos' },
-      { icon: '🥟', title: 'Doces & Salgados', desc: 'Doces gourmet com Nutella e salgados de forno especiais' }
+      { icon: '🛡️', title: 'Zero Transparência', desc: 'Gramatura reforçada para agachamentos sem medo' },
+      { icon: '💨', title: 'Tecnologia Dry-Fit', desc: 'Respirabilidade máxima que evapora o suor rapidamente' },
+      { icon: '⚡', title: 'Alta Compressão', desc: 'Cós anatômico duplo que não enrola durante o treino' },
+      { icon: '🔄', title: 'Troca Fácil', desc: 'Primeira troca 100% grátis e sem burocracia' }
     ]
   },
-
-  categories: DEFAULT_CATEGORIES,
-
   delivery: {
     deliveryEnabled: true,
     deliveryFee: 15.00,
-    freeDeliveryThreshold: 200.00,
-    estimatedTime: 'Consulte data e horário',
+    freeDeliveryThreshold: 199.00,
+    estimatedTime: '2 a 5 dias úteis',
     pickupEnabled: true,
-    pickupAddress: 'Retirada com horário agendado com a Carla Silva',
-    pickupEstimate: 'Pronto na data agendada'
+    pickupAddress: 'Consulte o ponto de retirada pelo WhatsApp',
+    pickupEstimate: 'Pronto em até 2 horas'
   },
-
-  whatsappNumber: '5581998723560',
-  contactPhone: '(81) 99872-3560',
-  instagram: '@Carlasilvacakes2',
-  address: 'Carla Silva Buffet & Confeitaria - Atendimento e Encomendas',
-  footerCopyright: '© 2026 Carla Silva Buffet. Todos os direitos reservados.',
-
+  whatsappNumber: '5511999999999',
+  contactPhone: '(11) 99999-9999',
+  instagram: '@fitvibe.activewear',
+  address: 'Rua do Fitness, 120 - São Paulo, SP',
+  footerCopyright: '© 2026 Fit Vibe Activewear. Todos os direitos reservados.',
   paymentMethods: [
-    { id: 'pix', name: 'Pix', icon: '📱', active: true },
-    { id: 'dinheiro', name: 'Dinheiro', icon: '💵', active: true },
-    { id: 'credito', name: 'Cartão Crédito', icon: '💳', active: true },
-    { id: 'debito', name: 'Cartão Débito', icon: '💳', active: true },
-    { id: 'transferencia', name: 'Transferência', icon: '🏦', active: false }
+    { id: 'pix', name: 'Pix (Aprovação Imediata)', icon: '📱', active: true },
+    { id: 'credito', name: 'Cartão de Crédito', icon: '💳', active: true },
+    { id: 'debito', name: 'Cartão de Débito', icon: '💳', active: true },
+    { id: 'dinheiro', name: 'Dinheiro na Entrega', icon: '💵', active: true }
   ],
-
-  pixDetails: {
-    keyType: 'Celular',
-    key: '(81) 99872-3560',
-    receiverName: 'Carla Silva Buffet',
-    instructions: 'Faça o Pix para a chave celular acima e envie o comprovante pelo WhatsApp (81) 99872-3560 para confirmar sua encomenda.'
-  },
-
+  pixDetails: { key: '', keyType: 'Celular', receiverName: 'Fit Vibe Moda Fitness', instructions: 'Faça o Pix e envie o comprovante pelo WhatsApp para envio imediato!' },
   storeOpen: true,
-  closedCustomMessage: 'Estamos em horário de preparação de encomendas. Mande uma mensagem pelo WhatsApp para agendar sua data!',
+  closedCustomMessage: 'Estamos fora do horário de atendimento. Deixe sua mensagem no WhatsApp que responderemos rapidinho!',
   operatingHours: {
-    segunda: { open: '08:00', close: '19:00', active: true },
-    terca: { open: '08:00', close: '19:00', active: true },
-    quarta: { open: '08:00', close: '19:00', active: true },
-    quinta: { open: '08:00', close: '19:00', active: true },
-    sexta: { open: '08:00', close: '19:00', active: true },
-    sabado: { open: '08:00', close: '18:00', active: true },
-    domingo: { open: '08:00', close: '14:00', active: true },
+    segunda: { active: true, open: '08:00', close: '20:00' },
+    terca: { active: true, open: '08:00', close: '20:00' },
+    quarta: { active: true, open: '08:00', close: '20:00' },
+    quinta: { active: true, open: '08:00', close: '20:00' },
+    sexta: { active: true, open: '08:00', close: '20:00' },
+    sabado: { active: true, open: '08:00', close: '18:00' },
+    domingo: { active: false, open: '00:00', close: '00:00' }
   },
   closures: [],
-
-  adminPassword: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9'
+  availableSizes: ['PP', 'P', 'M', 'G', 'GG'],
+  adminPassword: 'admin123'
 };
 
-// Deep merge helper
-function deepMerge(target, source) {
-  const output = Object.assign({}, target);
-  if (isObject(target) && isObject(source)) {
-    Object.keys(source).forEach(key => {
-      if (isObject(source[key])) {
-        if (!(key in target)) {
-          Object.assign(output, { [key]: source[key] });
-        } else {
-          output[key] = deepMerge(target[key], source[key]);
-        }
-      } else {
-        Object.assign(output, { [key]: source[key] });
-      }
-    });
+// ============================================================
+//  DataStore — Singleton
+// ============================================================
+const DataStore = (function () {
+  'use strict';
+
+  let _products = [];
+  let _categories = [];
+  let _orders = [];
+  let _settings = { ...DEFAULT_SETTINGS };
+  let _initialized = false;
+  let _supabase = null;
+  let _isAdmin = false;
+  let _realtimeChannel = null;
+
+  // ===== CACHE HELPERS =====
+  function _getCacheMeta() {
+    try { return JSON.parse(localStorage.getItem(DB_KEYS.CACHE_META) || '{}'); } catch { return {}; }
   }
-  return output;
-}
 
-function isObject(item) {
-  return (item && typeof item === 'object' && !Array.isArray(item));
-}
+  function _setCacheMeta(key, ts) {
+    const meta = _getCacheMeta();
+    meta[key] = ts;
+    try { localStorage.setItem(DB_KEYS.CACHE_META, JSON.stringify(meta)); } catch {}
+  }
 
-// ===== DATA ACCESS LAYER (SUPABASE PRIMARY) =====
-const DataStore = {
-  // In-memory active cache
-  _products: [],
-  _categories: [],
-  _settings: null,
-  _orders: [],
-  _initialized: false,
-  _listeners: [],
-  _realtimeChannel: null,
+  function _isCacheValid(key) {
+    if (_isAdmin) return false;
+    const meta = _getCacheMeta();
+    return meta[key] && (Date.now() - meta[key]) < CACHE_TTL_MS;
+  }
 
-  // --- Initialize & Load from Supabase ---
-  async init() {
-    // If Supabase service is available, initialize it first
+  function _saveLocal(key, data) {
+    try { localStorage.setItem(key, JSON.stringify(data)); _setCacheMeta(key, Date.now()); } catch {}
+  }
+
+  function _loadLocal(key) {
+    try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : null; } catch { return null; }
+  }
+
+  // ===== MAPPERS: Supabase → JS (snake_case → camelCase) =====
+  function _mapProduct(row) {
+    const v = row.variants || row.variants === null ? (row.variants || []) : [];
+    return {
+      id: row.id,
+      name: row.name,
+      description: row.description || '',
+      price: parseFloat(row.price) || 0,
+      image: row.image || '',
+      category: row.category,
+      badge: row.badge || '',
+      active: row.active !== false,
+      inStock: row.in_stock !== false,
+      variants: Array.isArray(v) ? v : [],
+      promotion: row.promotion || { active: false, discountPercent: 0 },
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    };
+  }
+
+  function _mapSettings(row) {
+    if (!row) return { ...DEFAULT_SETTINGS };
+    const parseJsonField = (val, def) => {
+      if (val && typeof val === 'object') return val;
+      try { return val ? JSON.parse(val) : def; } catch { return def; }
+    };
+    return {
+      storeName: row.store_name || DEFAULT_SETTINGS.storeName,
+      storeTagline: row.store_tagline || DEFAULT_SETTINGS.storeTagline,
+      storeLogoEmoji: row.store_logo_emoji || DEFAULT_SETTINGS.storeLogoEmoji,
+      storeLogoImage: row.store_logo_image || '',
+      themeColor: row.theme_color || DEFAULT_SETTINGS.themeColor,
+      announcementBar: parseJsonField(row.announcement_bar, DEFAULT_SETTINGS.announcementBar),
+      hero: parseJsonField(row.hero, DEFAULT_SETTINGS.hero),
+      about: parseJsonField(row.about, DEFAULT_SETTINGS.about),
+      delivery: parseJsonField(row.delivery, DEFAULT_SETTINGS.delivery),
+      whatsappNumber: row.whatsapp_number || DEFAULT_SETTINGS.whatsappNumber,
+      contactPhone: row.contact_phone || DEFAULT_SETTINGS.contactPhone,
+      instagram: row.instagram || '',
+      address: row.address || DEFAULT_SETTINGS.address,
+      footerCopyright: row.footer_copyright || DEFAULT_SETTINGS.footerCopyright,
+      paymentMethods: parseJsonField(row.payment_methods, DEFAULT_SETTINGS.paymentMethods),
+      pixDetails: parseJsonField(row.pix_details, DEFAULT_SETTINGS.pixDetails),
+      storeOpen: row.store_open !== false,
+      closedCustomMessage: row.closed_custom_message || DEFAULT_SETTINGS.closedCustomMessage,
+      operatingHours: parseJsonField(row.operating_hours, DEFAULT_SETTINGS.operatingHours),
+      closures: parseJsonField(row.closures, []),
+      availableSizes: parseJsonField(row.available_sizes, DEFAULT_SETTINGS.availableSizes),
+      adminPassword: DEFAULT_SETTINGS.adminPassword
+    };
+  }
+
+  function _mapOrder(row) {
+    return {
+      id: row.id,
+      customer: row.customer || {},
+      deliveryType: row.delivery_type || 'delivery',
+      deliveryFee: parseFloat(row.delivery_fee) || 0,
+      items: row.items || [],
+      subtotal: parseFloat(row.subtotal) || 0,
+      total: parseFloat(row.total) || 0,
+      paymentMethod: row.payment_method || '',
+      status: row.status || 'novo',
+      createdAt: row.created_at
+    };
+  }
+
+  // ===== INIT =====
+  async function init({ enableRealtime = false, isAdmin = false } = {}) {
+    if (_initialized && !isAdmin) return;
+    _isAdmin = isAdmin;
+
+    // Init Supabase
     if (window.SupabaseService) {
-      await window.SupabaseService.init();
+      _supabase = await window.SupabaseService.init();
     }
 
-    const sb = this.getSb();
+    // Load all data in parallel
+    await Promise.all([
+      _loadCategories(),
+      _loadProducts(),
+      _loadSettings()
+    ]);
 
-    if (sb) {
+    if (isAdmin) {
+      await _loadOrders();
+    }
+
+    if (enableRealtime && _supabase) {
+      _setupRealtime();
+    }
+
+    _initialized = true;
+    console.log('[DataStore] Initialized. Products:', _products.length, '| Settings:', _settings.storeName);
+  }
+
+  // ===== LOAD FUNCTIONS =====
+  async function _loadCategories() {
+    if (!_isAdmin && _isCacheValid(DB_KEYS.CATEGORIES)) {
+      const cached = _loadLocal(DB_KEYS.CATEGORIES);
+      if (cached && cached.length) { _categories = cached; return; }
+    }
+    if (_supabase) {
       try {
-        console.log('[DataStore] Carregando dados do Supabase...');
-
-        // 1. Fetch Categories
-        const { data: catData, error: catErr } = await sb
-          .from('categories')
-          .select('*')
-          .order('name', { ascending: true });
-
-        if (!catErr && catData && catData.length > 0) {
-          this._categories = catData.map(c => ({ id: c.id, name: c.name, icon: c.icon }));
-        } else if (!catErr && (!catData || catData.length === 0)) {
-          // Empty table, auto-seed default categories
-          console.log('[DataStore] Semeando categorias iniciais no Supabase...');
-          await this.seedCategories(sb);
+        const { data, error } = await _supabase.from('categories').select('*').order('name');
+        if (!error && data && data.length) {
+          _categories = data;
+          _saveLocal(DB_KEYS.CATEGORIES, _categories);
+          return;
         }
+      } catch (e) { console.warn('[DataStore] categories fetch error:', e); }
+    }
+    const local = _loadLocal(DB_KEYS.CATEGORIES);
+    _categories = local && local.length ? local : [...DEFAULT_CATEGORIES];
+  }
 
-        // 2. Fetch Products
-        const { data: prodData, error: prodErr } = await sb
-          .from('products')
-          .select('*')
-          .order('created_at', { ascending: true });
-
-        if (!prodErr && prodData && prodData.length > 0) {
-          this._products = prodData.map(p => this.productFromDb(p));
-        } else if (!prodErr && (!prodData || prodData.length === 0)) {
-          // Empty table, auto-seed default products
-          console.log('[DataStore] Semeando produtos iniciais no Supabase...');
-          await this.seedProducts(sb);
+  async function _loadProducts() {
+    if (!_isAdmin && _isCacheValid(DB_KEYS.PRODUCTS)) {
+      const cached = _loadLocal(DB_KEYS.PRODUCTS);
+      if (cached && cached.length) { _products = cached; return; }
+    }
+    if (_supabase) {
+      try {
+        const { data, error } = await _supabase.from('products').select('*').order('created_at', { ascending: false });
+        if (!error && data) {
+          _products = data.map(_mapProduct);
+          _saveLocal(DB_KEYS.PRODUCTS, _products);
+          return;
         }
+      } catch (e) { console.warn('[DataStore] products fetch error:', e); }
+    }
+    const local = _loadLocal(DB_KEYS.PRODUCTS);
+    _products = local && local.length ? local : [...DEFAULT_PRODUCTS];
+  }
 
-        // 3. Fetch Settings
-        const { data: setData, error: setErr } = await sb
-          .from('settings')
-          .select('*')
-          .eq('id', 'main')
-          .maybeSingle();
-
-        if (!setErr && setData) {
-          this._settings = this.settingsFromDb(setData);
-        } else if (!setErr && !setData) {
-          console.log('[DataStore] Semeando configurações iniciais no Supabase...');
-          await this.seedSettings(sb);
+  async function _loadSettings() {
+    if (!_isAdmin && _isCacheValid(DB_KEYS.SETTINGS)) {
+      const cached = _loadLocal(DB_KEYS.SETTINGS);
+      if (cached && cached.storeName) { _settings = cached; return; }
+    }
+    if (_supabase) {
+      try {
+        const { data, error } = await _supabase.from('settings').select('*').eq('id', 'main').single();
+        if (!error && data) {
+          _settings = _mapSettings(data);
+          _saveLocal(DB_KEYS.SETTINGS, _settings);
+          return;
         }
+      } catch (e) { console.warn('[DataStore] settings fetch error:', e); }
+    }
+    const local = _loadLocal(DB_KEYS.SETTINGS);
+    _settings = local && local.storeName ? local : { ...DEFAULT_SETTINGS };
+  }
 
-        // 4. Fetch Orders (if authenticated admin)
-        const isAuth = window.SupabaseService ? await window.SupabaseService.isAuthenticated() : false;
-        if (isAuth) {
-          const { data: orderData, error: orderErr } = await sb
-            .from('orders')
-            .select('*')
-            .order('created_at', { ascending: false });
+  async function _loadOrders() {
+    if (_supabase) {
+      try {
+        const { data, error } = await _supabase.from('orders').select('*').order('created_at', { ascending: false });
+        if (!error && data) { _orders = data.map(_mapOrder); return; }
+      } catch (e) { console.warn('[DataStore] orders fetch error:', e); }
+    }
+    _orders = _loadLocal(DB_KEYS.ORDERS) || [];
+  }
 
-          if (!orderErr && orderData) {
-            this._orders = orderData.map(o => this.orderFromDb(o));
-          }
-        }
+  // ===== REALTIME =====
+  function _setupRealtime() {
+    if (_realtimeChannel) { _supabase.removeChannel(_realtimeChannel); }
+    _realtimeChannel = _supabase
+      .channel('fashion-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => { _loadProducts(); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, () => { _loadCategories(); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, () => { _loadSettings(); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async () => {
+        await _loadOrders();
+        document.dispatchEvent(new CustomEvent('orders-updated'));
+      })
+      .subscribe();
+  }
 
-        // Setup Realtime Subscription for instant sync
-        this.setupRealtimeSubscription(sb);
+  // ===== GETTERS =====
+  function getProducts({ includeInactive = false } = {}) {
+    if (includeInactive) return [..._products];
+    return _products.filter(p => p.active);
+  }
 
-        this._initialized = true;
-        this.applyTheme(this.getSettings().themeColor);
-        console.log('[DataStore] Dados sincronizados com Supabase com sucesso!');
-        return;
-      } catch (err) {
-        console.warn('[DataStore] Erro ao consultar Supabase, utilizando fallback local:', err);
-      }
+  function getProductById(id) {
+    return _products.find(p => p.id === id) || null;
+  }
+
+  function getCategories() {
+    return [..._categories];
+  }
+
+  function getSettings() {
+    return { ..._settings };
+  }
+
+  function getOrders() {
+    return [..._orders];
+  }
+
+  // ===== STOCK HELPERS =====
+  /**
+   * Retorna o total de unidades em estoque de um produto (todas as cores + tamanhos)
+   */
+  function getProductTotalStock(productId) {
+    const p = getProductById(productId);
+    if (!p || !p.variants || !p.variants.length) return 0;
+    return p.variants.reduce((total, variant) => {
+      return total + (variant.sizes || []).reduce((s, sz) => s + (sz.qty || 0), 0);
+    }, 0);
+  }
+
+  /**
+   * Retorna o estoque de uma variante específica (cor + tamanho)
+   */
+  function getVariantStock(productId, color, size) {
+    const p = getProductById(productId);
+    if (!p || !p.variants) return 0;
+    const variant = p.variants.find(v => v.color === color);
+    if (!variant) return 0;
+    const sizeEntry = (variant.sizes || []).find(s => s.size === size);
+    return sizeEntry ? (sizeEntry.qty || 0) : 0;
+  }
+
+  /**
+   * Retorna todos os tamanhos disponíveis para uma cor específica (qty > 0)
+   */
+  function getAvailableSizesForColor(productId, color) {
+    const p = getProductById(productId);
+    if (!p || !p.variants) return [];
+    const variant = p.variants.find(v => v.color === color);
+    if (!variant) return [];
+    return (variant.sizes || []).filter(s => s.qty > 0).map(s => s.size);
+  }
+
+  /**
+   * Todas as cores disponíveis (com pelo menos 1 item em estoque)
+   */
+  function getAvailableColors(productId) {
+    const p = getProductById(productId);
+    if (!p || !p.variants) return [];
+    return p.variants.filter(v =>
+      (v.sizes || []).some(s => s.qty > 0)
+    );
+  }
+
+  // ===== PRODUCT MUTATIONS =====
+  async function saveProduct(product) {
+    const isNew = !product.id;
+    if (isNew) {
+      product.id = 'prod_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+    }
+    product.updatedAt = new Date().toISOString();
+    if (!product.createdAt) product.createdAt = product.updatedAt;
+
+    if (_supabase) {
+      const row = {
+        id: product.id,
+        name: product.name,
+        description: product.description || '',
+        price: product.price,
+        image: product.image || '',
+        category: product.category,
+        badge: product.badge || '',
+        active: product.active !== false,
+        in_stock: product.inStock !== false,
+        variants: product.variants || [],
+        promotion: product.promotion || { active: false, discountPercent: 0 },
+        updated_at: product.updatedAt
+      };
+      if (isNew) row.created_at = product.createdAt;
+
+      const { error } = isNew
+        ? await _supabase.from('products').insert([row])
+        : await _supabase.from('products').update(row).eq('id', product.id);
+
+      if (error) throw error;
     }
 
-    // --- FALLBACK (Offline or Supabase not yet configured) ---
-    console.warn('[DataStore] Supabase não conectado. Carregando dados locais de demonstração.');
-    this._products = JSON.parse(localStorage.getItem(DB_KEYS.PRODUCTS) || JSON.stringify(DEFAULT_PRODUCTS));
-    this._categories = JSON.parse(localStorage.getItem(DB_KEYS.CATEGORIES) || JSON.stringify(DEFAULT_CATEGORIES));
-    this._settings = JSON.parse(localStorage.getItem(DB_KEYS.SETTINGS) || JSON.stringify(DEFAULT_SETTINGS));
-    this._orders = JSON.parse(localStorage.getItem(DB_KEYS.ORDERS) || '[]');
-    this._initialized = true;
-    this.applyTheme(this.getSettings().themeColor);
-  },
+    const idx = _products.findIndex(p => p.id === product.id);
+    if (idx >= 0) _products[idx] = { ..._products[idx], ...product };
+    else _products.unshift(product);
 
-  getSb() {
-    return window.SupabaseService ? window.SupabaseService.getClient() : null;
-  },
-
-  // Setup Realtime Sync
-  setupRealtimeSubscription(sb) {
-    if (!sb || this._realtimeChannel) return;
-
-    try {
-      this._realtimeChannel = sb.channel('dolcearte_realtime_changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async () => {
-          console.log('[Realtime] Produtos atualizados no Supabase. Atualizando tela...');
-          await this.refreshProducts();
-          this.notifyListeners('products');
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, async () => {
-          console.log('[Realtime] Categorias atualizadas no Supabase. Atualizando tela...');
-          await this.refreshCategories();
-          this.notifyListeners('categories');
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, async () => {
-          console.log('[Realtime] Configurações da loja atualizadas no Supabase. Atualizando tela...');
-          await this.refreshSettings();
-          this.notifyListeners('settings');
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async () => {
-          console.log('[Realtime] Pedidos atualizados no Supabase. Atualizando tela...');
-          await this.refreshOrders();
-          this.notifyListeners('orders');
-        })
-        .subscribe();
-    } catch (e) {
-      console.warn('[Realtime] Erro ao conectar realtime:', e);
-    }
-  },
-
-  subscribeToChanges(callback) {
-    if (typeof callback === 'function') {
-      this._listeners.push(callback);
-    }
-  },
-
-  notifyListeners(type) {
-    this._listeners.forEach(cb => {
-      try { cb(type); } catch (e) {}
-    });
-  },
-
-  // Database Mapping Helpers
-  productFromDb(p) {
-    return {
-      id: p.id,
-      name: p.name,
-      description: p.description || '',
-      price: parseFloat(p.price) || 0,
-      image: p.image || 'assets/images/cake_chocolate.jpg',
-      category: p.category,
-      badge: p.badge || '',
-      active: p.active !== false,
-      inStock: p.in_stock !== false,
-      promotion: p.promotion || { active: false, discountPercent: 0 }
-    };
-  },
-
-  productToDb(p) {
-    return {
-      id: p.id,
-      name: p.name,
-      description: p.description || '',
-      price: p.price,
-      image: p.image || '',
-      category: p.category,
-      badge: p.badge || '',
-      active: p.active !== false,
-      in_stock: p.inStock !== false,
-      promotion: p.promotion || { active: false, discountPercent: 0 },
-      updated_at: new Date().toISOString()
-    };
-  },
-
-  settingsFromDb(s) {
-    const merged = deepMerge(DEFAULT_SETTINGS, {
-      storeName: s.store_name,
-      storeTagline: s.store_tagline,
-      storeLogoEmoji: s.store_logo_emoji,
-      storeLogoImage: s.store_logo_image,
-      themeColor: s.theme_color,
-      announcementBar: s.announcement_bar,
-      hero: s.hero,
-      about: s.about,
-      delivery: s.delivery,
-      whatsappNumber: s.whatsapp_number,
-      contactPhone: s.contact_phone,
-      instagram: s.instagram,
-      address: s.address,
-      footerCopyright: s.footer_copyright,
-      paymentMethods: s.payment_methods,
-      pixDetails: s.pix_details,
-      storeOpen: s.store_open !== false,
-      closedCustomMessage: s.closed_custom_message,
-      operatingHours: s.operating_hours,
-      closures: s.closures
-    });
-    return merged;
-  },
-
-  settingsToDb(settings) {
-    return {
-      id: 'main',
-      store_name: settings.storeName,
-      store_tagline: settings.storeTagline,
-      store_logo_emoji: settings.storeLogoEmoji,
-      store_logo_image: settings.storeLogoImage || '',
-      theme_color: settings.themeColor || '#8B5E3C',
-      announcement_bar: settings.announcementBar,
-      hero: settings.hero,
-      about: settings.about,
-      delivery: settings.delivery,
-      whatsapp_number: settings.whatsappNumber,
-      contact_phone: settings.contactPhone,
-      instagram: settings.instagram,
-      address: settings.address,
-      footer_copyright: settings.footerCopyright,
-      payment_methods: settings.paymentMethods,
-      pix_details: settings.pixDetails,
-      store_open: settings.storeOpen !== false,
-      closed_custom_message: settings.closedCustomMessage,
-      operating_hours: settings.operatingHours,
-      closures: settings.closures,
-      updated_at: new Date().toISOString()
-    };
-  },
-
-  orderFromDb(o) {
-    return {
-      id: o.id,
-      customer: o.customer || {},
-      deliveryType: o.delivery_type || 'delivery',
-      deliveryFee: parseFloat(o.delivery_fee) || 0,
-      items: o.items || [],
-      subtotal: parseFloat(o.subtotal) || 0,
-      total: parseFloat(o.total) || 0,
-      paymentMethod: o.payment_method || '',
-      status: o.status || 'novo',
-      date: o.created_at || new Date().toISOString()
-    };
-  },
-
-  orderToDb(o) {
-    return {
-      id: o.id,
-      customer: o.customer,
-      delivery_type: o.deliveryType || 'delivery',
-      delivery_fee: o.deliveryFee || 0,
-      items: o.items,
-      subtotal: o.subtotal,
-      total: o.total,
-      payment_method: o.paymentMethod,
-      status: o.status || 'novo'
-    };
-  },
-
-  // --- Seeding Helpers ---
-  async seedCategories(sb) {
-    try {
-      const records = DEFAULT_CATEGORIES.map(c => ({ id: c.id, name: c.name, icon: c.icon }));
-      await sb.from('categories').upsert(records);
-      this._categories = [...DEFAULT_CATEGORIES];
-    } catch (e) {
-      console.warn('Erro ao semear categorias:', e);
-    }
-  },
-
-  async seedProducts(sb) {
-    try {
-      const records = DEFAULT_PRODUCTS.map(p => this.productToDb(p));
-      await sb.from('products').upsert(records);
-      this._products = [...DEFAULT_PRODUCTS];
-    } catch (e) {
-      console.warn('Erro ao semear produtos:', e);
-    }
-  },
-
-  async seedSettings(sb) {
-    try {
-      const record = this.settingsToDb(DEFAULT_SETTINGS);
-      await sb.from('settings').upsert(record);
-      this._settings = { ...DEFAULT_SETTINGS };
-    } catch (e) {
-      console.warn('Erro ao semear configurações:', e);
-    }
-  },
-
-  // Refresh methods
-  async refreshProducts() {
-    const sb = this.getSb();
-    if (!sb) return;
-    const { data } = await sb.from('products').select('*').order('created_at', { ascending: true });
-    if (data) this._products = data.map(p => this.productFromDb(p));
-  },
-
-  async refreshCategories() {
-    const sb = this.getSb();
-    if (!sb) return;
-    const { data } = await sb.from('categories').select('*').order('name', { ascending: true });
-    if (data) this._categories = data.map(c => ({ id: c.id, name: c.name, icon: c.icon }));
-  },
-
-  async refreshSettings() {
-    const sb = this.getSb();
-    if (!sb) return;
-    const { data } = await sb.from('settings').select('*').eq('id', 'main').maybeSingle();
-    if (data) {
-      this._settings = this.settingsFromDb(data);
-      this.applyTheme(this._settings.themeColor);
-    }
-  },
-
-  async refreshOrders() {
-    const sb = this.getSb();
-    if (!sb) return;
-    const isAuth = window.SupabaseService ? await window.SupabaseService.isAuthenticated() : false;
-    if (isAuth) {
-      const { data } = await sb.from('orders').select('*').order('created_at', { ascending: false });
-      if (data) this._orders = data.map(o => this.orderFromDb(o));
-    }
-  },
-
-  // --- Products API ---
-  getProducts() {
-    return this._products && this._products.length > 0 ? this._products : DEFAULT_PRODUCTS;
-  },
-
-  getActiveProducts() {
-    return this.getProducts().filter(p => p.active && p.inStock);
-  },
-
-  getProductById(id) {
-    return this.getProducts().find(p => p.id === id);
-  },
-
-  async saveProduct(product) {
-    const products = this.getProducts();
-    const index = products.findIndex(p => p.id === product.id);
-
-    if (index >= 0) {
-      product = { ...products[index], ...product };
-      products[index] = product;
-    } else {
-      product.id = product.id || 'prod_' + Date.now();
-      products.push(product);
-    }
-    this._products = [...products];
-
-    // Persist to Supabase
-    const sb = this.getSb();
-    if (sb) {
-      const dbRecord = this.productToDb(product);
-      const { error } = await sb.from('products').upsert(dbRecord);
-      if (error) {
-        console.error('[Supabase] Erro ao salvar produto:', error);
-        throw error;
-      }
-    }
-
-    // Backup to local storage
-    localStorage.setItem(DB_KEYS.PRODUCTS, JSON.stringify(this._products));
+    _saveLocal(DB_KEYS.PRODUCTS, _products);
     return product;
-  },
+  }
 
-  async deleteProduct(id) {
-    this._products = this.getProducts().filter(p => p.id !== id);
+  async function deleteProduct(id) {
+    if (_supabase) {
+      const { error } = await _supabase.from('products').delete().eq('id', id);
+      if (error) throw error;
+    }
+    _products = _products.filter(p => p.id !== id);
+    _saveLocal(DB_KEYS.PRODUCTS, _products);
+  }
 
-    // Persist to Supabase
-    const sb = this.getSb();
-    if (sb) {
-      const { error } = await sb.from('products').delete().eq('id', id);
-      if (error) {
-        console.error('[Supabase] Erro ao excluir produto:', error);
-        throw error;
-      }
+  /**
+   * Decrement stock for a given product/color/size after order
+   */
+  async function decrementStock(productId, color, size, qty = 1) {
+    const product = getProductById(productId);
+    if (!product || !product.variants) return;
+
+    const variants = JSON.parse(JSON.stringify(product.variants));
+    const variant = variants.find(v => v.color === color);
+    if (!variant) return;
+    const sizeEntry = (variant.sizes || []).find(s => s.size === size);
+    if (!sizeEntry) return;
+    sizeEntry.qty = Math.max(0, (sizeEntry.qty || 0) - qty);
+
+    product.variants = variants;
+    // Check if any size has stock
+    const totalStock = variants.reduce((t, v) => t + (v.sizes || []).reduce((s, sz) => s + sz.qty, 0), 0);
+    product.inStock = totalStock > 0;
+
+    await saveProduct(product);
+  }
+
+  // ===== CATEGORY MUTATIONS =====
+  async function saveCategory(cat) {
+    const isNew = !cat.id;
+    if (isNew) cat.id = 'cat_' + Date.now();
+
+    if (_supabase) {
+      const { error } = isNew
+        ? await _supabase.from('categories').insert([cat])
+        : await _supabase.from('categories').update({ name: cat.name, icon: cat.icon }).eq('id', cat.id);
+      if (error) throw error;
     }
 
-    localStorage.setItem(DB_KEYS.PRODUCTS, JSON.stringify(this._products));
-  },
+    const idx = _categories.findIndex(c => c.id === cat.id);
+    if (idx >= 0) _categories[idx] = cat;
+    else _categories.push(cat);
+    _saveLocal(DB_KEYS.CATEGORIES, _categories);
+    return cat;
+  }
 
-  async toggleProductActive(id) {
-    const product = this.getProductById(id);
-    if (product) {
-      product.active = !product.active;
-      return this.saveProduct(product);
+  async function deleteCategory(id) {
+    if (_supabase) {
+      const { error } = await _supabase.from('categories').delete().eq('id', id);
+      if (error) throw error;
     }
-    return null;
-  },
+    _categories = _categories.filter(c => c.id !== id);
+    _saveLocal(DB_KEYS.CATEGORIES, _categories);
+  }
 
-  async toggleProductStock(id) {
-    const product = this.getProductById(id);
-    if (product) {
-      product.inStock = !product.inStock;
-      return this.saveProduct(product);
-    }
-    return null;
-  },
+  // ===== SETTINGS MUTATIONS =====
+  async function updateSettings(newSettings) {
+    _settings = { ..._settings, ...newSettings };
 
-  // --- Categories API ---
-  getCategories() {
-    if (this._categories && this._categories.length > 0) {
-      return this._categories;
-    }
-    return DEFAULT_CATEGORIES;
-  },
+    if (_supabase) {
+      const row = {
+        id: 'main',
+        store_name: _settings.storeName,
+        store_tagline: _settings.storeTagline,
+        store_logo_emoji: _settings.storeLogoEmoji,
+        store_logo_image: _settings.storeLogoImage || '',
+        theme_color: _settings.themeColor,
+        announcement_bar: _settings.announcementBar,
+        hero: _settings.hero,
+        about: _settings.about,
+        delivery: _settings.delivery,
+        whatsapp_number: _settings.whatsappNumber,
+        contact_phone: _settings.contactPhone,
+        instagram: _settings.instagram || '',
+        address: _settings.address,
+        footer_copyright: _settings.footerCopyright,
+        payment_methods: _settings.paymentMethods,
+        pix_details: _settings.pixDetails,
+        store_open: _settings.storeOpen,
+        closed_custom_message: _settings.closedCustomMessage,
+        operating_hours: _settings.operatingHours,
+        closures: _settings.closures || [],
+        available_sizes: _settings.availableSizes || ['PP', 'P', 'M', 'G', 'GG', 'XGG'],
+        updated_at: new Date().toISOString()
+      };
 
-  async saveCategory(category) {
-    const categories = [...this.getCategories()];
-    const index = categories.findIndex(c => c.id === category.id || c.name === category.name);
-
-    if (index >= 0) {
-      categories[index] = { ...categories[index], ...category };
-      category = categories[index];
-    } else {
-      category.id = category.id || 'cat_' + Date.now().toString(36);
-      categories.push(category);
-    }
-    this._categories = categories;
-
-    // Persist to Supabase
-    const sb = this.getSb();
-    if (sb) {
-      const { error } = await sb.from('categories').upsert({
-        id: category.id,
-        name: category.name,
-        icon: category.icon || '🎂'
-      });
-      if (error) {
-        console.error('[Supabase] Erro ao salvar categoria:', error);
-        throw error;
-      }
+      const { error } = await _supabase.from('settings').upsert([row]);
+      if (error) throw error;
     }
 
-    localStorage.setItem(DB_KEYS.CATEGORIES, JSON.stringify(this._categories));
-    return category;
-  },
+    _saveLocal(DB_KEYS.SETTINGS, _settings);
+  }
 
-  async deleteCategory(id) {
-    this._categories = this.getCategories().filter(c => (c.id || c.name) !== id);
+  async function updateSetting(key, value) {
+    await updateSettings({ [key]: value });
+  }
 
-    // Persist to Supabase
-    const sb = this.getSb();
-    if (sb) {
-      const { error } = await sb.from('categories').delete().or(`id.eq.${id},name.eq.${id}`);
-      if (error) {
-        console.error('[Supabase] Erro ao excluir categoria:', error);
-        throw error;
-      }
-    }
-
-    localStorage.setItem(DB_KEYS.CATEGORIES, JSON.stringify(this._categories));
-  },
-
-  // --- Settings API ---
-  getSettings() {
-    if (this._settings) return this._settings;
-    return DEFAULT_SETTINGS;
-  },
-
-  async saveSettings(settings) {
-    this._settings = deepMerge(DEFAULT_SETTINGS, settings);
-    this.applyTheme(this._settings.themeColor);
-
-    // Persist to Supabase
-    const sb = this.getSb();
-    if (sb) {
-      const dbRecord = this.settingsToDb(this._settings);
-      const { error } = await sb.from('settings').upsert(dbRecord);
-      if (error) {
-        console.error('[Supabase] Erro ao salvar configurações:', error);
-        throw error;
-      }
-    }
-
-    localStorage.setItem(DB_KEYS.SETTINGS, JSON.stringify(this._settings));
-    return this._settings;
-  },
-
-  async updateSetting(key, value) {
-    const settings = this.getSettings();
-    settings[key] = value;
-    return this.saveSettings(settings);
-  },
-
-  applyTheme(color) {
-    if (!color) return;
-    document.documentElement.style.setProperty('--primary', color);
-    try {
-      const col = color.replace('#', '');
-      const num = parseInt(col, 16);
-      const r = Math.max(0, Math.min(255, (num >> 16) - 30));
-      const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) - 20));
-      const b = Math.max(0, Math.min(255, (num & 0x0000FF) - 15));
-      document.documentElement.style.setProperty('--primary-dark', `rgb(${r}, ${g}, ${b})`);
-      document.documentElement.style.setProperty('--primary-50', `rgba(${r}, ${g}, ${b}, 0.06)`);
-      document.documentElement.style.setProperty('--primary-100', `rgba(${r}, ${g}, ${b}, 0.12)`);
-    } catch(e) {}
-  },
-
-  // --- Orders API ---
-  getOrders() {
-    return this._orders || [];
-  },
-
-  async saveOrder(order) {
-    order.id = order.id || 'PED-' + Date.now().toString(36).toUpperCase();
-    order.date = order.date || new Date().toISOString();
+  // ===== ORDERS =====
+  async function saveOrder(order) {
+    if (!order.id) order.id = 'ord_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+    if (!order.createdAt) order.createdAt = new Date().toISOString();
     order.status = order.status || 'novo';
 
-    this._orders.unshift(order);
-
-    // Persist to Supabase
-    const sb = this.getSb();
-    if (sb) {
-      const dbRecord = this.orderToDb(order);
-      const { error } = await sb.from('orders').insert(dbRecord);
-      if (error) {
-        console.error('[Supabase] Erro ao salvar pedido:', error);
-        // We still return order so WhatsApp message is generated
-      }
+    if (_supabase) {
+      const row = {
+        id: order.id,
+        customer: order.customer,
+        delivery_type: order.deliveryType || 'delivery',
+        delivery_fee: order.deliveryFee || 0,
+        items: order.items,
+        subtotal: order.subtotal,
+        total: order.total,
+        payment_method: order.paymentMethod,
+        status: order.status,
+        created_at: order.createdAt
+      };
+      const { error } = await _supabase.from('orders').insert([row]);
+      if (error) throw error;
     }
 
-    localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(this._orders));
+    _orders.unshift(order);
+    _saveLocal(DB_KEYS.ORDERS, _orders);
     return order;
-  },
+  }
 
-  async updateOrderStatus(id, status) {
-    const order = this._orders.find(o => o.id === id);
-    if (order) {
-      order.status = status;
-
-      const sb = this.getSb();
-      if (sb) {
-        const { error } = await sb.from('orders').update({ status }).eq('id', id);
-        if (error) {
-          console.error('[Supabase] Erro ao atualizar status do pedido:', error);
-          throw error;
-        }
-      }
-
-      localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(this._orders));
+  async function updateOrderStatus(id, status) {
+    if (_supabase) {
+      const { error } = await _supabase.from('orders').update({ status }).eq('id', id);
+      if (error) throw error;
     }
-    return order;
-  },
+    const order = _orders.find(o => o.id === id);
+    if (order) order.status = status;
+    _saveLocal(DB_KEYS.ORDERS, _orders);
+  }
 
-  async deleteOrder(id) {
-    this._orders = this._orders.filter(o => o.id !== id);
-
-    const sb = this.getSb();
-    if (sb) {
-      const { error } = await sb.from('orders').delete().eq('id', id);
-      if (error) {
-        console.error('[Supabase] Erro ao excluir pedido:', error);
-        throw error;
-      }
+  async function deleteOrder(id) {
+    if (_supabase) {
+      const { error } = await _supabase.from('orders').delete().eq('id', id);
+      if (error) throw error;
     }
+    _orders = _orders.filter(o => o.id !== id);
+    _saveLocal(DB_KEYS.ORDERS, _orders);
+  }
 
-    localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(this._orders));
-  },
-
-  async clearAllOrders() {
-    this._orders = [];
-
-    const sb = this.getSb();
-    if (sb) {
-      const { error } = await sb.from('orders').delete().neq('id', '');
-      if (error) {
-        console.error('[Supabase] Erro ao limpar pedidos:', error);
-        throw error;
-      }
-    }
-
-    localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify([]));
-  },
-
-  // --- Store Status ---
-  isStoreOpen() {
-    const settings = this.getSettings();
-    if (!settings.storeOpen) return false;
+  // ===== STORE STATUS (open/closed) =====
+  function isStoreOpen() {
+    const s = _settings;
+    if (!s.storeOpen) return false;
 
     const now = new Date();
     const dayNames = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
-    const today = dayNames[now.getDay()];
-    const hours = settings.operatingHours ? settings.operatingHours[today] : null;
-
+    const dayKey = dayNames[now.getDay()];
+    const hours = s.operatingHours ? s.operatingHours[dayKey] : null;
     if (!hours || !hours.active) return false;
 
-    const todayStr = now.toISOString().split('T')[0];
-    for (const closure of settings.closures || []) {
-      if (closure.type === 'date' && closure.date === todayStr) return false;
-      if (closure.type === 'range') {
-        if (todayStr >= closure.start && todayStr <= closure.end) return false;
-      }
-    }
+    // Check for manual closures
+    const closures = s.closures || [];
+    const todayStr = now.toISOString().slice(0, 10);
+    if (closures.some(c => c.date === todayStr)) return false;
 
-    const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-    if (currentTime < hours.open || currentTime > hours.close) return false;
-
-    return true;
-  },
-
-  getStoreStatusMessage() {
-    const settings = this.getSettings();
-    if (!settings.storeOpen) {
-      return settings.closedCustomMessage || 'Loja fechada no momento pelo administrador.';
-    }
-
-    const now = new Date();
-    const dayNames = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
-    const dayLabels = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-    const today = dayNames[now.getDay()];
-    const hours = settings.operatingHours ? settings.operatingHours[today] : null;
-
-    if (!hours || !hours.active) {
-      return `Não abrimos aos ${dayLabels[now.getDay()]}s.`;
-    }
-
-    const todayStr = now.toISOString().split('T')[0];
-    for (const closure of settings.closures || []) {
-      if (closure.type === 'date' && closure.date === todayStr) {
-        return `Fechado hoje: ${closure.reason || 'Fechamento programado'}`;
-      }
-      if (closure.type === 'range' && todayStr >= closure.start && todayStr <= closure.end) {
-        return `Fechado: ${closure.reason || 'Período de recesso/férias'}`;
-      }
-    }
-
-    const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-    if (currentTime < hours.open) {
-      return `Abrimos hoje às ${hours.open}`;
-    }
-    if (currentTime > hours.close) {
-      return `Fechamos às ${hours.close}. Volte amanhã!`;
-    }
-
-    return `Aberto hoje até as ${hours.close}`;
-  },
-
-  // --- Backup & Restore ---
-  exportBackup() {
-    const data = {
-      exportDate: new Date().toISOString(),
-      products: this.getProducts(),
-      categories: this.getCategories(),
-      settings: this.getSettings(),
-      orders: this.getOrders(),
-    };
-    return JSON.stringify(data, null, 2);
-  },
-
-  async importBackup(jsonString) {
-    try {
-      const data = JSON.parse(jsonString);
-      if (data.categories && Array.isArray(data.categories)) {
-        for (const cat of data.categories) {
-          await this.saveCategory(cat);
-        }
-      }
-      if (data.products && Array.isArray(data.products)) {
-        for (const prod of data.products) {
-          await this.saveProduct(prod);
-        }
-      }
-      if (data.settings && typeof data.settings === 'object') {
-        await this.saveSettings(data.settings);
-      }
-      return { success: true };
-    } catch (e) {
-      return { success: false, error: e.message };
-    }
-  },
-
-  async resetToDefaults() {
-    this._products = [...DEFAULT_PRODUCTS];
-    this._categories = [...DEFAULT_CATEGORIES];
-    this._settings = { ...DEFAULT_SETTINGS };
-    this._orders = [];
-
-    const sb = this.getSb();
-    if (sb) {
-      await this.seedCategories(sb);
-      await this.seedProducts(sb);
-      await this.seedSettings(sb);
-      await this.clearAllOrders();
-    }
-
-    localStorage.removeItem(DB_KEYS.PRODUCTS);
-    localStorage.removeItem(DB_KEYS.SETTINGS);
-    localStorage.removeItem(DB_KEYS.CATEGORIES);
-    localStorage.removeItem(DB_KEYS.ORDERS);
+    const [openH, openM] = (hours.open || '00:00').split(':').map(Number);
+    const [closeH, closeM] = (hours.close || '00:00').split(':').map(Number);
+    const openMin = openH * 60 + openM;
+    const closeMin = closeH * 60 + closeM;
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    return nowMin >= openMin && nowMin < closeMin;
   }
-};
 
-// ===== CART MANAGER =====
-const Cart = {
-  KEY: 'dolcearte_cart',
-
-  getItems() {
-    return JSON.parse(localStorage.getItem(this.KEY) || '[]');
-  },
-
-  addItem(productId) {
-    const items = this.getItems();
-    const existing = items.find(i => i.productId === productId);
-    if (existing) {
-      existing.qty += 1;
-    } else {
-      items.push({ productId, qty: 1 });
-    }
-    localStorage.setItem(this.KEY, JSON.stringify(items));
-    return items;
-  },
-
-  removeItem(productId) {
-    const items = this.getItems().filter(i => i.productId !== productId);
-    localStorage.setItem(this.KEY, JSON.stringify(items));
-    return items;
-  },
-
-  updateQty(productId, qty) {
-    const items = this.getItems();
-    const item = items.find(i => i.productId === productId);
-    if (item) {
-      item.qty = Math.max(1, qty);
-    }
-    localStorage.setItem(this.KEY, JSON.stringify(items));
-    return items;
-  },
-
-  clear() {
-    localStorage.setItem(this.KEY, JSON.stringify([]));
-  },
-
-  getSubtotal() {
-    const items = this.getItems();
-    let total = 0;
-    items.forEach(item => {
-      const product = DataStore.getProductById(item.productId);
-      if (product) {
-        const price = product.promotion && product.promotion.active
-          ? product.price * (1 - product.promotion.discountPercent / 100)
-          : product.price;
-        total += price * item.qty;
-      }
-    });
-    return total;
-  },
-
-  getTotal() {
-    return this.getSubtotal();
-  },
-
-  getDeliveryFee(deliveryType) {
-    if (deliveryType === 'pickup') return 0;
-    const settings = DataStore.getSettings();
-    const delivery = settings.delivery || DEFAULT_SETTINGS.delivery;
-    if (delivery.deliveryEnabled === false) return 0;
-    const subtotal = this.getSubtotal();
-    if (delivery.freeDeliveryThreshold > 0 && subtotal >= delivery.freeDeliveryThreshold) {
-      return 0; // Free delivery
-    }
-    return delivery.deliveryFee || 0;
-  },
-
-  getGrandTotal(deliveryType) {
-    return this.getSubtotal() + this.getDeliveryFee(deliveryType);
-  },
-
-  getCount() {
-    return this.getItems().reduce((sum, i) => sum + i.qty, 0);
-  },
-
-  getDetailedItems() {
-    const items = this.getItems();
-    return items.map(item => {
-      const product = DataStore.getProductById(item.productId);
-      if (!product) return null;
-      const finalPrice = product.promotion && product.promotion.active
-        ? product.price * (1 - product.promotion.discountPercent / 100)
-        : product.price;
-      return {
-        ...item,
-        product,
-        finalPrice,
-        subtotal: finalPrice * item.qty
-      };
-    }).filter(Boolean);
+  // ===== FORCE REFRESH (Admin) =====
+  async function forceRefresh() {
+    try { localStorage.removeItem(DB_KEYS.CACHE_META); } catch {}
+    await Promise.all([_loadCategories(), _loadProducts(), _loadSettings(), _loadOrders()]);
   }
-};
 
-// ===== UTILITY FUNCTIONS =====
+  // ===== EXPORT =====
+  return {
+    init,
+    getProducts,
+    getProductById,
+    getCategories,
+    getSettings,
+    getOrders,
+    getProductTotalStock,
+    getVariantStock,
+    getAvailableSizesForColor,
+    getAvailableColors,
+    saveProduct,
+    deleteProduct,
+    decrementStock,
+    saveCategory,
+    deleteCategory,
+    updateSettings,
+    updateSetting,
+    saveOrder,
+    updateOrderStatus,
+    deleteOrder,
+    isStoreOpen,
+    forceRefresh
+  };
+})();
+
+// ===== UTILS (shared) =====
 const Utils = {
-  escapeHTML(str) {
+  formatCurrency(val) {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+  },
+
+  formatDate(iso) {
+    if (!iso) return '—';
+    try {
+      return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch { return iso; }
+  },
+
+  sanitize(str) {
     if (!str) return '';
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
+    return String(str).replace(/[<>\"']/g, c => ({ '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   },
 
-  sanitizeUrl(url) {
-    if (!url) return '';
-    const trimmed = String(url).trim();
-    if (/^(https?:\/\/|\/|assets\/|data:image\/(png|jpe?g|webp|gif|svg\+xml);base64,)/i.test(trimmed)) {
-      return trimmed;
-    }
-    return '';
-  },
-
-  async hashPassword(password) {
-    if (typeof window !== 'undefined' && window.crypto && window.crypto.subtle) {
-      try {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(password);
-        const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      } catch (e) {
-        // Fallback if subtle.digest fails in context
-      }
-    }
-    return Utils._sha256Fallback(password);
-  },
-
-  _sha256Fallback(ascii) {
-    function rightRotate(value, amount) {
-      return (value >>> amount) | (value << (32 - amount));
-    }
-    const mathPow = Math.pow;
-    const maxWord = mathPow(2, 32);
-    let i, j;
-    const words = [];
-    const asciiBitLength = ascii.length * 8;
-    const hash = [];
-    const k = [];
-    let primeCounter = 0;
-    const isComposite = {};
-    for (let candidate = 2; primeCounter < 64; candidate++) {
-      if (!isComposite[candidate]) {
-        for (i = candidate * candidate; i < 313; i += candidate) {
-          isComposite[i] = true;
-        }
-        if (primeCounter < 8) {
-          hash[primeCounter] = (mathPow(candidate, 0.5) * maxWord) | 0;
-        }
-        k[primeCounter] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
-        primeCounter++;
-      }
-    }
-    ascii += '\x80';
-    while ((ascii.length % 64) - 56) ascii += '\x00';
-    for (i = 0; i < ascii.length; i++) {
-      j = ascii.charCodeAt(i);
-      words[i >> 2] |= j << ((3 - (i % 4)) * 8);
-    }
-    words[words.length] = (asciiBitLength / maxWord) | 0;
-    words[words.length] = asciiBitLength;
-    for (j = 0; j < words.length; ) {
-      const w = words.slice(j, (j += 16));
-      const oldHash = hash.slice(0);
-      for (i = 0; i < 64; i++) {
-        const w15 = w[i - 15], w2 = w[i - 2];
-        const s0 = rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3);
-        const s1 = rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10);
-        w[i] = i < 16 ? w[i] : (w[i - 16] + s0 + w[i - 7] + s1) | 0;
-        const ch = (hash[4] & hash[5]) ^ (~hash[4] & hash[6]);
-        const maj = (hash[0] & hash[1]) ^ (hash[0] & hash[2]) ^ (hash[1] & hash[2]);
-        const temp1 = (hash[7] + (rightRotate(hash[4], 6) ^ rightRotate(hash[4], 11) ^ rightRotate(hash[4], 25)) + ch + k[i] + w[i]) | 0;
-        const temp2 = ((rightRotate(hash[0], 2) ^ rightRotate(hash[0], 13) ^ rightRotate(hash[0], 22)) + maj) | 0;
-        hash[7] = hash[6];
-        hash[6] = hash[5];
-        hash[5] = hash[4];
-        hash[4] = (hash[3] + temp1) | 0;
-        hash[3] = hash[2];
-        hash[2] = hash[1];
-        hash[1] = hash[0];
-        hash[0] = (temp1 + temp2) | 0;
-      }
-      for (i = 0; i < 8; i++) {
-        hash[i] = (hash[i] + oldHash[i]) | 0;
-      }
-    }
-    let hex = '';
-    for (i = 0; i < 8; i++) {
-      for (j = 3; j >= 0; j--) {
-        const b = (hash[i] >> (8 * j)) & 255;
-        hex += (b < 16 ? '0' : '') + b.toString(16);
-      }
-    }
-    return hex;
-  },
-
-  formatCurrency(value) {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value || 0);
-  },
-
-  formatDate(isoString) {
-    return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(new Date(isoString));
-  },
-
-  formatDateShort(isoString) {
-    return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    }).format(new Date(isoString));
-  },
-
-  fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  },
-
-  showToast(message, type = 'success') {
+  showToast(message, type = 'info', duration = 3500) {
     const container = document.getElementById('toast-container');
     if (!container) return;
 
-    const icons = {
-      success: '✅',
-      error: '❌',
-      warning: '⚠️',
-      info: 'ℹ️'
-    };
-
+    const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    const iconSpan = document.createElement('span');
-    iconSpan.className = 'toast-icon';
-    iconSpan.textContent = icons[type] || '✅';
-    const msgSpan = document.createElement('span');
-    msgSpan.className = 'toast-message';
-    msgSpan.textContent = message;
-    toast.appendChild(iconSpan);
-    toast.appendChild(msgSpan);
-
+    toast.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ️'}</span><span class="toast-text">${Utils.sanitize(message)}</span>`;
     container.appendChild(toast);
 
     setTimeout(() => {
-      toast.classList.add('removing');
-      setTimeout(() => toast.remove(), 300);
-    }, 3500);
+      toast.classList.add('fade-out');
+      toast.addEventListener('animationend', () => toast.remove(), { once: true });
+    }, duration);
   },
 
-  buildWhatsAppMessage(order) {
-    const settings = DataStore.getSettings();
-    let msg = `*NOVO PEDIDO - ${settings.storeName}*\n\n`;
-    msg += `*Pedido:* ${order.id}\n`;
-    msg += `*Data:* ${Utils.formatDate(order.date)}\n\n`;
-
-    msg += `*Cliente:*\n`;
-    msg += `- Nome: ${order.customer.name}\n`;
-    msg += `- Telefone: ${order.customer.phone}\n`;
-
-    if (order.deliveryType === 'pickup') {
-      msg += `- Modo: *RETIRADA NO LOCAL*\n`;
-      msg += `- Local: ${settings.delivery.pickupAddress}\n`;
-    } else {
-      msg += `- Modo: *ENTREGA A DOMICÍLIO*\n`;
-      msg += `- Endereço: ${order.customer.address}\n`;
-    }
-
-    if (order.customer.observations) {
-      msg += `- Observações: ${order.customer.observations}\n`;
-    }
-
-    msg += `\n*Itens do Pedido:*\n`;
-    order.items.forEach(item => {
-      msg += `- ${item.qty}x ${item.name} - ${Utils.formatCurrency(item.subtotal)}\n`;
-    });
-
-    msg += `\n*Subtotal:* ${Utils.formatCurrency(order.subtotal)}`;
-    if (order.deliveryType === 'delivery') {
-      msg += `\n*Taxa de Entrega:* ${order.deliveryFee === 0 ? 'GRÁTIS' : Utils.formatCurrency(order.deliveryFee)}`;
-    }
-    msg += `\n*VALOR TOTAL: ${Utils.formatCurrency(order.total)}*\n`;
-    msg += `*Forma de Pagamento:* ${order.paymentMethod}\n`;
-
-    if (order.paymentMethod.toLowerCase().includes('dinheiro') && order.customer.trocoPara) {
-      msg += `*Troco para:* ${order.customer.trocoPara}\n`;
-    }
-
-    if (order.paymentMethod.toLowerCase().includes('pix') && settings.pixDetails && settings.pixDetails.key) {
-      msg += `\n*Chave Pix:* ${settings.pixDetails.key} (${settings.pixDetails.keyType})\n`;
-      msg += `*Titular:* ${settings.pixDetails.receiverName}\n`;
-    }
-
-    msg += `\n_Mensagem gerada pelo site ${settings.storeName}_`;
-    return msg;
+  async hashPassword(password) {
+    const enc = new TextEncoder();
+    const buf = await crypto.subtle.digest('SHA-256', enc.encode(password));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
   },
 
-  sendToWhatsApp(message) {
-    const settings = DataStore.getSettings();
-    const phone = (settings.whatsappNumber || '').replace(/\D/g, '');
-    const encoded = encodeURIComponent(message);
-    window.open(`https://wa.me/${phone}?text=${encoded}`, '_blank');
+  debounce(fn, ms) {
+    let t;
+    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
   },
 
-  sendWhatsAppToCustomer(customerPhone, message) {
-    const cleanPhone = (customerPhone || '').replace(/\D/g, '');
-    const phoneWithDDI = cleanPhone.length <= 11 ? '55' + cleanPhone : cleanPhone;
-    const encoded = encodeURIComponent(message);
-    window.open(`https://wa.me/${phoneWithDDI}?text=${encoded}`, '_blank');
+  /**
+   * Calcula o preço com desconto
+   */
+  calcDiscountedPrice(price, promotion) {
+    if (!promotion || !promotion.active || !promotion.discountPercent) return price;
+    return price * (1 - promotion.discountPercent / 100);
   }
 };
