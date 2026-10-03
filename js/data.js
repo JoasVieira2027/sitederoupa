@@ -93,32 +93,32 @@ const DEFAULT_PRODUCTS = [
 
 // ===== DEFAULT CATEGORIES (FITNESS) =====
 const DEFAULT_CATEGORIES = [
-  { id: 'cat_leggings', name: 'Leggings', icon: '👖' },
-  { id: 'cat_tops', name: 'Tops & Croppeds', icon: '🎽' },
-  { id: 'cat_conjuntos', name: 'Conjuntos', icon: '⚡' },
-  { id: 'cat_shorts', name: 'Shorts & Bermudas', icon: '🩳' },
-  { id: 'cat_macacoes', name: 'Macacões', icon: '🧘‍♀️' },
-  { id: 'cat_acessorios', name: 'Acessórios', icon: '🎒' }
+  { id: 'cat_leggings', name: 'Leggings', icon: 'layers' },
+  { id: 'cat_tops', name: 'Tops & Croppeds', icon: 'shield' },
+  { id: 'cat_conjuntos', name: 'Conjuntos', icon: 'sparkles' },
+  { id: 'cat_shorts', name: 'Shorts & Bermudas', icon: 'activity' },
+  { id: 'cat_macacoes', name: 'Macacões', icon: 'zap' },
+  { id: 'cat_acessorios', name: 'Acessórios', icon: 'package' }
 ];
 
 // ===== DEFAULT SETTINGS (FITNESS) =====
 const DEFAULT_SETTINGS = {
   storeName: 'Fit Vibe Activewear',
   storeTagline: 'Roupas Fitness de Alta Performance',
-  storeLogoEmoji: '⚡',
+  storeLogoEmoji: '',
   storeLogoImage: '',
   themeColor: '#059669',
-  announcementBar: { active: true, text: '⚡ FRETE GRÁTIS nas compras acima de R$ 199 | Peças Zero Transparência!' },
+  announcementBar: { active: true, text: 'FRETE GRÁTIS nas compras acima de R$ 199 • Até 3x sem juros • Zero Transparência' },
   featuredCollection: {
     active: true,
-    title: 'Nova Coleção 2026',
+    title: 'Nova Coleção',
     subtitle: 'Lançamentos e peças exclusivas com tecnologia seamless e alta compressão'
   },
   hero: {
-    emoji: '⚡',
+    emoji: '',
     title: 'Treine com Estilo, <em>Supere Limites</em>',
     subtitle: 'Activewear premium com modelagem anatômica, alta compressão e zero transparência para seu melhor desempenho.',
-    ctaText: '⚡ Ver Coleção Fitness',
+    ctaText: 'Ver Coleção Fitness',
     badgeText: 'Alta Performance'
   },
   about: {
@@ -127,10 +127,10 @@ const DEFAULT_SETTINGS = {
     subtitle: 'Criado para mover o seu melhor',
     text: 'A Fit Vibe desenvolve peças esportivas com tecidos nobres e tecnologia têxtil de ponta. Modelagens exclusivas que valorizam a silhueta, oferecem sustentação máxima e acompanham cada movimento do seu dia com total segurança.',
     features: [
-      { icon: '🛡️', title: 'Zero Transparência', desc: 'Gramatura reforçada para agachamentos sem medo' },
-      { icon: '💨', title: 'Tecnologia Dry-Fit', desc: 'Respirabilidade máxima que evapora o suor rapidamente' },
-      { icon: '⚡', title: 'Alta Compressão', desc: 'Cós anatômico duplo que não enrola durante o treino' },
-      { icon: '🔄', title: 'Troca Fácil', desc: 'Primeira troca 100% grátis e sem burocracia' }
+      { icon: 'shield-check', title: 'Zero Transparência', desc: 'Gramatura reforçada para agachamentos com total segurança' },
+      { icon: 'wind', title: 'Tecnologia Dry-Fit', desc: 'Respirabilidade máxima que evapora o suor rapidamente' },
+      { icon: 'activity', title: 'Alta Compressão', desc: 'Cós anatômico duplo que não enrola durante o treino' },
+      { icon: 'refresh-cw', title: 'Troca Fácil', desc: 'Primeira troca 100% grátis e sem burocracia' }
     ]
   },
   delivery: {
@@ -193,10 +193,10 @@ const DEFAULT_SETTINGS = {
   address: 'Rua do Fitness, 120 - São Paulo, SP',
   footerCopyright: '© 2026 Fit Vibe Activewear. Todos os direitos reservados.',
   paymentMethods: [
-    { id: 'pix', name: 'Pix (Aprovação Imediata)', icon: '📱', active: true },
-    { id: 'credito', name: 'Cartão de Crédito', icon: '💳', active: true },
-    { id: 'debito', name: 'Cartão de Débito', icon: '💳', active: true },
-    { id: 'dinheiro', name: 'Dinheiro na Entrega', icon: '💵', active: true }
+    { id: 'pix', name: 'Pix (Aprovação Imediata)', icon: 'qr-code', active: true },
+    { id: 'credito', name: 'Cartão de Crédito', icon: 'credit-card', active: true },
+    { id: 'debito', name: 'Cartão de Débito', icon: 'credit-card', active: true },
+    { id: 'dinheiro', name: 'Dinheiro na Entrega', icon: 'banknote', active: true }
   ],
   pixDetails: { key: '', keyType: 'Celular', receiverName: 'Fit Vibe Moda Fitness', instructions: 'Faça o Pix e envie o comprovante pelo WhatsApp para envio imediato!' },
   storeOpen: true,
@@ -295,16 +295,29 @@ const DataStore = (function () {
       storeLogoImage: row.store_logo_image || '',
       themeColor: row.theme_color || DEFAULT_SETTINGS.themeColor,
       announcementBar: parseJsonField(row.announcement_bar, DEFAULT_SETTINGS.announcementBar),
-      featuredCollection: parseJsonField(row.featured_collection, DEFAULT_SETTINGS.featuredCollection),
+      featuredCollection: (function () {
+        const parsedHero = parseJsonField(row.hero, {});
+        if (parsedHero && parsedHero._featuredCollection !== undefined) {
+          return parsedHero._featuredCollection;
+        }
+        if (row.featured_collection !== undefined) {
+          return parseJsonField(row.featured_collection, DEFAULT_SETTINGS.featuredCollection);
+        }
+        return DEFAULT_SETTINGS.featuredCollection;
+      })(),
       hero: parseJsonField(row.hero, DEFAULT_SETTINGS.hero),
       about: parseJsonField(row.about, DEFAULT_SETTINGS.about),
       delivery: parseJsonField(row.delivery, DEFAULT_SETTINGS.delivery),
       instagramFeed: (function () {
+        const parsedHero = parseJsonField(row.hero, {});
+        if (parsedHero && parsedHero._instagramFeed !== undefined) {
+          return parsedHero._instagramFeed;
+        }
         const parsed = parseJsonField(row.instagram_feed, DEFAULT_SETTINGS.instagramFeed);
-        if (!parsed || !Array.isArray(parsed.posts)) {
+        if (parsed && Array.isArray(parsed.posts)) {
           return { ...DEFAULT_SETTINGS.instagramFeed, ...(parsed || {}), posts: DEFAULT_SETTINGS.instagramFeed.posts };
         }
-        return parsed;
+        return parsed || DEFAULT_SETTINGS.instagramFeed;
       })(),
       whatsappNumber: row.whatsapp_number || DEFAULT_SETTINGS.whatsappNumber,
       contactPhone: row.contact_phone || DEFAULT_SETTINGS.contactPhone,
@@ -683,6 +696,12 @@ const DataStore = (function () {
     _settings = { ..._settings, ...newSettings };
 
     if (_supabase) {
+      const heroWithExtras = {
+        ...(_settings.hero || {}),
+        _featuredCollection: _settings.featuredCollection,
+        _instagramFeed: _settings.instagramFeed
+      };
+
       const row = {
         id: 'main',
         store_name: _settings.storeName,
@@ -691,7 +710,7 @@ const DataStore = (function () {
         store_logo_image: _settings.storeLogoImage || '',
         theme_color: _settings.themeColor,
         announcement_bar: _settings.announcementBar,
-        hero: _settings.hero,
+        hero: heroWithExtras,
         about: _settings.about,
         delivery: _settings.delivery,
         whatsapp_number: _settings.whatsappNumber,
@@ -866,10 +885,15 @@ const Utils = {
     const container = document.getElementById('toast-container');
     if (!container) return;
 
-    const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+    const icons = {
+      success: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+      error: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+      warning: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+      info: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+    };
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ️'}</span><span class="toast-text">${Utils.sanitize(message)}</span>`;
+    toast.innerHTML = `<span class="toast-icon">${icons[type] || icons.info}</span><span class="toast-text">${Utils.sanitize(message)}</span>`;
     container.appendChild(toast);
 
     setTimeout(() => {

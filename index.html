@@ -4,168 +4,723 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="Fit Vibe Activewear — Roupas fitness femininas de alta performance. Leggings sem costura, tops de alta sustentação, conjuntos fitness e shorts com bolso. Compre direto pelo WhatsApp!">
-  <meta name="keywords" content="roupas fitness, moda fitness feminina, legging sem costura, top fitness, conjunto academia, activewear, zero transparencia">
-  <meta name="theme-color" content="#059669">
+  <meta name="description" content="Fit Vibe Activewear — Roupas fitness femininas de alta performance. Leggings sem costura, tops de alta sustentação, conjuntos fitness e shorts com bolso. Compre direto com entrega rápida e zero transparência garantida.">
+  <meta name="keywords" content="roupas fitness, moda fitness feminina, activewear, legging sem costura, top academia, conjunto fitness, shorts biker, zero transparencia">
+  <meta name="theme-color" content="#0F172A">
+  <meta property="og:title" content="Fit Vibe Activewear | Roupas Fitness de Alta Performance">
+  <meta property="og:description" content="Peças fitness exclusivas com modelagem anatômica, alta compressão e tecnologia zero transparência.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/images/hero_fitness.jpg">
   <title id="site-title">Fit Vibe Activewear | Roupas Fitness & Alta Performance</title>
+  
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Main Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  
+  <!-- Minimalist Vector Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230F172A'/><path d='M9 8H23V11H12.5V14.5H21V17.5H12.5V24H9V8Z' fill='%2310B981'/><path d='M19 14.5L24 24H20.2L17.5 18.5H19V14.5Z' fill='%2334D399'/></svg>">
 </head>
 
 <body>
 
-  <!-- Toast Notification Container -->
-  <div id="toast-container" class="toast-container"></div>
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
-  <!-- Announcement Bar -->
-  <div class="announcement-bar hidden" id="announcement-bar" style="display:none;">
-    <div class="announcement-content">
-      <span class="announcement-icon">⚡</span>
-      <span id="announcement-text">FRETE GRÁTIS nas compras acima de R$ 199 | Peças Zero Transparência!</span>
+  <!-- Announcement Bar (Configurable from Admin) -->
+  <aside class="announcement-bar" id="announcement-bar" style="display:none;" aria-label="Avisos e promoções">
+    <div class="announcement-inner container">
+      <div class="announcement-content" id="announcement-text-wrap">
+        <span class="announcement-badge-pill">
+          <i data-lucide="sparkles" class="icon-inline"></i>
+          <span>Destaque</span>
+        </span>
+        <span id="announcement-text">FRETE GRÁTIS nas compras acima de R$ 199 • Até 3x sem juros • Zero Transparência</span>
+      </div>
+      <div class="announcement-extra-links">
+        <span class="announcement-pill"><i data-lucide="shield-check" class="icon-inline"></i> Compra Segura</span>
+        <span class="announcement-pill"><i data-lucide="refresh-cw" class="icon-inline"></i> Troca Fácil</span>
+      </div>
     </div>
-  </div>
+  </aside>
 
   <!-- Store Closed Banner -->
-  <div class="store-closed-banner hidden" id="store-closed-banner">
-    <div class="banner-content">
-      <h3>🔒 Loja Fechada</h3>
-      <p id="store-closed-message">Estamos fora do horário de atendimento. Deixe sua mensagem no WhatsApp!</p>
+  <div class="store-closed-banner hidden" id="store-closed-banner" role="alert">
+    <div class="banner-content container">
+      <div class="banner-icon-wrap">
+        <i data-lucide="clock" class="icon-banner"></i>
+      </div>
+      <div class="banner-text-wrap">
+        <strong id="store-closed-title">Loja Fechada no Momento</strong>
+        <p id="store-closed-message">Estamos fora do horário de atendimento. Deixe sua mensagem no WhatsApp que responderemos assim que abrirmos!</p>
+      </div>
     </div>
   </div>
 
-  <!-- Navbar -->
-  <nav class="navbar" id="navbar">
-    <div class="navbar-inner">
-      <a href="index.html" class="navbar-brand">
-        <span class="logo-icon" id="navbar-logo-icon">⚡</span>
-        <div>
-          <span class="brand-name" id="navbar-brand-name">Fit Vibe</span>
-          <span class="brand-tagline" id="navbar-brand-tagline">Activewear</span>
+  <!-- Main Navigation Header -->
+  <header class="site-header" id="navbar">
+    <div class="header-inner container">
+      
+      <!-- Mobile Menu Trigger -->
+      <button type="button" class="btn-mobile-menu" id="btn-mobile-menu" aria-label="Abrir menu de navegação" aria-expanded="false" aria-controls="mobile-drawer">
+        <i data-lucide="menu"></i>
+      </button>
+
+      <!-- Brand Logo -->
+      <a href="index.html" class="navbar-brand" aria-label="Página inicial Fit Vibe Activewear">
+        <span class="logo-mark" id="navbar-logo-icon">
+          <svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <rect width="32" height="32" rx="7" fill="#0F172A"/>
+            <path d="M8.5 7.5H23.5V10.5H12V14H21V17H12V24.5H8.5V7.5Z" fill="#10B981"/>
+            <path d="M18.5 14L23.5 24.5H19.8L16.8 18.2H18.5V14Z" fill="#34D399"/>
+          </svg>
+        </span>
+        <div class="brand-text">
+          <span class="brand-name" id="navbar-brand-name">FIT VIBE</span>
+          <span class="brand-tagline" id="navbar-brand-tagline">ACTIVEWEAR</span>
         </div>
       </a>
 
-      <div class="navbar-actions">
-        <div class="navbar-status" id="store-status">
-          <span class="status-dot"></span>
-          <span id="store-status-text">Verificando...</span>
+      <!-- Desktop Navigation Menu -->
+      <nav class="desktop-nav" aria-label="Navegação principal">
+        <ul class="nav-list">
+          <li><a href="#hero" class="nav-link active">Início</a></li>
+          <li><a href="#visual-categories" class="nav-link">Categorias</a></li>
+          <li><a href="#featured-section" class="nav-link">Novidades</a></li>
+          <li><a href="#products" class="nav-link">Coleção</a></li>
+          <li><a href="#looks-section" class="nav-link">Monte seu Look</a></li>
+          <li><a href="#color-shop" class="nav-link">Cores</a></li>
+          <li><a href="#about-section" class="nav-link">Sobre</a></li>
+          <li><a href="#instagram-section" class="nav-link">Instagram</a></li>
+        </ul>
+      </nav>
+
+      <!-- Header Actions -->
+      <div class="header-actions">
+        
+        <!-- Search Trigger / Quick Search Bar -->
+        <div class="search-box-wrap" id="search-box-wrap">
+          <div class="search-input-inner">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="search" id="quick-search-input" placeholder="Buscar peça, legging, top..." aria-label="Buscar produtos">
+            <button type="button" class="btn-clear-search hidden" id="btn-clear-search" aria-label="Limpar busca">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
         </div>
-        <button class="btn-cart" id="btn-open-cart" aria-label="Abrir carrinho">
-          🛒
+
+        <!-- Store Open / Closed Indicator -->
+        <div class="navbar-status" id="store-status" title="Status da loja">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="store-status-text">Aberta</span>
+        </div>
+
+        <!-- WhatsApp Support Direct Link -->
+        <a href="#" class="btn-header-wa" id="navbar-whatsapp-btn" target="_blank" rel="noopener noreferrer" aria-label="Falar com especialista no WhatsApp">
+          <i data-lucide="message-circle" class="icon-inline"></i>
+          <span class="wa-label">WhatsApp</span>
+        </a>
+
+        <!-- Cart Button -->
+        <button type="button" class="btn-cart" id="btn-open-cart" aria-label="Abrir carrinho de compras">
+          <i data-lucide="shopping-bag" class="cart-icon"></i>
           <span class="cart-count" id="cart-count" style="display:none;">0</span>
         </button>
       </div>
+
     </div>
-  </nav>
+  </header>
+
+  <!-- Mobile Off-Canvas Drawer -->
+  <div class="mobile-drawer-overlay" id="mobile-drawer-overlay" aria-hidden="true"></div>
+  <aside class="mobile-drawer" id="mobile-drawer" aria-label="Menu móvel">
+    <div class="mobile-drawer-header">
+      <div class="mobile-drawer-brand">
+        <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect width="32" height="32" rx="6" fill="#0F172A"/>
+          <path d="M8.5 7.5H23.5V10.5H12V14H21V17H12V24.5H8.5V7.5Z" fill="#10B981"/>
+          <path d="M18.5 14L23.5 24.5H19.8L16.8 18.2H18.5V14Z" fill="#34D399"/>
+        </svg>
+        <span>FIT VIBE ACTIVEWEAR</span>
+      </div>
+      <button type="button" class="btn-close-drawer" id="btn-close-drawer" aria-label="Fechar menu">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <!-- Mobile Search -->
+    <div class="mobile-drawer-search">
+      <div class="search-input-inner">
+        <i data-lucide="search" class="search-icon"></i>
+        <input type="search" id="mobile-search-input" placeholder="O que você está procurando?" aria-label="Buscar no catálogo">
+      </div>
+    </div>
+
+    <!-- Mobile Nav Links -->
+    <nav class="mobile-drawer-nav">
+      <div class="drawer-nav-section-title">Navegação</div>
+      <ul class="mobile-nav-list">
+        <li>
+          <a href="#hero" class="mobile-nav-link" data-close-drawer>
+            <i data-lucide="home"></i>
+            <span>Início</span>
+            <i data-lucide="chevron-right" class="nav-arrow"></i>
+          </a>
+        </li>
+        <li>
+          <a href="#visual-categories" class="mobile-nav-link" data-close-drawer>
+            <i data-lucide="grid"></i>
+            <span>Categorias</span>
+            <i data-lucide="chevron-right" class="nav-arrow"></i>
+          </a>
+        </li>
+        <li>
+          <a href="#featured-section" class="mobile-nav-link" data-close-drawer>
+            <i data-lucide="sparkles"></i>
+            <span>Novidades & Destaques</span>
+            <i data-lucide="chevron-right" class="nav-arrow"></i>
+          </a>
+        </li>
+        <li>
+          <a href="#products" class="mobile-nav-link" data-close-drawer>
+            <i data-lucide="layers"></i>
+            <span>Todas as Peças</span>
+            <i data-lucide="chevron-right" class="nav-arrow"></i>
+          </a>
+        </li>
+        <li>
+          <a href="#looks-section" class="mobile-nav-link" data-close-drawer>
+            <i data-lucide="check-circle-2"></i>
+            <span>Monte seu Look</span>
+            <i data-lucide="chevron-right" class="nav-arrow"></i>
+          </a>
+        </li>
+        <li>
+          <a href="#color-shop" class="mobile-nav-link" data-close-drawer>
+            <i data-lucide="palette"></i>
+            <span>Compre por Cor</span>
+            <i data-lucide="chevron-right" class="nav-arrow"></i>
+          </a>
+        </li>
+        <li>
+          <a href="#about-section" class="mobile-nav-link" data-close-drawer>
+            <i data-lucide="info"></i>
+            <span>Sobre a Fit Vibe</span>
+            <i data-lucide="chevron-right" class="nav-arrow"></i>
+          </a>
+        </li>
+        <li>
+          <a href="#instagram-section" class="mobile-nav-link" data-close-drawer>
+            <i data-lucide="camera"></i>
+            <span>Feed do Instagram</span>
+            <i data-lucide="chevron-right" class="nav-arrow"></i>
+          </a>
+        </li>
+      </ul>
+
+      <!-- Quick Category Shortcuts in Drawer -->
+      <div class="drawer-nav-section-title" style="margin-top:20px;">Categorias Rápidas</div>
+      <div class="mobile-drawer-categories">
+        <button type="button" class="drawer-cat-chip" onclick="window.StoreApp?.selectCategory('Conjuntos'); window.StoreApp?.closeMobileMenu();">Conjuntos</button>
+        <button type="button" class="drawer-cat-chip" onclick="window.StoreApp?.selectCategory('Leggings'); window.StoreApp?.closeMobileMenu();">Leggings</button>
+        <button type="button" class="drawer-cat-chip" onclick="window.StoreApp?.selectCategory('Tops & Croppeds'); window.StoreApp?.closeMobileMenu();">Tops</button>
+        <button type="button" class="drawer-cat-chip" onclick="window.StoreApp?.selectCategory('Shorts & Bermudas'); window.StoreApp?.closeMobileMenu();">Shorts</button>
+      </div>
+
+      <!-- Drawer Support Card -->
+      <div class="mobile-drawer-support">
+        <div class="drawer-support-header">
+          <i data-lucide="message-circle" class="support-icon"></i>
+          <div>
+            <strong>Atendimento Especializado</strong>
+            <p>Dúvidas sobre tamanho, cores ou envio?</p>
+          </div>
+        </div>
+        <a href="#" class="btn-drawer-wa" id="drawer-whatsapp-btn" target="_blank" rel="noopener noreferrer">
+          <span>Falar no WhatsApp</span>
+          <i data-lucide="arrow-right"></i>
+        </a>
+      </div>
+    </nav>
+  </aside>
 
   <!-- Hero Section -->
-  <section class="hero" id="hero">
+  <section class="hero" id="hero" aria-label="Apresentação da coleção principal">
     <div class="hero-bg" id="hero-bg" style="background-image: url('assets/images/hero_fitness.jpg');"></div>
     <div class="hero-overlay"></div>
-    <div class="hero-content">
-      <div class="hero-text">
-        <div class="hero-badge" id="hero-badge">
-          <span>⚡</span>
-          <span id="hero-badge-text">Alta Performance</span>
+    
+    <div class="hero-content container">
+      <div class="hero-text-block">
+        
+        <div class="hero-badge-pill" id="hero-badge">
+          <span class="badge-dot" aria-hidden="true"></span>
+          <span id="hero-badge-text">Coleção Activewear 2026</span>
         </div>
+
         <h1 id="hero-title">Treine com Estilo, <em>Supere Limites</em></h1>
-        <p id="hero-subtitle">Activewear premium com modelagem anatômica, alta compressão e zero transparência para o seu melhor treino.</p>
+        
+        <p id="hero-subtitle">Activewear de alta compressão com modelagem anatômica e tecnologia zero transparência para o seu treino de alta performance.</p>
+
         <div class="hero-actions">
-          <a href="#products" class="hero-cta" id="hero-cta">
-            ⚡ Ver Coleção Fitness
+          <a href="#products" class="btn-hero-primary" id="hero-cta">
+            <span>Ver Coleção Completa</span>
+            <i data-lucide="arrow-right" class="btn-icon"></i>
           </a>
-          <a href="#" class="hero-cta-secondary" id="hero-whatsapp-btn" target="_blank" rel="noopener">
-            💬 Falar no WhatsApp
+          <a href="#" class="btn-hero-secondary" id="hero-whatsapp-btn" target="_blank" rel="noopener noreferrer">
+            <i data-lucide="message-circle" class="btn-icon"></i>
+            <span>Atendimento WhatsApp</span>
           </a>
         </div>
+
+        <!-- Hero Highlights Row -->
+        <div class="hero-mini-features">
+          <div class="hero-mini-feature">
+            <i data-lucide="shield-check"></i>
+            <span>Zero Transparência</span>
+          </div>
+          <div class="hero-mini-feature">
+            <i data-lucide="activity"></i>
+            <span>Alta Compressão</span>
+          </div>
+          <div class="hero-mini-feature">
+            <i data-lucide="wind"></i>
+            <span>Tecido Dry-Fit</span>
+          </div>
+        </div>
+
       </div>
-      <div class="hero-image-container" id="hero-image-container" style="display:none;">
-        <img src="" id="hero-image" alt="Destaque">
+    </div>
+
+    <!-- Scroll Down Indicator -->
+    <a href="#benefits-bar" class="hero-scroll-indicator" aria-label="Rolar para os benefícios">
+      <span class="scroll-text">Explorar</span>
+      <i data-lucide="chevron-down" class="scroll-icon"></i>
+    </a>
+  </section>
+
+  <!-- Premium Value Proposition Bar (Benefícios) -->
+  <section class="benefits-section" id="benefits-bar" aria-label="Benefícios e diferenciais da Fit Vibe">
+    <div class="container">
+      <div class="benefits-grid">
+        
+        <div class="benefit-card">
+          <div class="benefit-icon-wrapper">
+            <i data-lucide="shield-check"></i>
+          </div>
+          <div class="benefit-content">
+            <h3>Zero Transparência</h3>
+            <p>Gramatura blackout testada e aprovada para agachamentos seguros.</p>
+          </div>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon-wrapper">
+            <i data-lucide="activity"></i>
+          </div>
+          <div class="benefit-content">
+            <h3>Alta Compressão</h3>
+            <p>Cós duplo anatômico que modela a silhueta e não enrola no treino.</p>
+          </div>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon-wrapper">
+            <i data-lucide="wind"></i>
+          </div>
+          <div class="benefit-content">
+            <h3>Conforto Dry-Fit</h3>
+            <p>Fibras respiráveis com toque macio e evaporação imediata do suor.</p>
+          </div>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon-wrapper">
+            <i data-lucide="refresh-cw"></i>
+          </div>
+          <div class="benefit-content">
+            <h3>Primeira Troca Grátis</h3>
+            <p>7 dias para troca ou devolução sem burocracia nem custos extras.</p>
+          </div>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon-wrapper">
+            <i data-lucide="lock"></i>
+          </div>
+          <div class="benefit-content">
+            <h3>Compra 100% Segura</h3>
+            <p>Ambiente protegido de ponta a ponta com confirmação instantânea.</p>
+          </div>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon-wrapper">
+            <i data-lucide="credit-card"></i>
+          </div>
+          <div class="benefit-content">
+            <h3>Até 3x Sem Juros</h3>
+            <p>Parcele no cartão de crédito ou aproveite condição especial no Pix.</p>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
 
+  <!-- Visual Category Navigation -->
+  <section class="visual-categories-section container" id="visual-categories" aria-label="Navegação visual por categoria">
+    <div class="section-header">
+      <span class="section-label">Categorias</span>
+      <h2>Encontre Seu Estilo de Treino</h2>
+      <p>Peças pensadas para performance máxima, durabilidade e elegância esportiva</p>
+    </div>
 
-  <!-- Categories Filter -->
-  <section class="categories-section container" id="categories">
-    <div class="categories-filter" id="categories-filter">
-      <!-- Populated by JS -->
+    <div class="visual-categories-grid">
+      
+      <!-- Card: Conjuntos -->
+      <div class="visual-category-card" onclick="window.StoreApp?.selectCategory('Conjuntos')">
+        <div class="cat-card-media">
+          <img src="assets/images/conjunto_fitness.jpg" alt="Conjuntos Fitness Fit Vibe" loading="lazy">
+          <div class="cat-card-overlay"></div>
+        </div>
+        <div class="cat-card-info">
+          <span class="cat-card-badge">Coleção Completa</span>
+          <h3 class="cat-card-title">Conjuntos</h3>
+          <p class="cat-card-desc">Top + Short ou Top + Legging em harmonia perfeita</p>
+          <span class="cat-card-cta">
+            <span>Ver Peças</span>
+            <i data-lucide="arrow-right"></i>
+          </span>
+        </div>
+      </div>
+
+      <!-- Card: Leggings -->
+      <div class="visual-category-card" onclick="window.StoreApp?.selectCategory('Leggings')">
+        <div class="cat-card-media">
+          <img src="assets/images/legging_fitness.jpg" alt="Leggings sem costura Fit Vibe" loading="lazy">
+          <div class="cat-card-overlay"></div>
+        </div>
+        <div class="cat-card-info">
+          <span class="cat-card-badge">Zero Transparência</span>
+          <h3 class="cat-card-title">Leggings</h3>
+          <p class="cat-card-desc">Cós anatômico duplo e compressão modeladora</p>
+          <span class="cat-card-cta">
+            <span>Ver Peças</span>
+            <i data-lucide="arrow-right"></i>
+          </span>
+        </div>
+      </div>
+
+      <!-- Card: Tops & Croppeds -->
+      <div class="visual-category-card" onclick="window.StoreApp?.selectCategory('Tops & Croppeds')">
+        <div class="cat-card-media">
+          <img src="assets/images/top_fitness.jpg" alt="Tops de alta sustentação Fit Vibe" loading="lazy">
+          <div class="cat-card-overlay"></div>
+        </div>
+        <div class="cat-card-info">
+          <span class="cat-card-badge">Alta Sustentação</span>
+          <h3 class="cat-card-title">Tops & Croppeds</h3>
+          <p class="cat-card-desc">Alças cruzadas com suporte firme para qualquer impacto</p>
+          <span class="cat-card-cta">
+            <span>Ver Peças</span>
+            <i data-lucide="arrow-right"></i>
+          </span>
+        </div>
+      </div>
+
+      <!-- Card: Shorts & Bermudas -->
+      <div class="visual-category-card" onclick="window.StoreApp?.selectCategory('Shorts & Bermudas')">
+        <div class="cat-card-media">
+          <img src="assets/images/short_fitness.jpg" alt="Shorts ciclista com bolso lateral Fit Vibe" loading="lazy">
+          <div class="cat-card-overlay"></div>
+        </div>
+        <div class="cat-card-info">
+          <span class="cat-card-badge">Com Bolso Lateral</span>
+          <h3 class="cat-card-title">Shorts & Bermudas</h3>
+          <p class="cat-card-desc">Comprimento seguro que não sobe ao correr ou agachar</p>
+          <span class="cat-card-cta">
+            <span>Ver Peças</span>
+            <i data-lucide="arrow-right"></i>
+          </span>
+        </div>
+      </div>
+
     </div>
   </section>
 
-  <!-- Featured / Nova Coleção Section -->
-  <section class="featured-section container hidden" id="featured-section">
+  <!-- Featured / Nova Coleção Showcase -->
+  <section class="featured-section container" id="featured-section" aria-label="Novidades e destaques">
     <div class="featured-header">
       <div class="featured-header-text">
-        <span class="featured-badge-highlight">⚡ Destaques da Semana</span>
+        <span class="featured-badge-highlight">
+          <i data-lucide="sparkles" class="icon-inline"></i> Lançamentos & Destaques
+        </span>
         <h2 id="featured-title">Nova Coleção</h2>
-        <p id="featured-subtitle">Peças exclusivas com modelagem anatômica e zero transparência</p>
+        <p id="featured-subtitle">Peças exclusivas com tecnologia seamless e alta compressão anatômica</p>
+      </div>
+      <div class="featured-header-actions">
+        <a href="#products" class="btn-link-viewall" onclick="window.StoreApp?.selectCategory('all')">
+          <span>Ver todas as novidades</span>
+          <i data-lucide="arrow-right"></i>
+        </a>
       </div>
     </div>
     <div class="featured-grid products-grid" id="featured-grid">
-      <!-- Populated by JS -->
+      <!-- Populated dynamically by store.js -->
     </div>
   </section>
 
-  <!-- Products Section -->
-  <section class="products-section container" id="products">
+  <!-- Main Vitrine Section -->
+  <section class="products-section container" id="products" aria-label="Catálogo de roupas fitness">
+    
     <div class="section-header">
-      <span class="section-label">Coleção Fitness</span>
-      <h2>Nossas Peças</h2>
-      <p>Alta compressão, respirabilidade máxima e zero transparência</p>
+      <span class="section-label">Coleção Fit Vibe</span>
+      <h2 id="products-section-title">Todas as Peças</h2>
+      <p id="products-section-subtitle">Alta compressão, modelagem anatômica e tecidos tecnológicos</p>
     </div>
-    <div class="products-grid" id="products-grid">
-      <!-- Populated by JS -->
+
+    <!-- Filter Control Bar -->
+    <div class="catalog-controls">
+      
+      <!-- Categories Filter Tabs -->
+      <div class="categories-filter" id="categories-filter" role="tablist" aria-label="Filtrar por categoria">
+        <!-- Populated by store.js -->
+      </div>
+
+      <!-- Active Filters Display -->
+      <div class="active-filter-chips hidden" id="active-filter-chips">
+        <span class="filter-chip-item" id="filter-chip-current">
+          <span id="filter-chip-label">Filtro</span>
+          <button type="button" class="btn-remove-chip" id="btn-clear-active-filter" aria-label="Remover filtro">
+            <i data-lucide="x"></i>
+          </button>
+        </span>
+      </div>
+
     </div>
-    <div class="empty-state hidden" id="empty-products">
-      <div class="empty-state-icon">⚡</div>
-      <h3>Nenhum produto encontrado</h3>
-      <p>Novidades da coleção fitness chegando em breve!</p>
+
+    <!-- Products Grid -->
+    <div class="products-grid" id="products-grid" aria-live="polite">
+      <!-- Populated by store.js -->
+    </div>
+
+    <!-- Professional Empty State -->
+    <div class="empty-state hidden" id="empty-products" role="status">
+      <div class="empty-state-icon">
+        <i data-lucide="package-open"></i>
+      </div>
+      <h3 id="empty-state-title">Nenhum produto encontrado nesta seleção</h3>
+      <p id="empty-state-desc">Nossa coleção é atualizada frequentemente. Experimente navegar por todas as peças disponíveis!</p>
+      <button type="button" class="btn-reset-filter" id="btn-reset-filter" onclick="window.StoreApp?.selectCategory('all')">
+        <i data-lucide="layers"></i>
+        <span>Ver Todas as Peças</span>
+      </button>
+    </div>
+
+  </section>
+
+  <!-- Shop By Color ("Compra por Cor") -->
+  <section class="color-shop-section container" id="color-shop" aria-label="Compre roupas fitness por cor">
+    <div class="color-shop-card">
+      <div class="color-shop-header">
+        <span class="section-label">Paleta Ativa</span>
+        <h2>Compre por Cor</h2>
+        <p>Selecione sua cor favorita para filtrar as peças disponíveis no catálogo</p>
+      </div>
+      
+      <div class="color-shop-palette" id="color-shop-palette">
+        <!-- Buttons rendered in HTML and enhanced by JS -->
+        <button type="button" class="color-shop-btn" data-color="Preto" onclick="window.StoreApp?.filterByColor('Preto')">
+          <span class="color-swatch-circle" style="background:#1E1E1E;"></span>
+          <span class="color-btn-label">Preto Ônix</span>
+        </button>
+        <button type="button" class="color-shop-btn" data-color="Grafite" onclick="window.StoreApp?.filterByColor('Grafite')">
+          <span class="color-swatch-circle" style="background:#4A4A4A;"></span>
+          <span class="color-btn-label">Grafite Mescla</span>
+        </button>
+        <button type="button" class="color-shop-btn" data-color="Verde" onclick="window.StoreApp?.filterByColor('Verde')">
+          <span class="color-swatch-circle" style="background:#3A4D39;"></span>
+          <span class="color-btn-label">Verde Militar</span>
+        </button>
+        <button type="button" class="color-shop-btn" data-color="Azul" onclick="window.StoreApp?.filterByColor('Azul')">
+          <span class="color-swatch-circle" style="background:#1B263B;"></span>
+          <span class="color-btn-label">Azul Marinho</span>
+        </button>
+        <button type="button" class="color-shop-btn" data-color="Vinho" onclick="window.StoreApp?.filterByColor('Vinho')">
+          <span class="color-swatch-circle" style="background:#5A1827;"></span>
+          <span class="color-btn-label">Vinho Borgonha</span>
+        </button>
+        <button type="button" class="color-shop-btn" data-color="Terracota" onclick="window.StoreApp?.filterByColor('Terracota')">
+          <span class="color-swatch-circle" style="background:#A0522D;"></span>
+          <span class="color-btn-label">Terracota</span>
+        </button>
+      </div>
+
+      <div class="color-shop-clear-wrap hidden" id="color-shop-clear-wrap">
+        <button type="button" class="btn-clear-color" id="btn-clear-color-filter" onclick="window.StoreApp?.clearColorFilter()">
+          <i data-lucide="x"></i>
+          <span>Limpar filtro de cor</span>
+        </button>
+      </div>
     </div>
   </section>
 
-  <!-- About Us Section -->
-  <section class="about-section container hidden" id="about-section">
+  <!-- Complete Looks ("Monte seu Look") -->
+  <section class="looks-section container" id="looks-section" aria-label="Monte seu look fitness">
+    <div class="section-header">
+      <span class="section-label">Combinações Perfeitas</span>
+      <h2>Monte seu Look</h2>
+      <p>Conjuntos coordenados para potencializar seu desempenho e confiança nos treinos</p>
+    </div>
+
+    <div class="looks-grid" id="looks-grid">
+      
+      <!-- Look 1: Alta Performance Sculpt -->
+      <article class="look-card">
+        <div class="look-card-images">
+          <div class="look-image-item">
+            <img src="assets/images/top_fitness.jpg" alt="Top Fitness Alta Sustentação" loading="lazy">
+            <span class="look-item-tag">Top Sustentação</span>
+          </div>
+          <div class="look-image-plus"><i data-lucide="plus"></i></div>
+          <div class="look-image-item">
+            <img src="assets/images/legging_fitness.jpg" alt="Legging Sculpt Sem Costura" loading="lazy">
+            <span class="look-item-tag">Legging Sculpt</span>
+          </div>
+        </div>
+        <div class="look-card-content">
+          <span class="look-badge">Look Mais Desejado</span>
+          <h3 class="look-title">Look Sculpt Power</h3>
+          <p class="look-desc">Top cruzado de alta sustentação combinado com a Legging Sculpt de cós alto duplo blackout.</p>
+          <div class="look-price-row">
+            <div class="look-price-wrap">
+              <span class="look-price-label">Look Completo (2 peças)</span>
+              <span class="look-price-value">R$ 219,80</span>
+              <span class="look-installments">em até 3x de R$ 73,26 sem juros</span>
+            </div>
+            <button type="button" class="btn-buy-look" onclick="window.StoreApp?.addLookToCart('look_sculpt')">
+              <i data-lucide="shopping-bag"></i>
+              <span>Adicionar Look</span>
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Look 2: Biker Treino Intenso -->
+      <article class="look-card">
+        <div class="look-card-images">
+          <div class="look-image-item">
+            <img src="assets/images/top_fitness.jpg" alt="Top Fitness Alças Cruzadas" loading="lazy">
+            <span class="look-item-tag">Top Sustentação</span>
+          </div>
+          <div class="look-image-plus"><i data-lucide="plus"></i></div>
+          <div class="look-image-item">
+            <img src="assets/images/short_fitness.jpg" alt="Short Biker com Bolso" loading="lazy">
+            <span class="look-item-tag">Short Biker</span>
+          </div>
+        </div>
+        <div class="look-card-content">
+          <span class="look-badge">Perfeito para Corrida</span>
+          <h3 class="look-title">Look Biker Active</h3>
+          <p class="look-desc">Top de alto impacto com Bermuda Ciclista com bolso lateral seguro para celular e documentos.</p>
+          <div class="look-price-row">
+            <div class="look-price-wrap">
+              <span class="look-price-label">Look Completo (2 peças)</span>
+              <span class="look-price-value">R$ 179,80</span>
+              <span class="look-installments">em até 3x de R$ 59,93 sem juros</span>
+            </div>
+            <button type="button" class="btn-buy-look" onclick="window.StoreApp?.addLookToCart('look_biker')">
+              <i data-lucide="shopping-bag"></i>
+              <span>Adicionar Look</span>
+            </button>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section class="about-section container" id="about-section" aria-label="Sobre a marca Fit Vibe">
     <div class="about-card">
       <div class="about-header">
-        <span class="about-tagline" id="about-tagline">Tecnologia & Conforto</span>
+        <span class="about-tagline" id="about-tagline">Tecnologia, Conforto & Performance</span>
         <h2 id="about-title">Feito para o Seu Melhor Movimento</h2>
-        <p id="about-text">Peças desenvolvidas para oferecer sustentação, modelagem anatômica e liberdade absoluta em cada treino.</p>
+        <p id="about-text">A Fit Vibe desenvolve roupas esportivas com tecidos nobres e tecnologia têxtil de ponta. Peças que valorizam a silhueta, oferecem sustentação máxima e acompanham cada movimento do seu dia com total segurança.</p>
       </div>
+
       <div class="about-features" id="about-features">
-        <!-- Populated by JS -->
+        <div class="about-feature">
+          <div class="about-feature-icon-wrap">
+            <i data-lucide="shield-check"></i>
+          </div>
+          <h4>Zero Transparência</h4>
+          <p>Gramatura blackout testada e aprovada para agachamentos sem medo.</p>
+        </div>
+        <div class="about-feature">
+          <div class="about-feature-icon-wrap">
+            <i data-lucide="wind"></i>
+          </div>
+          <h4>Tecnologia Dry-Fit</h4>
+          <p>Respirabilidade máxima que evapora o suor e mantém o corpo seco.</p>
+        </div>
+        <div class="about-feature">
+          <div class="about-feature-icon-wrap">
+            <i data-lucide="activity"></i>
+          </div>
+          <h4>Alta Compressão</h4>
+          <p>Cós duplo anatômico que modela a cintura sem enrolar no treino.</p>
+        </div>
+        <div class="about-feature">
+          <div class="about-feature-icon-wrap">
+            <i data-lucide="refresh-cw"></i>
+          </div>
+          <h4>Troca Descomplicada</h4>
+          <p>Primeira troca 100% grátis e suporte humanizado direto no WhatsApp.</p>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Instagram Feed Section (Meta Graph API) -->
-  <section class="instagram-section container hidden" id="instagram-section">
+  <!-- Instagram Feed Editorial Showcase -->
+  <section class="instagram-section container" id="instagram-section" aria-label="Instagram da Fit Vibe">
     <div class="instagram-header">
       <div class="instagram-header-text">
-        <span class="instagram-badge">📸 Feed Oficial</span>
-        <h2 id="instagram-title">Siga no Instagram</h2>
-        <p id="instagram-subtitle">Acompanhe novidades, treinos e bastidores da @fitvibe</p>
+        <span class="instagram-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+          </svg>
+          <span>Feed Oficial</span>
+        </span>
+        <h2 id="instagram-title">Siga @fitvibe.activewear</h2>
+        <p id="instagram-subtitle">Confira nossos treinos, novidades diárias e bastidores exclusivos</p>
       </div>
       <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="btn-instagram-profile" id="btn-instagram-profile" aria-label="Abrir perfil no Instagram">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
         </svg>
-        <span id="instagram-btn-text">Ver no Instagram</span>
+        <span id="instagram-btn-text">Seguir no Instagram</span>
       </a>
     </div>
+    
     <div class="instagram-grid" id="instagram-grid">
-      <!-- Loading skeletons / Populated by JS -->
+      <!-- Populated by JS -->
     </div>
-    <div class="instagram-fallback hidden" id="instagram-fallback">
-      <!-- Fallback when unconfigured or offline -->
-    </div>
+    <div class="instagram-fallback hidden" id="instagram-fallback"></div>
   </section>
 
-  <!-- Mobile Floating Cart Bar -->
-  <div class="mobile-cart-bar hidden" id="mobile-cart-bar" aria-label="Finalizar pedido">
+  <!-- Mobile Floating Sticky Cart Bar -->
+  <div class="mobile-cart-bar hidden" id="mobile-cart-bar" aria-label="Barra de checkout rápido">
     <div class="mobile-cart-bar-inner">
-      <div class="mobile-cart-info" id="mobile-cart-info" role="button" tabindex="0" aria-label="Ver itens do carrinho">
+      <div class="mobile-cart-info" id="mobile-cart-info" role="button" tabindex="0" aria-label="Abrir itens do carrinho">
         <div class="mobile-cart-icon-wrap">
-          <span class="mobile-cart-icon">🛒</span>
+          <i data-lucide="shopping-bag"></i>
           <span class="mobile-cart-badge" id="mobile-cart-badge">0</span>
         </div>
         <div class="mobile-cart-text">
@@ -175,73 +730,111 @@
       </div>
       <button type="button" class="btn-mobile-checkout" id="btn-mobile-checkout" aria-label="Finalizar pedido">
         <span>Finalizar Pedido</span>
-        <span class="mobile-checkout-arrow">→</span>
+        <i data-lucide="arrow-right"></i>
       </button>
     </div>
   </div>
 
-  <!-- Cart Overlay -->
-  <div class="cart-overlay" id="cart-overlay"></div>
-
-  <!-- Cart Sidebar -->
-  <aside class="cart-sidebar" id="cart-sidebar">
+  <!-- Cart Sidebar & Backdrop Overlay -->
+  <div class="cart-overlay" id="cart-overlay" aria-hidden="true"></div>
+  
+  <aside class="cart-sidebar" id="cart-sidebar" aria-label="Carrinho de compras">
     <div class="cart-header">
-      <h3>🛒 Seu Carrinho</h3>
-      <button class="btn-close-cart" id="btn-close-cart" aria-label="Fechar carrinho">✕</button>
+      <div class="cart-header-title">
+        <i data-lucide="shopping-bag"></i>
+        <h3>Seu Carrinho</h3>
+      </div>
+      <button type="button" class="btn-close-cart" id="btn-close-cart" aria-label="Fechar carrinho">
+        <i data-lucide="x"></i>
+      </button>
     </div>
 
+    <!-- Free Shipping Progress -->
+    <div class="cart-shipping-progress" id="cart-shipping-progress">
+      <div class="shipping-progress-text" id="shipping-progress-text">
+        Faltam R$ 199,00 para <strong>FRETE GRÁTIS!</strong>
+      </div>
+      <div class="shipping-progress-bar">
+        <div class="shipping-progress-fill" id="shipping-progress-fill" style="width:0%;"></div>
+      </div>
+    </div>
+
+    <!-- Cart Items List -->
     <div class="cart-items" id="cart-items">
       <div class="cart-empty" id="cart-empty">
-        <div class="cart-empty-icon">⚡</div>
-        <p>Seu carrinho está vazio</p>
-        <p>Adicione suas peças fitness favoritas!</p>
+        <div class="cart-empty-icon">
+          <i data-lucide="shopping-bag"></i>
+        </div>
+        <p class="empty-title">Seu carrinho está vazio</p>
+        <p class="empty-sub">Explore nossas novidades e adicione suas peças fitness favoritas!</p>
+        <button type="button" class="btn-empty-shop" onclick="window.StoreApp?.openCart(false); document.getElementById('products')?.scrollIntoView({behavior:'smooth'});">
+          Ver Coleção
+        </button>
       </div>
     </div>
 
+    <!-- Cart Footer with Totals -->
     <div class="cart-footer" id="cart-footer" style="display:none;">
-      <div class="cart-total">
-        <span class="cart-total-label">Subtotal</span>
-        <span class="cart-total-value" id="cart-total">R$ 0,00</span>
+      <div class="cart-breakdown">
+        <div class="cart-row">
+          <span>Subtotal</span>
+          <span class="cart-row-val" id="cart-total">R$ 0,00</span>
+        </div>
+        <div class="cart-shipping-notice">
+          <i data-lucide="truck"></i>
+          <span>Frete calculado na etapa seguinte</span>
+        </div>
       </div>
-      <button class="btn-checkout" id="btn-checkout">
-        📋 Finalizar Pedido
+      <button type="button" class="btn-checkout" id="btn-checkout">
+        <span>Finalizar Pedido</span>
+        <i data-lucide="arrow-right"></i>
       </button>
+      <div class="cart-guarantees">
+        <span><i data-lucide="lock"></i> Checkout Seguro</span>
+        <span><i data-lucide="refresh-cw"></i> Primeira Troca Grátis</span>
+      </div>
     </div>
   </aside>
 
-  <!-- Checkout Modal -->
-  <div class="modal-overlay" id="checkout-modal">
+  <!-- Checkout Modal (WhatsApp Flow) -->
+  <div class="modal-overlay" id="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="modal-checkout-title">
     <div class="modal modal-checkout">
       <div class="modal-header">
-        <h3>📋 Finalizar Pedido</h3>
-        <button class="btn-close-modal" id="btn-close-checkout" aria-label="Fechar">✕</button>
+        <div class="checkout-modal-title-wrap">
+          <i data-lucide="clipboard-check" class="icon-inline"></i>
+          <h3 id="modal-checkout-title">Finalizar Pedido</h3>
+        </div>
+        <button type="button" class="btn-close-modal" id="btn-close-checkout" aria-label="Fechar janela">
+          <i data-lucide="x"></i>
+        </button>
       </div>
-      <div class="modal-body">
 
-        <!-- Delivery Type Selection -->
+      <div class="modal-body">
+        
+        <!-- Delivery Type Selector -->
         <div class="delivery-tabs-container">
-          <label style="font-size:0.88rem; font-weight:700; margin-bottom:8px; display:block; color: var(--text-secondary);">Como deseja receber seu pedido?</label>
+          <label class="form-section-label">Como deseja receber seu pedido?</label>
           <div class="delivery-tabs">
             <button type="button" class="delivery-tab-btn active" id="tab-delivery" data-type="delivery">
-              <span class="tab-icon">🛵</span>
+              <i data-lucide="truck" class="tab-icon-svg"></i>
               <div>
                 <strong>Entrega</strong>
-                <small id="tab-delivery-info">A domicílio</small>
+                <small id="tab-delivery-info">No seu endereço</small>
               </div>
             </button>
             <button type="button" class="delivery-tab-btn" id="tab-pickup" data-type="pickup">
-              <span class="tab-icon">🏬</span>
+              <i data-lucide="store" class="tab-icon-svg"></i>
               <div>
                 <strong>Retirada</strong>
-                <small id="tab-pickup-info">Na loja</small>
+                <small id="tab-pickup-info">Na loja / ponto</small>
               </div>
             </button>
           </div>
         </div>
 
-        <!-- Order Summary -->
+        <!-- Order Summary Breakdown -->
         <div class="checkout-summary" id="checkout-summary">
-          <h4>Resumo do Pedido</h4>
+          <h4>Resumo das Peças</h4>
           <div id="checkout-items"></div>
           <div class="checkout-breakdown">
             <div class="checkout-row">
@@ -253,127 +846,136 @@
               <span id="checkout-delivery-fee">R$ 0,00</span>
             </div>
             <div class="checkout-total-row">
-              <span>Total a Pagar:</span>
+              <span>Total do Pedido:</span>
               <span id="checkout-total">R$ 0,00</span>
             </div>
           </div>
         </div>
 
-        <!-- Customer Form -->
-        <form id="checkout-form">
+        <!-- Customer Details Form -->
+        <form id="checkout-form" novalidate>
           <div class="form-group">
-            <label for="customer-name">Seu Nome Completo <span class="required">*</span></label>
-            <input type="text" id="customer-name" class="form-control" placeholder="Ex: Maria Silva" required>
+            <label for="customer-name">Nome Completo <span class="required">*</span></label>
+            <input type="text" id="customer-name" class="form-control" placeholder="Ex: Ana Souza" required autocomplete="name">
           </div>
 
           <div class="form-group">
             <label for="customer-phone">Telefone / WhatsApp <span class="required">*</span></label>
-            <input type="tel" id="customer-phone" class="form-control" placeholder="(11) 99999-9999" required>
+            <input type="tel" id="customer-phone" class="form-control" placeholder="(11) 99999-9999" required autocomplete="tel">
           </div>
 
-          <!-- Delivery Address Field -->
+          <!-- Delivery Address -->
           <div class="form-group" id="group-delivery-address">
             <label for="customer-address">Endereço Completo de Entrega <span class="required">*</span></label>
-            <input type="text" id="customer-address" class="form-control" placeholder="Rua, número, bairro, complemento" required>
+            <input type="text" id="customer-address" class="form-control" placeholder="Rua, número, complemento, bairro e cidade" required autocomplete="street-address">
           </div>
 
-          <!-- Pickup Info Box -->
+          <!-- Pickup Info -->
           <div class="pickup-info-box hidden" id="pickup-info-box">
             <div class="pickup-info-header">
-              <span>📍</span>
+              <i data-lucide="map-pin"></i>
               <strong>Local para Retirada:</strong>
             </div>
-            <p id="pickup-store-address">Consulte o endereço pelo WhatsApp</p>
-            <small id="pickup-store-time">⏱️ Pronto em até 1 hora após confirmação</small>
+            <p id="pickup-store-address">Consulte o ponto de retirada pelo WhatsApp</p>
+            <small id="pickup-store-time">Pronto em até 2 horas após confirmação</small>
           </div>
 
           <div class="form-group">
             <label for="customer-obs">Observações / Recado Especial</label>
-            <textarea id="customer-obs" class="form-control" rows="2"
-              placeholder="Alguma preferência? Dúvida sobre tamanho, cor, troca..."></textarea>
+            <textarea id="customer-obs" class="form-control" rows="2" placeholder="Dúvidas sobre tamanho, ponto de referência..."></textarea>
           </div>
 
           <!-- Payment Options -->
           <div class="form-group">
-            <label>Forma de Pagamento <span class="required">*</span></label>
+            <label class="form-section-label">Forma de Pagamento <span class="required">*</span></label>
             <div class="payment-options" id="payment-options">
               <!-- Populated by JS -->
             </div>
           </div>
 
-          <!-- Pix Box -->
+          <!-- Pix Payment Details Box -->
           <div class="pix-checkout-box hidden" id="pix-checkout-box">
             <div class="pix-box-header">
-              <span class="pix-badge">📱 Chave Pix para Pagamento</span>
+              <span class="pix-badge">Chave Pix da Loja</span>
               <span class="pix-type" id="pix-key-type">Celular</span>
             </div>
             <div class="pix-key-wrapper">
-              <input type="text" readonly id="pix-key-val" value="" class="pix-key-input">
+              <input type="text" readonly id="pix-key-val" value="" class="pix-key-input" aria-label="Chave Pix para copiar">
               <button type="button" class="btn-copy-pix" id="btn-copy-pix">Copiar Chave</button>
             </div>
             <div class="pix-receiver-row">
-              <span>Titular: <strong id="pix-receiver-name"></strong></span>
+              <span>Titular: <strong id="pix-receiver-name">Fit Vibe Activewear</strong></span>
             </div>
-            <p class="pix-instructions-text" id="pix-instructions-text">Faça o Pix e envie o comprovante pelo WhatsApp para confirmar seu pedido.</p>
+            <p class="pix-instructions-text" id="pix-instructions-text">Faça o Pix e envie o comprovante pelo WhatsApp para envio imediato!</p>
           </div>
 
           <!-- Cash Change Field -->
           <div class="cash-change-box hidden" id="cash-change-box">
             <div class="form-group" style="margin-bottom:0">
               <label for="customer-troco">Precisa de troco para quanto? (opcional)</label>
-              <input type="text" id="customer-troco" class="form-control" placeholder="Ex: Para R$ 100,00">
+              <input type="text" id="customer-troco" class="form-control" placeholder="Ex: Para R$ 200,00">
             </div>
           </div>
 
-          <button type="submit" class="btn-whatsapp" id="btn-send-whatsapp">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-            </svg>
-            Enviar Pedido pelo WhatsApp
+          <button type="submit" class="btn-whatsapp-submit" id="btn-send-whatsapp">
+            <i data-lucide="message-circle"></i>
+            <span>Enviar Pedido pelo WhatsApp</span>
           </button>
         </form>
+
       </div>
     </div>
   </div>
 
-  <!-- Product Details Modal -->
-  <div class="modal-overlay" id="product-details-modal">
-    <div class="modal modal-product-details" role="dialog" aria-labelledby="modal-product-name">
+  <!-- Product Details & Variants Modal -->
+  <div class="modal-overlay" id="product-details-modal" role="dialog" aria-modal="true" aria-labelledby="modal-product-name">
+    <div class="modal modal-product-details">
       <div class="modal-header">
         <div class="product-modal-title-area">
-          <div class="product-modal-category" id="modal-product-category">Categoria</div>
-          <h3 id="modal-product-name" class="product-modal-name" style="margin:0; font-size:1.35rem;">Nome do Produto</h3>
+          <span class="product-modal-category" id="modal-product-category">Categoria</span>
+          <h3 id="modal-product-name" class="product-modal-name">Nome do Produto</h3>
         </div>
-        <button class="btn-close-modal" id="btn-close-product-modal" aria-label="Fechar">✕</button>
+        <button type="button" class="btn-close-modal" id="btn-close-product-modal" aria-label="Fechar detalhes">
+          <i data-lucide="x"></i>
+        </button>
       </div>
+
       <div class="product-modal-body">
-        <!-- Image -->
+        
+        <!-- Large Image Area -->
         <div class="product-modal-image-wrapper">
-          <span class="product-badge badge-custom" id="modal-product-badge" style="display:none; top:16px; left:16px; position:absolute; z-index:2;"></span>
-          <div class="product-modal-image-placeholder" id="modal-product-placeholder">⚡</div>
-          <img id="modal-product-image" src="" alt="" loading="lazy" style="display:none;">
+          <span class="product-badge badge-custom" id="modal-product-badge" style="display:none;"></span>
+          <div class="product-modal-image-placeholder" id="modal-product-placeholder">
+            <i data-lucide="sparkles"></i>
+          </div>
+          <img id="modal-product-image" src="" alt="Foto do produto selecionado" loading="lazy" style="display:none;">
         </div>
 
-        <!-- Details -->
+        <!-- Details & Selector Panel -->
         <div class="product-modal-details" id="modal-product-details-panel">
+          
           <div class="product-modal-price-row">
             <span class="product-modal-price" id="modal-product-price">R$ 0,00</span>
             <span class="product-modal-original-price" id="modal-product-original-price" style="display:none;"></span>
             <span class="product-modal-discount-badge" id="modal-product-discount" style="display:none;"></span>
           </div>
 
-          <!-- Stock indicator -->
-          <div class="stock-indicator ok" id="modal-stock-indicator">
-            <span class="stock-indicator-dot"></span>
-            <span id="modal-stock-text">Em estoque</span>
+          <div class="product-modal-installments" id="modal-product-installments">
+            em até 3x sem juros no cartão
           </div>
 
-          <!-- Product description -->
+          <!-- Stock Indicator -->
+          <div class="stock-indicator ok" id="modal-stock-indicator">
+            <span class="stock-indicator-dot"></span>
+            <span id="modal-stock-text">Disponível em estoque</span>
+          </div>
+
+          <!-- Description -->
           <p class="product-modal-desc" id="modal-product-description"></p>
 
           <!-- Color Selector -->
           <div id="modal-color-section">
-            <div class="variant-label">Cor: <span id="modal-selected-color-name">—</span></div>
+            <div class="variant-label">Cor selecionada: <span id="modal-selected-color-name">—</span></div>
             <div class="color-selector" id="modal-color-selector">
               <!-- Populated by JS -->
             </div>
@@ -381,61 +983,157 @@
 
           <!-- Size Selector -->
           <div id="modal-size-section">
-            <div class="variant-label">Tamanho: <span id="modal-selected-size">—</span></div>
+            <div class="variant-label">Tamanho selecionado: <span id="modal-selected-size">—</span></div>
             <div class="size-selector" id="modal-size-selector">
               <!-- Populated by JS -->
             </div>
           </div>
 
-          <!-- Qty + Add to Cart -->
+          <!-- Quantity & Action -->
           <div class="product-modal-actions">
             <div class="product-modal-qty-box">
-              <button type="button" class="qty-btn" id="btn-modal-qty-minus" aria-label="Diminuir">−</button>
+              <button type="button" class="qty-btn" id="btn-modal-qty-minus" aria-label="Diminuir quantidade">−</button>
               <span class="qty-value" id="modal-product-qty">1</span>
-              <button type="button" class="qty-btn" id="btn-modal-qty-plus" aria-label="Aumentar">+</button>
+              <button type="button" class="qty-btn" id="btn-modal-qty-plus" aria-label="Aumentar quantidade">+</button>
             </div>
             <button type="button" class="btn-modal-add-cart" id="btn-modal-add-cart">
-              🛒 Adicionar ao Carrinho
+              <i data-lucide="shopping-bag"></i>
+              <span>Adicionar ao Carrinho</span>
             </button>
           </div>
+
+          <div class="modal-trust-tags">
+            <span><i data-lucide="shield-check"></i> Zero Transparência</span>
+            <span><i data-lucide="refresh-cw"></i> Primeira Troca Grátis</span>
+          </div>
+
         </div>
+
       </div>
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="site-footer">
-    <div class="footer-content">
-      <div class="footer-brand" id="footer-brand">⚡ Fit Vibe Activewear</div>
-      <p class="footer-text" id="footer-tagline">Roupas Fitness de Alta Performance</p>
-
-      <div class="footer-info-grid">
-        <div class="footer-info-item" id="footer-address-item">
-          <span>📍</span>
-          <span id="footer-address">Endereço da loja</span>
+  <!-- Professional Site Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-top container">
+      
+      <!-- Brand & Mission Column -->
+      <div class="footer-col footer-col-brand">
+        <div class="footer-brand" id="footer-brand">
+          <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <rect width="32" height="32" rx="6" fill="#10B981"/>
+            <path d="M8.5 7.5H23.5V10.5H12V14H21V17H12V24.5H8.5V7.5Z" fill="#0F172A"/>
+            <path d="M18.5 14L23.5 24.5H19.8L16.8 18.2H18.5V14Z" fill="#064E3B"/>
+          </svg>
+          <span>FIT VIBE ACTIVEWEAR</span>
         </div>
-        <div class="footer-info-item" id="footer-phone-item">
-          <span>📞</span>
-          <span id="footer-phone">(11) 99999-9999</span>
+        <p class="footer-tagline" id="footer-tagline">Roupas fitness femininas desenvolvidas com tecidos de alta densidade, modelagem anatômica e tecnologia zero transparência.</p>
+        <div class="footer-social-links">
+          <a href="#" class="social-link" id="footer-instagram" target="_blank" rel="noopener noreferrer" aria-label="Perfil no Instagram">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            <span>Instagram</span>
+          </a>
+          <a href="#" class="social-link" id="footer-whatsapp" target="_blank" rel="noopener noreferrer" aria-label="Atendimento no WhatsApp">
+            <i data-lucide="message-circle"></i>
+            <span>WhatsApp</span>
+          </a>
         </div>
       </div>
 
-      <div class="footer-links">
-        <a href="#products">Ver Coleção Fitness</a>
-        <a href="#" id="footer-whatsapp" target="_blank" rel="noopener noreferrer">Falar no WhatsApp</a>
-        <a href="#" id="footer-instagram" target="_blank" rel="noopener noreferrer" class="hidden">Instagram</a>
+      <!-- Quick Navigation Column -->
+      <div class="footer-col">
+        <h4 class="footer-col-title">Coleção</h4>
+        <ul class="footer-menu">
+          <li><a href="#products" onclick="window.StoreApp?.selectCategory('Conjuntos')">Conjuntos Seamless</a></li>
+          <li><a href="#products" onclick="window.StoreApp?.selectCategory('Leggings')">Leggings Cós Alto</a></li>
+          <li><a href="#products" onclick="window.StoreApp?.selectCategory('Tops & Croppeds')">Tops Sustentação</a></li>
+          <li><a href="#products" onclick="window.StoreApp?.selectCategory('Shorts & Bermudas')">Shorts com Bolso</a></li>
+          <li><a href="#looks-section">Looks Coordenados</a></li>
+          <li><a href="#featured-section">Novidades da Semana</a></li>
+        </ul>
       </div>
-      <div class="footer-bottom" id="footer-copyright">
-        © 2026 Fit Vibe Activewear. Todos os direitos reservados.
+
+      <!-- Support & Help Column -->
+      <div class="footer-col">
+        <h4 class="footer-col-title">Ajuda & Contato</h4>
+        <ul class="footer-menu">
+          <li>
+            <div class="footer-info-item">
+              <i data-lucide="phone"></i>
+              <span id="footer-phone">(11) 99999-9999</span>
+            </div>
+          </li>
+          <li>
+            <div class="footer-info-item">
+              <i data-lucide="map-pin"></i>
+              <span id="footer-address">São Paulo - SP</span>
+            </div>
+          </li>
+          <li>
+            <div class="footer-info-item">
+              <i data-lucide="clock"></i>
+              <span>Seg à Sex: 08h às 20h | Sáb: 08h às 18h</span>
+            </div>
+          </li>
+          <li><a href="admin.html" class="footer-admin-link"><i data-lucide="settings"></i> Painel Administrativo</a></li>
+        </ul>
+      </div>
+
+      <!-- Security & Payment Methods Column -->
+      <div class="footer-col">
+        <h4 class="footer-col-title">Formas de Pagamento</h4>
+        <div class="footer-payment-badges">
+          <span class="pay-badge" title="Pix (Aprovação Imediata)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="4" fill="#00BDAE"/><path d="M15.5 8.5L12 12L8.5 8.5L7 10L12 15L17 10L15.5 8.5Z" fill="white"/></svg>
+            <span>Pix</span>
+          </span>
+          <span class="pay-badge" title="Cartões de Crédito">
+            <i data-lucide="credit-card"></i>
+            <span>Cartão</span>
+          </span>
+          <span class="pay-badge" title="Dinheiro">
+            <i data-lucide="banknote"></i>
+            <span>Dinheiro</span>
+          </span>
+        </div>
+        
+        <h4 class="footer-col-title" style="margin-top:20px;">Segurança</h4>
+        <div class="footer-security-badges">
+          <div class="sec-badge">
+            <i data-lucide="shield-check"></i>
+            <span>SSL 256-Bit Criptografado</span>
+          </div>
+          <div class="sec-badge">
+            <i data-lucide="check-circle-2"></i>
+            <span>Compra 100% Protegida</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer Bottom Bar -->
+    <div class="footer-bottom">
+      <div class="footer-bottom-inner container">
+        <div id="footer-copyright">
+          © 2026 Fit Vibe Activewear. Todos os direitos reservados.
+        </div>
+        <div class="footer-bottom-links">
+          <span>Termos de Uso</span>
+          <span>•</span>
+          <span>Privacidade</span>
+          <span>•</span>
+          <span>Trocas e Devoluções</span>
+        </div>
       </div>
     </div>
   </footer>
 
-  <!-- Supabase SDK -->
+  <!-- Supabase SDK & App Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-client.js"></script>
   <script src="js/data.js"></script>
   <script src="js/store.js"></script>
-</body>
 
+</body>
 </html>

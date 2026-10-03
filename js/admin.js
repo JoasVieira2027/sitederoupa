@@ -1330,7 +1330,44 @@
 
     // Featured Collection settings
     const f = s.featuredCollection || {};
-    if ($('v-featured-active')) $('v-featured-active').checked = f.active !== false;
+    const fActive = f.active !== false && f.active !== 'false';
+    const featuredCheckbox = $('v-featured-active');
+    const featuredBadge = $('v-featured-badge');
+
+    if (featuredCheckbox) {
+      featuredCheckbox.checked = fActive;
+      if (featuredBadge) {
+        featuredBadge.textContent = fActive ? 'Ativa' : 'Desativada';
+        featuredBadge.className = `status-badge ${fActive ? 'active' : 'inactive'}`;
+      }
+
+      featuredCheckbox.onchange = async () => {
+        const isActive = featuredCheckbox.checked;
+        if (featuredBadge) {
+          featuredBadge.textContent = isActive ? 'Ativa' : 'Desativada';
+          featuredBadge.className = `status-badge ${isActive ? 'active' : 'inactive'}`;
+        }
+        try {
+          const curSettings = DataStore.getSettings();
+          const curFeatured = curSettings.featuredCollection || {};
+          await DataStore.updateSetting('featuredCollection', {
+            ...curFeatured,
+            active: isActive,
+            title: $('v-featured-title') ? $('v-featured-title').value.trim() : (curFeatured.title || 'Nova Coleção 2026'),
+            subtitle: $('v-featured-subtitle') ? $('v-featured-subtitle').value.trim() : (curFeatured.subtitle || '')
+          });
+          Utils.showToast(isActive ? 'Nova Coleção ativada!' : 'Nova Coleção desativada!', 'info');
+        } catch (err) {
+          console.error(err);
+          Utils.showToast('Erro ao atualizar Nova Coleção: ' + (err.message || ''), 'error');
+          featuredCheckbox.checked = !isActive;
+          if (featuredBadge) {
+            featuredBadge.textContent = !isActive ? 'Ativa' : 'Desativada';
+            featuredBadge.className = `status-badge ${!isActive ? 'active' : 'inactive'}`;
+          }
+        }
+      };
+    }
     if ($('v-featured-title')) $('v-featured-title').value = f.title || 'Nova Coleção 2026';
     if ($('v-featured-subtitle')) $('v-featured-subtitle').value = f.subtitle || '';
 

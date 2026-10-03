@@ -393,12 +393,15 @@
           </div>
 
           <div class="admin-card">
-            <div class="admin-card-header">
+            <div class="admin-card-header" style="display:flex;align-items:center;justify-content:space-between;">
               <h3>⭐ Nova Coleção / Destaques da Loja</h3>
-              <label class="toggle-switch">
-                <input type="checkbox" id="v-featured-active" checked>
-                <span class="toggle-slider"></span>
-              </label>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span id="v-featured-badge" class="status-badge active">Ativa</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="v-featured-active">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
             </div>
             <div class="admin-card-body" id="v-featured-body">
               <div class="admin-form-grid">
