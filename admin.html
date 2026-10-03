@@ -5,28 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="Painel Admin — Controle total de estoque de roupas fitness, produtos, pedidos e configurações">
   <title>Painel Admin | Fit Vibe Activewear</title>
+  
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Stylesheets -->
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230F172A'/><path d='M9 8H23V11H12.5V14.5H21V17.5H12.5V24H9V8Z' fill='%2310B981'/><path d='M19 14.5L24 24H20.2L17.5 18.5H19V14.5Z' fill='%2334D399'/></svg>">
 </head>
 <body>
-  <div id="toast-container" class="toast-container"></div>
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
   <!-- ===== LOGIN MODAL ===== -->
-  <div class="admin-login-overlay active" id="login-modal">
+  <div class="admin-login-overlay active" id="login-modal" role="dialog" aria-modal="true" aria-labelledby="admin-login-title">
     <div class="admin-login-card">
-      <span class="admin-login-logo" id="admin-login-logo">⚡</span>
-      <div class="admin-login-title" id="admin-login-title">Painel Admin</div>
-      <div class="admin-login-subtitle">Fit Vibe Activewear — Acesso do Administrador</div>
+      <div class="admin-login-logo">
+        <svg width="44" height="44" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="#10B981"/>
+          <path d="M8.5 7.5H23.5V10.5H12V14H21V17H12V24.5H8.5V7.5Z" fill="#0F172A"/>
+          <path d="M18.5 14L23.5 24.5H19.8L16.8 18.2H18.5V14Z" fill="#064E3B"/>
+        </svg>
+      </div>
+      <h2 class="admin-login-title" id="admin-login-title">Painel Administrativo</h2>
+      <p class="admin-login-subtitle">Fit Vibe Activewear — Acesso do Administrador</p>
+      
       <form id="login-form">
         <div class="form-group">
-          <label for="login-email">E-mail</label>
+          <label for="login-email">E-mail de Acesso</label>
           <input type="email" id="login-email" class="form-control" placeholder="admin@suacloja.com" autocomplete="email">
         </div>
         <div class="form-group">
-          <label for="login-password">Senha <span class="required">*</span></label>
-          <input type="password" id="login-password" class="form-control" placeholder="Senha do painel" required autocomplete="current-password">
+          <label for="login-password">Senha do Painel <span class="required">*</span></label>
+          <input type="password" id="login-password" class="form-control" placeholder="Digite sua senha" required autocomplete="current-password">
         </div>
-        <button type="submit" class="btn-login" id="btn-login-submit">Entrar no Painel</button>
+        <button type="submit" class="btn-login" id="btn-login-submit">
+          <span>Entrar no Painel</span>
+          <i data-lucide="arrow-right"></i>
+        </button>
       </form>
     </div>
   </div>
@@ -34,40 +55,87 @@
   <!-- ===== ADMIN LAYOUT ===== -->
   <div class="admin-layout">
 
-    <button class="admin-mobile-toggle" id="admin-mobile-toggle" aria-label="Menu">☰</button>
+    <button type="button" class="admin-mobile-toggle" id="admin-mobile-toggle" aria-label="Abrir menu lateral">
+      <i data-lucide="menu"></i>
+    </button>
 
     <!-- Sidebar -->
     <aside class="admin-sidebar" id="admin-sidebar">
       <div class="admin-sidebar-brand">
-        <span class="brand-icon" id="admin-brand-icon">⚡</span>
+        <div class="brand-icon">
+          <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <rect width="32" height="32" rx="7" fill="#10B981"/>
+            <path d="M8.5 7.5H23.5V10.5H12V14H21V17H12V24.5H8.5V7.5Z" fill="#0B0F19"/>
+            <path d="M18.5 14L23.5 24.5H19.8L16.8 18.2H18.5V14Z" fill="#064E3B"/>
+          </svg>
+        </div>
         <div>
-          <span class="brand-text" id="admin-brand-title">Fit Vibe</span>
+          <span class="brand-text" id="admin-brand-title">FIT VIBE</span>
           <span class="brand-sub">Activewear Admin</span>
         </div>
       </div>
 
-      <nav class="admin-nav">
-        <div class="admin-nav-item active" data-section="dashboard"><span class="nav-icon">📊</span> Dashboard</div>
-        <div class="admin-nav-item" data-section="products"><span class="nav-icon">⚡</span> Produtos</div>
-        <div class="admin-nav-item" data-section="stock"><span class="nav-icon">📦</span> Estoque</div>
-        <div class="admin-nav-item" data-section="categories"><span class="nav-icon">📂</span> Categorias</div>
-        <div class="admin-nav-item" data-section="orders"><span class="nav-icon">📋</span> Pedidos</div>
-        <div class="admin-nav-item" data-section="delivery"><span class="nav-icon">🚚</span> Entrega</div>
-        <div class="admin-nav-item" data-section="payments"><span class="nav-icon">💳</span> Pagamentos</div>
-        <div class="admin-nav-item" data-section="schedule"><span class="nav-icon">🕐</span> Horários</div>
-        <div class="admin-nav-item" data-section="visual"><span class="nav-icon">🎨</span> Visual & Textos</div>
-        <div class="admin-nav-item" data-section="sizes"><span class="nav-icon">📏</span> Tamanhos</div>
-        <div class="admin-nav-item" data-section="security"><span class="nav-icon">⚙️</span> Senha & Backup</div>
+      <nav class="admin-nav" aria-label="Navegação administrativa">
+        <div class="admin-nav-item active" data-section="dashboard">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Dashboard</span>
+        </div>
+        <div class="admin-nav-item" data-section="products">
+          <i data-lucide="layers"></i>
+          <span>Produtos</span>
+        </div>
+        <div class="admin-nav-item" data-section="stock">
+          <i data-lucide="boxes"></i>
+          <span>Estoque</span>
+        </div>
+        <div class="admin-nav-item" data-section="categories">
+          <i data-lucide="folder-tree"></i>
+          <span>Categorias</span>
+        </div>
+        <div class="admin-nav-item" data-section="orders">
+          <i data-lucide="shopping-cart"></i>
+          <span>Pedidos</span>
+        </div>
+        <div class="admin-nav-item" data-section="delivery">
+          <i data-lucide="truck"></i>
+          <span>Entrega</span>
+        </div>
+        <div class="admin-nav-item" data-section="payments">
+          <i data-lucide="credit-card"></i>
+          <span>Pagamentos</span>
+        </div>
+        <div class="admin-nav-item" data-section="schedule">
+          <i data-lucide="clock"></i>
+          <span>Horários</span>
+        </div>
+        <div class="admin-nav-item" data-section="visual">
+          <i data-lucide="palette"></i>
+          <span>Visual & Textos</span>
+        </div>
+        <div class="admin-nav-item" data-section="sizes">
+          <i data-lucide="ruler"></i>
+          <span>Tamanhos</span>
+        </div>
+        <div class="admin-nav-item" data-section="security">
+          <i data-lucide="shield-check"></i>
+          <span>Senha & Backup</span>
+        </div>
       </nav>
 
       <div class="admin-sidebar-footer">
-        <a href="index.html" target="_blank" class="btn-back-store">🌐 Ver Meu Site</a>
-        <button type="button" class="btn-logout" id="btn-logout">🚪 Sair</button>
+        <a href="index.html" target="_blank" class="btn-back-store">
+          <i data-lucide="external-link"></i>
+          <span>Ver Loja</span>
+        </a>
+        <button type="button" class="btn-logout" id="btn-logout">
+          <i data-lucide="log-out"></i>
+          <span>Sair</span>
+        </button>
       </div>
     </aside>
 
-    <!-- Main -->
-    <main class="admin-main" id="admin-main">
+    <!-- Main Content -->
+    <main class="admin-main" id="admin-main" role="main">
 
       <!-- ===== 1. DASHBOARD ===== -->
       <div class="admin-section active" id="section-dashboard">
@@ -77,7 +145,7 @@
             <p>Visão geral da loja em tempo real</p>
           </div>
           <div class="header-store-status-wrapper">
-            <span style="font-size:0.9rem;font-weight:700;">Status da Loja:</span>
+            <span style="font-size:0.86rem;font-weight:700;">Status da Loja:</span>
             <label class="toggle-switch">
               <input type="checkbox" id="dash-store-toggle" checked>
               <span class="toggle-slider"></span>
@@ -85,26 +153,37 @@
             <span id="dash-store-state-badge" class="status-badge active">ABERTA</span>
           </div>
         </div>
+
         <div class="admin-page-body">
           <div class="admin-stats" id="admin-stats"></div>
 
           <!-- Stock Alerts -->
           <div class="admin-card" id="dash-stock-alerts-card" style="display:none;">
             <div class="admin-card-header">
-              <h3>⚠️ Alertas de Estoque Baixo</h3>
+              <h3>
+                <i data-lucide="alert-triangle"></i>
+                <span>Alertas de Estoque Baixo</span>
+              </h3>
             </div>
             <div class="admin-card-body">
               <div class="stock-alerts-grid" id="dash-stock-alerts"></div>
             </div>
           </div>
 
+          <!-- Recent Orders -->
           <div class="admin-card">
             <div class="admin-card-header">
-              <h3>📋 Últimos Pedidos</h3>
-              <button class="btn btn-secondary btn-sm" id="btn-dash-view-all-orders">Ver Todos</button>
+              <h3>
+                <i data-lucide="clipboard-list"></i>
+                <span>Últimos Pedidos</span>
+              </h3>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-dash-view-all-orders">
+                <span>Ver Todos</span>
+                <i data-lucide="arrow-right"></i>
+              </button>
             </div>
             <div class="admin-card-body" id="dash-recent-orders">
-              <p style="color:var(--text-muted);font-size:0.85rem;">Nenhum pedido ainda.</p>
+              <p style="color:var(--text-muted);font-size:0.85rem;">Nenhum pedido registrado ainda.</p>
             </div>
           </div>
         </div>
@@ -115,16 +194,27 @@
         <div class="admin-page-header">
           <div>
             <h1>Produtos</h1>
-            <p>Cadastre peças com cores, tamanhos e estoque</p>
+            <p>Cadastre peças com cores, tamanhos e controle de estoque por SKU</p>
           </div>
-          <button class="btn btn-primary" id="btn-new-product">+ Novo Produto</button>
+          <button type="button" class="btn btn-primary" id="btn-new-product">
+            <i data-lucide="plus"></i>
+            <span>Novo Produto</span>
+          </button>
         </div>
+
         <div class="admin-page-body">
           <div class="admin-card">
             <div class="admin-card-header">
-              <h3>⚡ Catálogo de Peças Fitness</h3>
-              <input type="search" id="product-search" class="form-control" style="width:220px;" placeholder="🔍 Buscar produto...">
+              <h3>
+                <i data-lucide="layers"></i>
+                <span>Catálogo de Peças Fitness</span>
+              </h3>
+              <div style="display:flex;align-items:center;background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-full);padding:6px 12px;gap:6px;">
+                <i data-lucide="search" style="width:14px;height:14px;color:var(--text-muted);"></i>
+                <input type="search" id="product-search" style="border:none;background:transparent;outline:none;font-size:0.82rem;width:200px;" placeholder="Buscar produto...">
+              </div>
             </div>
+
             <div class="admin-card-body" style="padding:0;">
               <div style="overflow-x:auto;">
                 <table class="admin-table" id="products-table">
@@ -135,7 +225,7 @@
                       <th>Categoria</th>
                       <th>Preço</th>
                       <th>Estoque</th>
-                      <th>Posição</th>
+                      <th>Ordem</th>
                       <th>Destaque</th>
                       <th>Status</th>
                       <th>Ações</th>
@@ -154,15 +244,19 @@
         <div class="admin-page-header">
           <div>
             <h1>Controle de Estoque</h1>
-            <p>Edite a quantidade disponível por cor e tamanho</p>
+            <p>Edite a quantidade disponível em cada cor e tamanho em tempo real</p>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
             <select id="stock-filter-cat" class="form-control" style="width:180px;">
               <option value="all">Todas as Categorias</option>
             </select>
-            <input type="search" id="stock-search" class="form-control" style="width:200px;" placeholder="🔍 Buscar produto...">
+            <div style="display:flex;align-items:center;background:white;border:1px solid var(--border);border-radius:var(--radius-full);padding:6px 12px;gap:6px;">
+              <i data-lucide="search" style="width:14px;height:14px;color:var(--text-muted);"></i>
+              <input type="search" id="stock-search" style="border:none;background:transparent;outline:none;font-size:0.82rem;width:180px;" placeholder="Buscar produto...">
+            </div>
           </div>
         </div>
+
         <div class="admin-page-body">
           <div id="stock-list"></div>
         </div>
@@ -171,9 +265,16 @@
       <!-- ===== 4. CATEGORIES ===== -->
       <div class="admin-section" id="section-categories">
         <div class="admin-page-header">
-          <div><h1>Categorias</h1><p>Organize a coleção por tipo de peça</p></div>
-          <button class="btn btn-primary" id="btn-new-category">+ Nova Categoria</button>
+          <div>
+            <h1>Categorias</h1>
+            <p>Organize a coleção por tipo de peça para os clientes encontrarem fácil</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="btn-new-category">
+            <i data-lucide="plus"></i>
+            <span>Nova Categoria</span>
+          </button>
         </div>
+
         <div class="admin-page-body">
           <div class="admin-card">
             <div class="admin-card-body">
@@ -186,10 +287,13 @@
       <!-- ===== 5. ORDERS ===== -->
       <div class="admin-section" id="section-orders">
         <div class="admin-page-header">
-          <div><h1>Pedidos</h1><p>Gerencie todos os pedidos recebidos</p></div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div>
+            <h1>Pedidos</h1>
+            <p>Gerencie todos os pedidos recebidos via WhatsApp e loja pública</p>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
             <select id="orders-filter" class="form-control" style="width:160px;">
-              <option value="all">Todos</option>
+              <option value="all">Todos os Status</option>
               <option value="novo">Novo</option>
               <option value="confirmado">Confirmado</option>
               <option value="em_preparo">Em Preparo</option>
@@ -197,9 +301,13 @@
               <option value="entregue">Entregue</option>
               <option value="cancelado">Cancelado</option>
             </select>
-            <button class="btn btn-secondary" id="btn-export-orders">⬇ Exportar CSV</button>
+            <button type="button" class="btn btn-secondary" id="btn-export-orders">
+              <i data-lucide="download"></i>
+              <span>Exportar CSV</span>
+            </button>
           </div>
         </div>
+
         <div class="admin-page-body">
           <div id="orders-list"></div>
         </div>
@@ -208,45 +316,65 @@
       <!-- ===== 6. DELIVERY ===== -->
       <div class="admin-section" id="section-delivery">
         <div class="admin-page-header">
-          <div><h1>Entrega & Retirada</h1><p>Configure frete, endereços e prazos</p></div>
+          <div>
+            <h1>Entrega & Retirada</h1>
+            <p>Configure frete, valores para isenção e pontos de retirada</p>
+          </div>
         </div>
+
         <div class="admin-page-body">
           <div class="admin-card">
-            <div class="admin-card-header"><h3>🚚 Configurações de Entrega</h3></div>
+            <div class="admin-card-header">
+              <h3>
+                <i data-lucide="truck"></i>
+                <span>Configurações de Entrega</span>
+              </h3>
+            </div>
             <div class="admin-card-body">
               <div class="admin-form-grid">
                 <div class="form-group">
-                  <label>Taxa de Entrega (R$)</label>
+                  <label for="delivery-fee">Taxa Padrão de Entrega (R$)</label>
                   <input type="number" id="delivery-fee" class="form-control" min="0" step="0.50" value="15.00">
                 </div>
                 <div class="form-group">
-                  <label>Frete Grátis Acima de (R$)</label>
-                  <input type="number" id="delivery-free-threshold" class="form-control" min="0" step="10" value="250.00">
+                  <label for="delivery-free-threshold">Frete Grátis Acima de (R$)</label>
+                  <input type="number" id="delivery-free-threshold" class="form-control" min="0" step="10" value="199.00">
                 </div>
                 <div class="form-group">
-                  <label>Prazo Estimado de Entrega</label>
-                  <input type="text" id="delivery-time" class="form-control" placeholder="Ex: 3 a 7 dias úteis">
+                  <label for="delivery-time">Prazo Estimado de Entrega</label>
+                  <input type="text" id="delivery-time" class="form-control" placeholder="Ex: 2 a 5 dias úteis">
                 </div>
                 <div class="form-group">
-                  <label>Endereço de Retirada</label>
-                  <input type="text" id="pickup-address" class="form-control" placeholder="Rua, número, bairro">
+                  <label for="pickup-address">Endereço / Ponto de Retirada</label>
+                  <input type="text" id="pickup-address" class="form-control" placeholder="Rua, número, bairro ou 'Consulte no WhatsApp'">
                 </div>
               </div>
-              <div class="admin-form-grid">
+
+              <div class="admin-form-grid" style="margin-top:10px;">
                 <div class="form-group">
                   <label style="display:flex;align-items:center;gap:10px;">
-                    <label class="toggle-switch"><input type="checkbox" id="delivery-enabled" checked><span class="toggle-slider"></span></label>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="delivery-enabled" checked>
+                      <span class="toggle-slider"></span>
+                    </label>
                     Habilitar Entrega a Domicílio
                   </label>
                 </div>
                 <div class="form-group">
                   <label style="display:flex;align-items:center;gap:10px;">
-                    <label class="toggle-switch"><input type="checkbox" id="pickup-enabled" checked><span class="toggle-slider"></span></label>
-                    Habilitar Retirada na Loja
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="pickup-enabled" checked>
+                      <span class="toggle-slider"></span>
+                    </label>
+                    Habilitar Retirada na Loja / Ponto
                   </label>
                 </div>
               </div>
-              <button class="btn btn-primary" id="btn-save-delivery">💾 Salvar Configurações</button>
+
+              <button type="button" class="btn btn-primary" id="btn-save-delivery" style="margin-top:16px;">
+                <i data-lucide="save"></i>
+                <span>Salvar Configurações</span>
+              </button>
             </div>
           </div>
         </div>
@@ -255,38 +383,59 @@
       <!-- ===== 7. PAYMENTS ===== -->
       <div class="admin-section" id="section-payments">
         <div class="admin-page-header">
-          <div><h1>Pagamentos & Pix</h1><p>Gerencie formas de pagamento aceitas</p></div>
+          <div>
+            <h1>Pagamentos & Pix</h1>
+            <p>Gerencie as formas de pagamento disponíveis e chaves Pix</p>
+          </div>
         </div>
+
         <div class="admin-page-body">
           <div class="admin-card">
-            <div class="admin-card-header"><h3>💳 Formas de Pagamento</h3></div>
+            <div class="admin-card-header">
+              <h3>
+                <i data-lucide="credit-card"></i>
+                <span>Formas de Pagamento Aceitas</span>
+              </h3>
+            </div>
             <div class="admin-card-body" id="payment-methods-list"></div>
           </div>
+
           <div class="admin-card">
-            <div class="admin-card-header"><h3>📱 Chave Pix</h3></div>
+            <div class="admin-card-header">
+              <h3>
+                <i data-lucide="qr-code"></i>
+                <span>Chave Pix da Loja</span>
+              </h3>
+            </div>
             <div class="admin-card-body">
-              <div class="admin-form-grid">
+              <div class="admin-form-grid three">
                 <div class="form-group">
-                  <label>Tipo da Chave</label>
+                  <label for="pix-key-type">Tipo da Chave</label>
                   <select id="pix-key-type" class="form-control">
-                    <option>Celular</option><option>CPF</option><option>E-mail</option>
-                    <option>CNPJ</option><option>Chave Aleatória</option>
+                    <option>Celular</option>
+                    <option>CPF</option>
+                    <option>E-mail</option>
+                    <option>CNPJ</option>
+                    <option>Chave Aleatória</option>
                   </select>
                 </div>
                 <div class="form-group">
-                  <label>Chave Pix</label>
+                  <label for="pix-key">Chave Pix</label>
                   <input type="text" id="pix-key" class="form-control" placeholder="Sua chave Pix">
                 </div>
                 <div class="form-group">
-                  <label>Nome do Titular</label>
-                  <input type="text" id="pix-receiver" class="form-control" placeholder="Nome como aparece no Pix">
+                  <label for="pix-receiver">Nome do Titular</label>
+                  <input type="text" id="pix-receiver" class="form-control" placeholder="Fit Vibe Activewear">
                 </div>
               </div>
               <div class="form-group">
-                <label>Instruções ao Cliente</label>
-                <textarea id="pix-instructions" class="form-control" rows="2" placeholder="Ex: Faça o Pix e envie o comprovante..."></textarea>
+                <label for="pix-instructions">Instruções para o Cliente</label>
+                <textarea id="pix-instructions" class="form-control" rows="2" placeholder="Ex: Faça o Pix e envie o comprovante pelo WhatsApp para envio imediato!"></textarea>
               </div>
-              <button class="btn btn-primary" id="btn-save-payments">💾 Salvar Pagamentos</button>
+              <button type="button" class="btn btn-primary" id="btn-save-payments">
+                <i data-lucide="save"></i>
+                <span>Salvar Pagamentos</span>
+              </button>
             </div>
           </div>
         </div>
@@ -295,79 +444,111 @@
       <!-- ===== 8. SCHEDULE ===== -->
       <div class="admin-section" id="section-schedule">
         <div class="admin-page-header">
-          <div><h1>Horários & Loja</h1><p>Configure os horários de funcionamento</p></div>
+          <div>
+            <h1>Horários & Loja</h1>
+            <p>Configure os dias e horários de funcionamento do atendimento</p>
+          </div>
         </div>
+
         <div class="admin-page-body">
           <div class="admin-card">
-            <div class="admin-card-header"><h3>🕐 Horários de Funcionamento</h3></div>
+            <div class="admin-card-header">
+              <h3>
+                <i data-lucide="clock"></i>
+                <span>Horários de Funcionamento</span>
+              </h3>
+            </div>
             <div class="admin-card-body" id="hours-list"></div>
           </div>
+
           <div class="admin-card">
-            <div class="admin-card-header"><h3>🔒 Mensagem de Loja Fechada</h3></div>
+            <div class="admin-card-header">
+              <h3>
+                <i data-lucide="lock"></i>
+                <span>Mensagem de Loja Fechada</span>
+              </h3>
+            </div>
             <div class="admin-card-body">
               <div class="form-group">
-                <label>Mensagem exibida quando a loja está fechada</label>
-                <textarea id="closed-message" class="form-control" rows="2" placeholder="Ex: Estamos fora do horário..."></textarea>
+                <label for="closed-message">Mensagem exibida aos clientes fora do horário</label>
+                <textarea id="closed-message" class="form-control" rows="2" placeholder="Ex: Estamos fora do horário de atendimento. Deixe sua mensagem no WhatsApp que responderemos rapidinho!"></textarea>
               </div>
-              <button class="btn btn-primary" id="btn-save-schedule">💾 Salvar Horários</button>
+              <button type="button" class="btn btn-primary" id="btn-save-schedule">
+                <i data-lucide="save"></i>
+                <span>Salvar Horários</span>
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ===== 9. VISUAL ===== -->
+      <!-- ===== 9. VISUAL & TEXTS ===== -->
       <div class="admin-section" id="section-visual">
         <div class="admin-page-header">
-          <div><h1>Visual & Textos</h1><p>Personalize aparência e conteúdo do site</p></div>
+          <div>
+            <h1>Visual & Textos</h1>
+            <p>Personalize identidade, banners, Nova Coleção e feed do Instagram</p>
+          </div>
         </div>
+
         <div class="admin-page-body">
+          
+          <!-- Identidade da Loja -->
           <div class="admin-card">
-            <div class="admin-card-header"><h3>🏪 Identidade da Loja</h3></div>
+            <div class="admin-card-header">
+              <h3>
+                <i data-lucide="store"></i>
+                <span>Identidade da Marca</span>
+              </h3>
+            </div>
             <div class="admin-card-body">
               <div class="admin-form-grid">
                 <div class="form-group">
-                  <label>Nome da Loja</label>
-                  <input type="text" id="v-store-name" class="form-control">
+                  <label for="v-store-name">Nome da Loja</label>
+                  <input type="text" id="v-store-name" class="form-control" placeholder="Fit Vibe Activewear">
                 </div>
                 <div class="form-group">
-                  <label>Slogan / Tagline</label>
-                  <input type="text" id="v-store-tagline" class="form-control">
+                  <label for="v-store-tagline">Slogan / Tagline</label>
+                  <input type="text" id="v-store-tagline" class="form-control" placeholder="Roupas Fitness de Alta Performance">
                 </div>
                 <div class="form-group">
-                  <label>Emoji do Logo</label>
-                  <input type="text" id="v-logo-emoji" class="form-control" maxlength="4">
-                </div>
-                <div class="form-group">
-                  <label>Cor Principal</label>
-                  <input type="color" id="v-theme-color" class="form-control" style="height:42px;padding:4px 8px;">
+                  <label for="v-theme-color">Cor Principal de Destaque</label>
+                  <input type="color" id="v-theme-color" class="form-control" style="height:44px;padding:4px 8px;">
                 </div>
               </div>
             </div>
           </div>
 
+          <!-- Hero Section -->
           <div class="admin-card">
-            <div class="admin-card-header"><h3>🦸 Seção Hero (Topo do Site)</h3></div>
+            <div class="admin-card-header">
+              <h3>
+                <i data-lucide="image"></i>
+                <span>Seção Hero (Topo do Site)</span>
+              </h3>
+            </div>
             <div class="admin-card-body">
               <div class="admin-form-grid">
                 <div class="form-group">
-                  <label>Título Principal</label>
-                  <input type="text" id="v-hero-title" class="form-control">
+                  <label for="v-hero-title">Título Principal</label>
+                  <input type="text" id="v-hero-title" class="form-control" placeholder="Treine com Estilo, Supere Limites">
                 </div>
                 <div class="form-group">
-                  <label>Texto do Botão CTA</label>
-                  <input type="text" id="v-hero-cta" class="form-control">
+                  <label for="v-hero-cta">Texto do Botão Principal</label>
+                  <input type="text" id="v-hero-cta" class="form-control" placeholder="Ver Coleção Fitness">
                 </div>
               </div>
               <div class="form-group">
-                <label>Subtítulo / Descrição</label>
-                <textarea id="v-hero-subtitle" class="form-control" rows="2"></textarea>
+                <label for="v-hero-subtitle">Subtítulo / Descrição</label>
+                <textarea id="v-hero-subtitle" class="form-control" rows="2" placeholder="Activewear premium com modelagem anatômica e zero transparência..."></textarea>
               </div>
               <div class="form-group">
-                <label>Imagem de Destaque da Loja (Recortada em PNG ou foto - Ex: Você)</label>
+                <label>Foto de Fundo do Hero (Fitness)</label>
                 <div style="display:flex;gap:8px;">
-                  <input type="text" id="v-hero-image" class="form-control" placeholder="URL da imagem (opcional)">
+                  <input type="text" id="v-hero-image" class="form-control" placeholder="URL da foto (ex: assets/images/hero_fitness.jpg)">
                   <label class="btn btn-secondary" style="cursor:pointer;white-space:nowrap;">
-                    📁 Enviar
+                    <i data-lucide="upload"></i>
+                    <span>Enviar</span>
                     <input type="file" id="v-hero-image-upload" accept="image/*" style="display:none;">
                   </label>
                 </div>
@@ -375,26 +556,36 @@
             </div>
           </div>
 
+          <!-- Barra de Anúncio -->
           <div class="admin-card">
-            <div class="admin-card-header" style="display:flex;align-items:center;justify-content:space-between;">
-              <h3>📢 Barra de Anúncio (Topo do Site)</h3>
-              <span id="v-ann-badge" class="status-badge inactive">Desativada</span>
+            <div class="admin-card-header">
+              <h3>
+                <i data-lucide="bell"></i>
+                <span>Barra Superior de Avisos (Announcement Bar)</span>
+              </h3>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span id="v-ann-badge" class="status-badge active">Ativa</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="v-ann-active">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
             </div>
             <div class="admin-card-body">
-              <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
-                <label class="toggle-switch"><input type="checkbox" id="v-ann-active"><span class="toggle-slider"></span></label>
-                <span style="font-size:0.875rem;font-weight:600;">Exibir barra de anúncio no topo do site</span>
-              </div>
               <div class="form-group">
-                <label>Texto do Anúncio</label>
-                <input type="text" id="v-ann-text" class="form-control" placeholder="Ex: ✨ Novidades toda semana!">
+                <label for="v-ann-text">Texto do Anúncio</label>
+                <input type="text" id="v-ann-text" class="form-control" placeholder="FRETE GRÁTIS nas compras acima de R$ 199 • Até 3x sem juros • Zero Transparência">
               </div>
             </div>
           </div>
 
+          <!-- Nova Coleção / Destaques -->
           <div class="admin-card">
-            <div class="admin-card-header" style="display:flex;align-items:center;justify-content:space-between;">
-              <h3>⭐ Nova Coleção / Destaques da Loja</h3>
+            <div class="admin-card-header">
+              <h3>
+                <i data-lucide="sparkles"></i>
+                <span>Nova Coleção / Destaques da Vitrine</span>
+              </h3>
               <div style="display:flex;align-items:center;gap:10px;">
                 <span id="v-featured-badge" class="status-badge active">Ativa</span>
                 <label class="toggle-switch">
@@ -406,23 +597,27 @@
             <div class="admin-card-body" id="v-featured-body">
               <div class="admin-form-grid">
                 <div class="form-group">
-                  <label>Título da Seção</label>
-                  <input type="text" id="v-featured-title" class="form-control" placeholder="Ex: Nova Coleção 2026">
+                  <label for="v-featured-title">Título da Seção</label>
+                  <input type="text" id="v-featured-title" class="form-control" placeholder="Nova Coleção">
                 </div>
                 <div class="form-group">
-                  <label>Subtítulo / Chamada</label>
-                  <input type="text" id="v-featured-subtitle" class="form-control" placeholder="Ex: Lançamentos e peças exclusivas com tecnologia de ponta">
+                  <label for="v-featured-subtitle">Subtítulo / Chamada</label>
+                  <input type="text" id="v-featured-subtitle" class="form-control" placeholder="Lançamentos e peças exclusivas com tecnologia de alta compressão">
                 </div>
               </div>
-              <p style="font-size:0.8rem;color:var(--text-muted);">
-                💡 Marque os produtos com a estrela ⭐ na listagem de produtos ou no formulário de cadastro para exibi-los nesta seção com botão de compra rápida!
+              <p style="font-size:0.8rem;color:var(--text-muted);margin:0;">
+                Dica: Marque os produtos com "Destaque" na listagem ou no cadastro para exibi-los nesta seção na loja pública!
               </p>
             </div>
           </div>
 
+          <!-- Instagram Feed -->
           <div class="admin-card">
             <div class="admin-card-header">
-              <h3>Publicações do Instagram</h3>
+              <h3>
+                <i data-lucide="camera"></i>
+                <span>Publicações do Instagram</span>
+              </h3>
               <label class="toggle-switch">
                 <input type="checkbox" id="v-ig-active" checked>
                 <span class="toggle-slider"></span>
@@ -431,133 +626,180 @@
             <div class="admin-card-body" id="v-ig-body">
               <div class="admin-form-grid">
                 <div class="form-group">
-                  <label>Usuário / Perfil (@)</label>
-                  <input type="text" id="v-ig-handle" class="form-control" placeholder="@sua_loja">
+                  <label for="v-ig-handle">Usuário no Instagram (@)</label>
+                  <input type="text" id="v-ig-handle" class="form-control" placeholder="@fitvibe.activewear">
                 </div>
                 <div class="form-group">
-                  <label>Link Direto do Perfil</label>
-                  <input type="text" id="v-ig-profile" class="form-control" placeholder="https://instagram.com/sua_loja">
+                  <label for="v-ig-profile">Link do Perfil</label>
+                  <input type="text" id="v-ig-profile" class="form-control" placeholder="https://instagram.com/fitvibe.activewear">
                 </div>
                 <div class="form-group">
-                  <label>Título da Seção</label>
-                  <input type="text" id="v-ig-title" class="form-control" placeholder="Siga nosso Instagram">
+                  <label for="v-ig-title">Título da Seção</label>
+                  <input type="text" id="v-ig-title" class="form-control" placeholder="Siga @fitvibe.activewear">
                 </div>
                 <div class="form-group">
-                  <label>Subtítulo da Seção</label>
-                  <input type="text" id="v-ig-subtitle" class="form-control" placeholder="Acompanhe novidades, treinos e bastidores">
+                  <label for="v-ig-subtitle">Subtítulo da Seção</label>
+                  <input type="text" id="v-ig-subtitle" class="form-control" placeholder="Confira nossos treinos, novidades diárias e bastidores exclusivos">
                 </div>
               </div>
 
               <div class="form-group">
-                <label>Bio / Linha de Destaque do Perfil</label>
+                <label for="v-ig-bio">Linha de Destaque / Bio</label>
                 <input type="text" id="v-ig-bio" class="form-control" placeholder="Activewear premium com modelagem anatômica e zero transparência">
               </div>
 
               <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
                   <div>
-                    <h4 style="margin:0;font-size:0.95rem;font-weight:700;color:var(--text-primary);">Fotos e Publicações</h4>
-                    <small style="color:var(--text-muted);font-size:0.8rem;">Adicione fotos, links dos posts no Instagram e defina destaques</small>
+                    <h4 style="margin:0;font-size:0.92rem;font-weight:700;color:var(--carbon);">Fotos Lifestyle do Feed</h4>
+                    <small style="color:var(--text-muted);font-size:0.78rem;">Fotos exibidas no carrossel/grid visual do Instagram no rodapé</small>
                   </div>
-                  <button type="button" class="btn btn-secondary btn-sm" id="btn-add-ig-post">+ Nova Foto</button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-add-ig-post">
+                    <i data-lucide="plus"></i>
+                    <span>Nova Foto</span>
+                  </button>
                 </div>
 
-                <div id="ig-posts-manager-list" class="ig-posts-manager-list">
-                  <!-- Populated by JS -->
-                </div>
+                <div id="ig-posts-manager-list" class="ig-posts-manager-list"></div>
               </div>
-
-              <p style="font-size:0.8rem;color:var(--text-muted);margin-top:14px;">
-                Dica: O link da publicação e a legenda são opcionais. Ao informar o link do post, o visitante poderá clicar na foto no site para abrir a publicação oficial no Instagram.
-              </p>
             </div>
           </div>
 
+          <!-- Contato & Redes -->
           <div class="admin-card">
-            <div class="admin-card-header"><h3>📞 Contato & Redes Sociais</h3></div>
+            <div class="admin-card-header">
+              <h3>
+                <i data-lucide="phone"></i>
+                <span>Contato & Atendimento</span>
+              </h3>
+            </div>
             <div class="admin-card-body">
               <div class="admin-form-grid">
                 <div class="form-group">
-                  <label>WhatsApp (só números + DDI)</label>
+                  <label for="v-whatsapp">WhatsApp (número com DDI + DDD)</label>
                   <input type="text" id="v-whatsapp" class="form-control" placeholder="5511999999999">
                 </div>
                 <div class="form-group">
-                  <label>Telefone para Exibir</label>
+                  <label for="v-phone">Telefone Formatado para Exibição</label>
                   <input type="text" id="v-phone" class="form-control" placeholder="(11) 99999-9999">
                 </div>
                 <div class="form-group">
-                  <label>Instagram</label>
-                  <input type="text" id="v-instagram" class="form-control" placeholder="@sua_loja">
+                  <label for="v-instagram">Nome do Perfil Instagram</label>
+                  <input type="text" id="v-instagram" class="form-control" placeholder="@fitvibe.activewear">
                 </div>
                 <div class="form-group">
-                  <label>Endereço</label>
-                  <input type="text" id="v-address" class="form-control">
+                  <label for="v-address">Endereço / Localização</label>
+                  <input type="text" id="v-address" class="form-control" placeholder="São Paulo - SP">
                 </div>
               </div>
             </div>
           </div>
 
-          <button class="btn btn-primary" id="btn-save-visual">💾 Salvar Configurações Visuais</button>
+          <button type="button" class="btn btn-primary" id="btn-save-visual">
+            <i data-lucide="save"></i>
+            <span>Salvar Configurações Visuais</span>
+          </button>
         </div>
       </div>
 
       <!-- ===== 10. SIZES ===== -->
       <div class="admin-section" id="section-sizes">
         <div class="admin-page-header">
-          <div><h1>Tamanhos</h1><p>Gerencie os tamanhos disponíveis na loja</p></div>
+          <div>
+            <h1>Tamanhos</h1>
+            <p>Gerencie a grade de tamanhos cadastrados para as peças fitness</p>
+          </div>
         </div>
+
         <div class="admin-page-body">
           <div class="admin-card">
-            <div class="admin-card-header"><h3>📏 Tamanhos Cadastrados</h3></div>
+            <div class="admin-card-header">
+              <h3>
+                <i data-lucide="ruler"></i>
+                <span>Grade de Tamanhos</span>
+              </h3>
+            </div>
             <div class="admin-card-body">
-              <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:14px;">Esses tamanhos aparecerão ao cadastrar variantes nos produtos.</p>
-              <div class="size-tags" id="size-tags-container"></div>
-              <div style="display:flex;gap:10px;align-items:center;margin-top:16px;">
+              <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:14px;">Estes tamanhos serão disponibilizados ao cadastrar novas cores e variantes nos produtos.</p>
+              <div class="size-tags" id="size-tags-container" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+              
+              <div style="display:flex;gap:10px;align-items:center;margin-top:18px;">
                 <input type="text" id="new-size-input" class="form-control" style="max-width:180px;" placeholder="Ex: XGG, 42, Único...">
-                <button class="btn btn-primary" id="btn-add-size">+ Adicionar</button>
+                <button type="button" class="btn btn-primary" id="btn-add-size">
+                  <i data-lucide="plus"></i>
+                  <span>Adicionar</span>
+                </button>
               </div>
-              <div style="margin-top:20px;">
+
+              <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);">
                 <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:10px;">Predefinições rápidas:</p>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                  <button class="btn btn-secondary btn-sm" onclick="AdminPanel.setPresetSizes(['PP','P','M','G','GG','XGG'])">PP ao XGG</button>
-                  <button class="btn btn-secondary btn-sm" onclick="AdminPanel.setPresetSizes(['XS','S','M','L','XL','XXL'])">XS ao XXL</button>
-                  <button class="btn btn-secondary btn-sm" onclick="AdminPanel.setPresetSizes(['34','36','38','40','42','44','46','48'])">Numérico 34-48</button>
-                  <button class="btn btn-secondary btn-sm" onclick="AdminPanel.setPresetSizes(['P','M','G'])">P, M, G</button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="AdminPanel.setPresetSizes(['PP','P','M','G','GG','XGG'])">PP ao XGG</button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="AdminPanel.setPresetSizes(['XS','S','M','L','XL','XXL'])">XS ao XXL</button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="AdminPanel.setPresetSizes(['P','M','G'])">P, M, G</button>
                 </div>
               </div>
-              <button class="btn btn-primary" id="btn-save-sizes" style="margin-top:20px;">💾 Salvar Tamanhos</button>
+
+              <button type="button" class="btn btn-primary" id="btn-save-sizes" style="margin-top:24px;">
+                <i data-lucide="save"></i>
+                <span>Salvar Tamanhos</span>
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ===== 11. SECURITY ===== -->
+      <!-- ===== 11. SECURITY & BACKUP ===== -->
       <div class="admin-section" id="section-security">
         <div class="admin-page-header">
-          <div><h1>Senha & Backup</h1></div>
+          <div>
+            <h1>Senha & Backup</h1>
+            <p>Controle de segurança do painel administrativo e exportação de dados</p>
+          </div>
         </div>
+
         <div class="admin-page-body">
           <div class="admin-card">
-            <div class="admin-card-header"><h3>🔑 Alterar Senha do Painel</h3></div>
+            <div class="admin-card-header">
+              <h3>
+                <i data-lucide="key"></i>
+                <span>Alterar Senha de Administrador</span>
+              </h3>
+            </div>
             <div class="admin-card-body">
               <div class="admin-form-grid">
                 <div class="form-group">
-                  <label>Nova Senha</label>
+                  <label for="new-password">Nova Senha</label>
                   <input type="password" id="new-password" class="form-control" placeholder="Mínimo 6 caracteres">
                 </div>
                 <div class="form-group">
-                  <label>Confirmar Nova Senha</label>
+                  <label for="confirm-password">Confirmar Nova Senha</label>
                   <input type="password" id="confirm-password" class="form-control" placeholder="Repita a senha">
                 </div>
               </div>
-              <button class="btn btn-primary" id="btn-save-password">💾 Salvar Nova Senha</button>
+              <button type="button" class="btn btn-primary" id="btn-save-password">
+                <i data-lucide="save"></i>
+                <span>Salvar Nova Senha</span>
+              </button>
             </div>
           </div>
+
           <div class="admin-card">
-            <div class="admin-card-header"><h3>⬇ Exportar Dados</h3></div>
+            <div class="admin-card-header">
+              <h3>
+                <i data-lucide="download"></i>
+                <span>Exportar Dados</span>
+              </h3>
+            </div>
             <div class="admin-card-body" style="display:flex;gap:12px;flex-wrap:wrap;">
-              <button class="btn btn-secondary" id="btn-export-json">📦 Exportar Todos os Dados (JSON)</button>
-              <button class="btn btn-secondary" id="btn-export-orders-sec">📋 Exportar Pedidos (CSV)</button>
+              <button type="button" class="btn btn-secondary" id="btn-export-json">
+                <i data-lucide="database"></i>
+                <span>Exportar Todos os Dados (JSON)</span>
+              </button>
+              <button type="button" class="btn btn-secondary" id="btn-export-orders-sec">
+                <i data-lucide="file-spreadsheet"></i>
+                <span>Exportar Pedidos (CSV)</span>
+              </button>
             </div>
           </div>
         </div>
@@ -567,58 +809,66 @@
   </div>
 
   <!-- ===== PRODUCT FORM MODAL ===== -->
-  <div class="modal-overlay" id="product-form-modal">
+  <div class="modal-overlay" id="product-form-modal" role="dialog" aria-modal="true" aria-labelledby="product-form-title">
     <div class="modal" style="max-width:860px;">
       <div class="modal-header">
         <h3 id="product-form-title">Novo Produto</h3>
-        <button class="btn-close-modal" id="btn-close-product-form">✕</button>
+        <button type="button" class="btn-close-modal" id="btn-close-product-form" aria-label="Fechar">
+          <i data-lucide="x"></i>
+        </button>
       </div>
-      <div class="modal-body" style="padding:24px 28px;">
+
+      <div class="modal-body">
         <form id="product-form">
           <div class="admin-form-grid">
             <div class="form-group">
-              <label>Nome da Peça Fitness <span class="required">*</span></label>
+              <label for="pf-name">Nome da Peça Fitness <span class="required">*</span></label>
               <input type="text" id="pf-name" class="form-control" placeholder="Ex: Legging Sculpt Sem Costura Cós Alto" required>
             </div>
             <div class="form-group">
-              <label>Categoria <span class="required">*</span></label>
+              <label for="pf-category">Categoria <span class="required">*</span></label>
               <select id="pf-category" class="form-control" required></select>
             </div>
             <div class="form-group">
-              <label>Preço (R$) <span class="required">*</span></label>
-              <input type="number" id="pf-price" class="form-control" min="0" step="0.01" required>
+              <label for="pf-price">Preço (R$) <span class="required">*</span></label>
+              <input type="number" id="pf-price" class="form-control" min="0" step="0.01" placeholder="139.90" required>
             </div>
             <div class="form-group">
-              <label>Badge / Destaque</label>
+              <label for="pf-badge">Selo / Destaque Visual</label>
               <input type="text" id="pf-badge" class="form-control" placeholder="Ex: Zero Transparência, Alta Compressão">
             </div>
           </div>
 
           <div class="form-group">
-            <label>Descrição do Produto & Detalhes do Tecido</label>
-            <textarea id="pf-description" class="form-control" rows="3" placeholder="Ex: Poliamida com elastano, tecnologia dry-fit respirável, toque gelado, cós duplo que não enrola..."></textarea>
+            <label for="pf-description">Descrição & Detalhes do Tecido</label>
+            <textarea id="pf-description" class="form-control" rows="3" placeholder="Ex: Poliamida com elastano, tecnologia dry-fit respirável, toque gelado, cós duplo que não enrola no treino..."></textarea>
           </div>
 
           <!-- Image Upload -->
           <div class="form-group">
-            <label>Foto do Produto</label>
+            <label>Foto Principal da Peça</label>
             <div class="img-upload-zone" id="img-upload-zone">
               <input type="file" id="pf-image-file" accept="image/*">
-              <span class="upload-icon">📸</span>
+              <div class="upload-icon">
+                <i data-lucide="image-plus"></i>
+              </div>
               <p>Clique ou arraste uma foto aqui</p>
               <small>JPG, PNG, WebP — máx. 5MB</small>
             </div>
-            <img id="pf-image-preview" class="img-preview" src="" alt="Preview">
+            <img id="pf-image-preview" class="img-preview" src="" alt="Preview da imagem do produto">
             <div class="form-group" style="margin-top:10px;">
-              <label>Ou cole uma URL de imagem</label>
-              <input type="url" id="pf-image-url" class="form-control" placeholder="https://...">
+              <label for="pf-image-url">Ou cole uma URL da imagem</label>
+              <input type="url" id="pf-image-url" class="form-control" placeholder="assets/images/legging_fitness.jpg">
             </div>
           </div>
 
           <!-- Promotion -->
           <div class="admin-card" style="margin-bottom:16px;">
             <div class="admin-card-header">
-              <h3>🏷️ Promoção</h3>
+              <h3>
+                <i data-lucide="tag"></i>
+                <span>Promoção & Desconto</span>
+              </h3>
               <label class="toggle-switch">
                 <input type="checkbox" id="pf-promo-active">
                 <span class="toggle-slider"></span>
@@ -626,7 +876,7 @@
             </div>
             <div class="admin-card-body" id="pf-promo-section" style="display:none;">
               <div class="form-group">
-                <label>Desconto (%)</label>
+                <label for="pf-promo-percent">Desconto (%)</label>
                 <input type="number" id="pf-promo-percent" class="form-control" min="1" max="99" value="10">
               </div>
             </div>
@@ -635,12 +885,18 @@
           <!-- VARIANTS (Color + Sizes + Stock) -->
           <div class="admin-card" style="margin-bottom:16px;">
             <div class="admin-card-header">
-              <h3>🎨 Variantes (Cores & Tamanhos)</h3>
-              <button type="button" class="btn btn-primary btn-sm" id="btn-add-variant">+ Adicionar Cor</button>
+              <h3>
+                <i data-lucide="palette"></i>
+                <span>Variantes (Cores & Tamanhos)</span>
+              </h3>
+              <button type="button" class="btn btn-primary btn-sm" id="btn-add-variant">
+                <i data-lucide="plus"></i>
+                <span>Adicionar Cor</span>
+              </button>
             </div>
             <div class="admin-card-body">
               <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:14px;">
-                Para cada cor, defina a quantidade disponível em cada tamanho.
+                Para cada cor, defina a foto específica e a quantidade disponível em cada tamanho.
               </p>
               <div class="variant-builder" id="variant-builder"></div>
             </div>
@@ -649,28 +905,37 @@
           <div class="admin-form-grid">
             <div class="form-group">
               <label style="display:flex;align-items:center;gap:10px;">
-                <label class="toggle-switch"><input type="checkbox" id="pf-active" checked><span class="toggle-slider"></span></label>
-                Produto Ativo (visível no site)
+                <label class="toggle-switch">
+                  <input type="checkbox" id="pf-active" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+                Produto Ativo na Loja
               </label>
             </div>
             <div class="form-group">
               <label style="display:flex;align-items:center;gap:10px;">
-                <label class="toggle-switch"><input type="checkbox" id="pf-featured"><span class="toggle-slider"></span></label>
-                ⭐ Destaque na Nova Coleção
+                <label class="toggle-switch">
+                  <input type="checkbox" id="pf-featured">
+                  <span class="toggle-slider"></span>
+                </label>
+                Destaque na Nova Coleção
               </label>
             </div>
             <div class="form-group">
-              <label>Posição na Vitrine</label>
+              <label for="pf-display-order">Posição na Vitrine</label>
               <div style="display:flex;align-items:center;gap:10px;">
                 <input type="number" id="pf-display-order" class="form-control" min="0" max="9999" value="0" style="width:90px;">
-                <span style="font-size:0.8rem;color:var(--text-muted);">0 = primeiro &middot; número maior = mais ao fundo</span>
+                <span style="font-size:0.78rem;color:var(--text-muted);">0 = início &middot; maior número = ao fundo</span>
               </div>
             </div>
           </div>
 
           <div style="display:flex;gap:12px;justify-content:flex-end;padding-top:16px;border-top:1px solid var(--border);">
             <button type="button" class="btn btn-secondary" id="btn-cancel-product">Cancelar</button>
-            <button type="submit" class="btn btn-primary" id="btn-save-product">💾 Salvar Produto</button>
+            <button type="submit" class="btn btn-primary" id="btn-save-product">
+              <i data-lucide="save"></i>
+              <span>Salvar Produto</span>
+            </button>
           </div>
         </form>
       </div>
@@ -678,25 +943,30 @@
   </div>
 
   <!-- ===== CATEGORY FORM MODAL ===== -->
-  <div class="modal-overlay" id="category-form-modal">
-    <div class="modal" style="max-width:400px;">
+  <div class="modal-overlay" id="category-form-modal" role="dialog" aria-modal="true" aria-labelledby="cat-form-title">
+    <div class="modal" style="max-width:440px;">
       <div class="modal-header">
         <h3 id="cat-form-title">Nova Categoria</h3>
-        <button class="btn-close-modal" id="btn-close-cat-form">✕</button>
+        <button type="button" class="btn-close-modal" id="btn-close-cat-form" aria-label="Fechar">
+          <i data-lucide="x"></i>
+        </button>
       </div>
       <div class="modal-body">
         <form id="category-form">
           <div class="form-group">
-            <label>Nome da Categoria <span class="required">*</span></label>
+            <label for="cf-name">Nome da Categoria <span class="required">*</span></label>
             <input type="text" id="cf-name" class="form-control" placeholder="Ex: Leggings, Tops, Shorts..." required>
           </div>
           <div class="form-group">
-            <label>Ícone (Emoji)</label>
-            <input type="text" id="cf-icon" class="form-control" maxlength="4" placeholder="⚡">
+            <label for="cf-icon">Identificador de Ícone (Lucide)</label>
+            <input type="text" id="cf-icon" class="form-control" placeholder="ex: activity, layers, shield">
           </div>
-          <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
             <button type="button" class="btn btn-secondary" id="btn-cancel-cat">Cancelar</button>
-            <button type="submit" class="btn btn-primary">💾 Salvar</button>
+            <button type="submit" class="btn btn-primary">
+              <i data-lucide="save"></i>
+              <span>Salvar Categoria</span>
+            </button>
           </div>
         </form>
       </div>
@@ -704,36 +974,49 @@
   </div>
 
   <!-- ===== ORDER DETAIL MODAL ===== -->
-  <div class="modal-overlay" id="order-detail-modal">
-    <div class="modal" style="max-width:600px;">
+  <div class="modal-overlay" id="order-detail-modal" role="dialog" aria-modal="true" aria-labelledby="order-detail-title">
+    <div class="modal" style="max-width:640px;">
       <div class="modal-header">
-        <h3>📋 Detalhes do Pedido</h3>
-        <button class="btn-close-modal" id="btn-close-order-detail">✕</button>
+        <h3 id="order-detail-title">Detalhes do Pedido</h3>
+        <button type="button" class="btn-close-modal" id="btn-close-order-detail" aria-label="Fechar">
+          <i data-lucide="x"></i>
+        </button>
       </div>
       <div class="modal-body" id="order-detail-body"></div>
     </div>
   </div>
 
   <!-- ===== CONFIRM DIALOG ===== -->
-  <div class="modal-overlay" id="confirm-modal">
-    <div class="modal" style="max-width:380px;">
+  <div class="modal-overlay" id="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div class="modal" style="max-width:400px;">
       <div class="modal-header">
-        <h3 id="confirm-title">Confirmar</h3>
-        <button class="btn-close-modal" id="btn-close-confirm">✕</button>
+        <h3 id="confirm-title">Confirmar Ação</h3>
+        <button type="button" class="btn-close-modal" id="btn-close-confirm" aria-label="Fechar">
+          <i data-lucide="x"></i>
+        </button>
       </div>
       <div class="modal-body">
         <p id="confirm-message" style="margin-bottom:20px;color:var(--text-secondary);"></p>
         <div style="display:flex;gap:10px;justify-content:flex-end;">
-          <button class="btn btn-secondary" id="btn-confirm-cancel">Cancelar</button>
-          <button class="btn btn-danger" id="btn-confirm-ok">Confirmar</button>
+          <button type="button" class="btn btn-secondary" id="btn-confirm-cancel">Cancelar</button>
+          <button type="button" class="btn btn-danger" id="btn-confirm-ok">Confirmar</button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-client.js"></script>
   <script src="js/data.js"></script>
   <script src="js/admin.js"></script>
+  <script>
+    // Initialize Lucide icons for static HTML elements
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+    });
+  </script>
 </body>
 </html>

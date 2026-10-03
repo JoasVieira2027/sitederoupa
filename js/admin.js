@@ -9,6 +9,16 @@
   const $ = id => document.getElementById(id);
   const $$ = sel => document.querySelectorAll(sel);
 
+  function refreshIcons() {
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      try {
+        window.lucide.createIcons();
+      } catch (e) {
+        console.warn('[Admin] Lucide icon refresh:', e);
+      }
+    }
+  }
+
   // ===== STATE =====
   let currentSection = 'dashboard';
   let editingProductId = null;
@@ -42,7 +52,7 @@
       const email = $('login-email') ? $('login-email').value.trim() : 'admin@loja.com';
       const password = $('login-password').value;
       const submitBtn = $('btn-login-submit');
-      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Verificando...'; }
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span>Verificando...</span>'; }
 
       try {
         if (window.SupabaseService && window.SupabaseService.isConfigured()) {
@@ -69,7 +79,7 @@
       } catch (err) {
         Utils.showToast('Erro ao fazer login: ' + (err.message || ''), 'error');
       } finally {
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Entrar no Painel'; }
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<span>Entrar no Painel</span><i data-lucide="arrow-right"></i>'; refreshIcons(); }
       }
     });
 
@@ -89,7 +99,7 @@
     const settings = DataStore.getSettings();
 
     // Apply branding to sidebar
-    if ($('admin-brand-icon')) $('admin-brand-icon').textContent = settings.storeLogoEmoji || '⚡';
+    if ($('admin-brand-icon') && !$('admin-brand-icon').querySelector('svg')) $('admin-brand-icon').textContent = settings.storeName?.charAt(0) || 'F';
     if ($('admin-brand-title')) $('admin-brand-title').textContent = settings.storeName || 'Fit Vibe Activewear';
 
     // Nav click
@@ -173,6 +183,7 @@
       security: renderSecurity
     };
     if (renderers[section]) renderers[section]();
+    refreshIcons();
   }
 
   // ===== 3. DASHBOARD =====
@@ -187,10 +198,10 @@
     const statsEl = $('admin-stats');
     if (statsEl) {
       statsEl.innerHTML = `
-        <div class="stat-card"><div class="stat-card-icon">📋</div><div class="stat-card-value">${orders.length}</div><div class="stat-card-label">Total de Pedidos</div></div>
-        <div class="stat-card"><div class="stat-card-icon">💰</div><div class="stat-card-value">${Utils.formatCurrency(totalRevenue)}</div><div class="stat-card-label">Receita Total</div></div>
-        <div class="stat-card"><div class="stat-card-icon">👗</div><div class="stat-card-value">${activeProducts}</div><div class="stat-card-label">Produtos Ativos</div></div>
-        <div class="stat-card"><div class="stat-card-icon">🆕</div><div class="stat-card-value">${orders.filter(o => o.status === 'novo').length}</div><div class="stat-card-label">Pedidos Novos</div></div>`;
+        <div class="stat-card"><div class="stat-card-icon"><i data-lucide="shopping-bag"></i></div><div class="stat-card-value">${orders.length}</div><div class="stat-card-label">Total de Pedidos</div></div>
+        <div class="stat-card"><div class="stat-card-icon"><i data-lucide="dollar-sign"></i></div><div class="stat-card-value">${Utils.formatCurrency(totalRevenue)}</div><div class="stat-card-label">Receita Total</div></div>
+        <div class="stat-card"><div class="stat-card-icon"><i data-lucide="layers"></i></div><div class="stat-card-value">${activeProducts}</div><div class="stat-card-label">Produtos Ativos</div></div>
+        <div class="stat-card"><div class="stat-card-icon"><i data-lucide="bell"></i></div><div class="stat-card-value">${orders.filter(o => o.status === 'novo').length}</div><div class="stat-card-label">Pedidos Novos</div></div>`;
     }
 
     // Store toggle
@@ -242,7 +253,7 @@
       alertsCard.style.display = '';
       alertsEl.innerHTML = alerts.slice(0, 12).map(a =>
         `<div class="stock-alert-card">
-          <span class="stock-alert-icon">${a.qty === 0 ? '🔴' : '⚠️'}</span>
+          <span class="stock-alert-icon"><i data-lucide="${a.qty === 0 ? 'alert-octagon' : 'alert-triangle'}" style="${a.qty === 0 ? 'color:var(--danger);' : 'color:var(--warning);'}"></i></span>
           <div class="stock-alert-info">
             <div class="stock-alert-name">${Utils.sanitize(a.product)}</div>
             <div class="stock-alert-detail">${a.color} — Tam. ${a.size}</div>
@@ -275,6 +286,7 @@
       $$('.admin-nav-item[data-section="orders"]').forEach(n => n.classList.add('active'));
       navigateTo('orders');
     };
+    refreshIcons();
   }
 
   // ===== 4. PRODUCTS =====
@@ -308,7 +320,7 @@
       return `<tr>
         <td>
           <div class="admin-product-row-image">
-            ${p.image ? `<img src="${Utils.sanitize(p.image)}" alt="${Utils.sanitize(p.name)}">` : '⚡'}
+            ${p.image ? `<img src="${Utils.sanitize(p.image)}" alt="${Utils.sanitize(p.name)}">` : '<i data-lucide="image" style="width:20px;height:20px;color:var(--text-muted);"></i>'}
           </div>
         </td>
         <td>
@@ -325,8 +337,8 @@
           <div style="display:flex;align-items:center;gap:4px;">
             <span style="font-size:0.85rem;font-weight:700;min-width:24px;text-align:center;">${p.displayOrder || 0}</span>
             <div style="display:flex;flex-direction:column;gap:2px;">
-              <button type="button" class="btn btn-secondary btn-sm" style="padding:1px 6px;font-size:0.7rem;line-height:1.2;" onclick="AdminPanel.moveProduct('${p.id}', -1)" title="Mover para frente">↑</button>
-              <button type="button" class="btn btn-secondary btn-sm" style="padding:1px 6px;font-size:0.7rem;line-height:1.2;" onclick="AdminPanel.moveProduct('${p.id}', 1)" title="Mover para trás">↓</button>
+              <button type="button" class="btn btn-secondary btn-sm" style="padding:2px 6px;line-height:1;" onclick="AdminPanel.moveProduct('${p.id}', -1)" title="Mover para frente"><i data-lucide="chevron-up" style="width:13px;height:13px;"></i></button>
+              <button type="button" class="btn btn-secondary btn-sm" style="padding:2px 6px;line-height:1;" onclick="AdminPanel.moveProduct('${p.id}', 1)" title="Mover para trás"><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></button>
             </div>
           </div>
         </td>
@@ -335,7 +347,7 @@
             onclick="AdminPanel.toggleFeatured('${p.id}')" 
             style="font-size:0.75rem;padding:4px 9px;border-radius:var(--radius-full);cursor:pointer;white-space:nowrap;"
             title="Alternar presença na Nova Coleção / Destaques">
-            ${p.featured ? '⭐ Sim' : '☆ Não'}
+            <i data-lucide="star" style="width:13px;height:13px;${p.featured ? 'fill:currentColor;' : ''}"></i><span>${p.featured ? 'Sim' : 'Não'}</span>
           </button>
         </td>
         <td>
@@ -344,12 +356,13 @@
         </td>
         <td>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            <button class="btn btn-secondary btn-sm" onclick="AdminPanel.editProduct('${p.id}')">✏️ Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="AdminPanel.confirmDeleteProduct('${p.id}')">🗑</button>
+            <button class="btn btn-secondary btn-sm" onclick="AdminPanel.editProduct('${p.id}')" style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="edit-3" style="width:13px;height:13px;"></i> Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="AdminPanel.confirmDeleteProduct('${p.id}')" title="Excluir"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
           </div>
         </td>
       </tr>`;
     }).join('') || `<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:40px;">Nenhum produto cadastrado.</td></tr>`;
+    refreshIcons();
   }
 
   function buildStockChips(product) {
@@ -441,7 +454,7 @@
 
     builder.innerHTML = variantList.map((v, idx) => `
       <div class="variant-row" data-idx="${idx}">
-        <button type="button" class="btn-remove-variant" onclick="AdminPanel.removeVariant(${idx})">✕ Remover Cor</button>
+        <button type="button" class="btn-remove-variant" onclick="AdminPanel.removeVariant(${idx})"><i data-lucide="x" style="width:13px;height:13px;"></i> Remover Cor</button>
         <div class="variant-row-header">
           <div class="color-picker-wrap">
             <label>Cor:</label>
@@ -450,15 +463,15 @@
           </div>
           <div class="variant-image-wrap">
             <div class="variant-img-preview-thumb" id="variant-thumb-${idx}">
-              ${v.image ? `<img src="${Utils.sanitize(v.image)}" alt="Foto da cor">` : '📷'}
+              ${v.image ? `<img src="${Utils.sanitize(v.image)}" alt="Foto da cor">` : '<i data-lucide="camera" style="width:18px;height:18px;color:var(--text-muted);"></i>'}
             </div>
             <div class="variant-img-input-box">
               <input type="text" class="variant-img-url-input" value="${Utils.sanitize(v.image || '')}" placeholder="URL da foto desta cor" onchange="AdminPanel.updateVariantImage(${idx}, this.value)">
-              <label class="btn-variant-upload-label">
-                📁 Foto
+              <label class="btn-variant-upload-label" style="display:inline-flex;align-items:center;gap:4px;">
+                <i data-lucide="upload" style="width:13px;height:13px;"></i> Foto
                 <input type="file" accept="image/*" style="display:none;" onchange="AdminPanel.uploadVariantImage(${idx}, this)">
               </label>
-              ${v.image ? `<button type="button" class="btn-variant-clear-img" onclick="AdminPanel.clearVariantImage(${idx})" title="Remover foto desta cor">✕</button>` : ''}
+              ${v.image ? `<button type="button" class="btn-variant-clear-img" onclick="AdminPanel.clearVariantImage(${idx})" title="Remover foto desta cor"><i data-lucide="x" style="width:12px;height:12px;"></i></button>` : ''}
             </div>
           </div>
         </div>
@@ -471,6 +484,7 @@
             </div>`).join('')}
         </div>
       </div>`).join('');
+    refreshIcons();
   }
 
   // Variant mutations
@@ -539,7 +553,7 @@
   window.AdminPanel.toggleFeatured = async function (id) {
     try {
       const isFeatured = await DataStore.toggleProductFeatured(id);
-      Utils.showToast(isFeatured ? '⭐ Produto adicionado à Nova Coleção!' : 'Produto removido da Nova Coleção.', 'info');
+      Utils.showToast(isFeatured ? 'Produto adicionado aos destaques da Nova Coleção!' : 'Produto removido da Nova Coleção.', 'info');
       renderProducts();
     } catch (err) {
       Utils.showToast('Erro: ' + (err.message || ''), 'error');
@@ -726,7 +740,7 @@
       } catch (err) {
         Utils.showToast('Erro ao salvar produto: ' + (err.message || ''), 'error');
       } finally {
-        if (btn) { btn.disabled = false; btn.textContent = '💾 Salvar Produto'; }
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="save"></i><span>Salvar Produto</span>'; refreshIcons(); }
       }
     };
 
@@ -791,7 +805,7 @@
         return `<div class="admin-card" style="margin-bottom:16px;">
           <div class="admin-card-header">
             <div style="display:flex;align-items:center;gap:12px;">
-              <div class="admin-product-row-image">${p.image ? `<img src="${Utils.sanitize(p.image)}" alt="">` : '⚡'}</div>
+              <div class="admin-product-row-image">${p.image ? `<img src="${Utils.sanitize(p.image)}" alt="">` : '<i data-lucide="image" style="width:18px;height:18px;color:var(--text-muted);"></i>'}</div>
               <div>
                 <strong>${Utils.sanitize(p.name)}</strong>
                 <div style="font-size:0.75rem;color:var(--text-muted);">${p.category}</div>
@@ -830,7 +844,7 @@
       return `<div class="admin-card" style="margin-bottom:16px;" data-product-id="${p.id}">
         <div class="admin-card-header">
           <div style="display:flex;align-items:center;gap:12px;">
-            <div class="admin-product-row-image">${p.image ? `<img src="${Utils.sanitize(p.image)}" alt="">` : '⚡'}</div>
+            <div class="admin-product-row-image">${p.image ? `<img src="${Utils.sanitize(p.image)}" alt="">` : '<i data-lucide="image" style="width:18px;height:18px;color:var(--text-muted);"></i>'}</div>
             <div>
               <strong>${Utils.sanitize(p.name)}</strong>
               <div style="font-size:0.75rem;color:var(--text-muted);">${p.category} · ${Utils.formatCurrency(p.price)}</div>
@@ -838,7 +852,7 @@
           </div>
           <div style="display:flex;align-items:center;gap:10px;">
             <span class="status-badge ${totalStock === 0 ? 'inactive' : totalStock <= 5 ? 'pending' : 'active'}">${totalStock === 0 ? 'Esgotado' : `${totalStock} un`}</span>
-            <button class="btn btn-primary btn-sm save-stock-btn" data-product="${p.id}">💾 Salvar</button>
+            <button class="btn btn-primary btn-sm save-stock-btn" data-product="${p.id}" style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="save" style="width:13px;height:13px;"></i> Salvar</button>
           </div>
         </div>
         <div class="admin-card-body">${variantsHtml}</div>
@@ -846,6 +860,7 @@
     }).join('');
 
     // Bind save buttons
+    refreshIcons();
     stockList.querySelectorAll('.save-stock-btn').forEach(btn => {
       btn.onclick = async () => {
         const productId = btn.dataset.product;
@@ -883,7 +898,7 @@
           Utils.showToast('Erro: ' + (err.message || ''), 'error');
         } finally {
           btn.disabled = false;
-          btn.textContent = '💾 Salvar';
+          btn.innerHTML = '<i data-lucide="save" style="width:13px;height:13px;"></i> Salvar'; refreshIcons();
         }
       };
     });
@@ -902,13 +917,13 @@
           ${categories.map(c => {
             const products = DataStore.getProducts({ includeInactive: true }).filter(p => p.category === c.name);
             return `<tr>
-              <td style="font-size:1.5rem;">${c.icon || '👗'}</td>
+              <td><div style="width:36px;height:36px;border-radius:var(--radius-sm);background:var(--bg-input);display:flex;align-items:center;justify-content:center;color:var(--primary);"><i data-lucide="${Utils.sanitize(c.icon && !c.icon.includes('/') && c.icon.length < 30 ? c.icon : 'tag')}" style="width:18px;height:18px;"></i></div></td>
               <td style="font-weight:700;">${Utils.sanitize(c.name)}</td>
               <td>${products.length} produto(s)</td>
               <td>
                 <div style="display:flex;gap:6px;">
-                  <button class="btn btn-secondary btn-sm" onclick="AdminPanel.editCategory('${c.id}')">✏️ Editar</button>
-                  <button class="btn btn-danger btn-sm" onclick="AdminPanel.confirmDeleteCategory('${c.id}')">🗑</button>
+                  <button class="btn btn-secondary btn-sm" onclick="AdminPanel.editCategory('${c.id}')" style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="edit-3" style="width:13px;height:13px;"></i> Editar</button>
+                  <button class="btn btn-danger btn-sm" onclick="AdminPanel.confirmDeleteCategory('${c.id}')" title="Excluir"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
                 </div>
               </td>
             </tr>`;
@@ -918,6 +933,7 @@
 
     const btnNew = $('btn-new-category');
     if (btnNew) btnNew.onclick = () => openCategoryForm(null);
+    refreshIcons();
   }
 
   function openCategoryForm(id) {
@@ -962,7 +978,7 @@
     form.onsubmit = async e => {
       e.preventDefault();
       const name = $('cf-name').value.trim();
-      const icon = $('cf-icon').value.trim() || '👗';
+      const icon = $('cf-icon').value.trim() || 'tag';
       if (!name) { Utils.showToast('Informe o nome!', 'error'); return; }
 
       try {
@@ -1015,27 +1031,28 @@
                 `<option value="${s}" ${o.status === s ? 'selected' : ''}>${s.replace('_',' ')}</option>`
               ).join('')}
             </select>
-            <button class="btn btn-secondary btn-sm" onclick="AdminPanel.viewOrder('${o.id}')">👁 Ver</button>
-            <button class="btn btn-danger btn-sm" onclick="AdminPanel.confirmDeleteOrder('${o.id}')">🗑</button>
+            <button class="btn btn-secondary btn-sm" onclick="AdminPanel.viewOrder('${o.id}')" style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="eye" style="width:13px;height:13px;"></i> Ver</button>
+            <button class="btn btn-danger btn-sm" onclick="AdminPanel.confirmDeleteOrder('${o.id}')" title="Excluir"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
           </div>
         </div>
         <div class="admin-card-body" style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
           <div>
-            <strong>👤 ${Utils.sanitize(o.customer?.name || '—')}</strong>
-            <div style="font-size:0.8rem;color:var(--text-muted);">📞 ${Utils.sanitize(o.customer?.phone || '—')}</div>
-            <div style="font-size:0.8rem;color:var(--text-muted);">${o.deliveryType === 'pickup' ? '🏬 Retirada' : `🚚 Entrega: ${Utils.sanitize(o.customer?.address || '—')}`}</div>
+            <div style="display:flex;align-items:center;gap:6px;"><i data-lucide="user" style="width:14px;height:14px;color:var(--text-muted);"></i><strong>${Utils.sanitize(o.customer?.name || '—')}</strong></div>
+            <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;display:flex;align-items:center;gap:6px;"><i data-lucide="phone" style="width:13px;height:13px;"></i>${Utils.sanitize(o.customer?.phone || '—')}</div>
+            <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;display:flex;align-items:center;gap:6px;"><i data-lucide="${o.deliveryType === 'pickup' ? 'store' : 'truck'}" style="width:13px;height:13px;"></i>${o.deliveryType === 'pickup' ? 'Retirada na Loja' : `Entrega: ${Utils.sanitize(o.customer?.address || '—')}`}</div>
           </div>
           <div>
             <div style="font-size:0.8rem;color:var(--text-muted);">Itens:</div>
             ${(o.items || []).map(i => `<div style="font-size:0.82rem;">▸ ${Utils.sanitize(i.name)} ${i.color ? `(${i.color}` : ''}${i.size ? ` Tam.${i.size})` : i.color ? ')' : ''} × ${i.qty}</div>`).join('')}
           </div>
           <div style="margin-left:auto;text-align:right;">
-            <div style="font-size:0.8rem;color:var(--text-muted);">💳 ${Utils.sanitize(o.paymentMethod)}</div>
+            <div style="font-size:0.8rem;color:var(--text-muted);display:flex;align-items:center;justify-content:flex-end;gap:6px;"><i data-lucide="credit-card" style="width:13px;height:13px;"></i>${Utils.sanitize(o.paymentMethod)}</div>
             <div style="font-size:1.2rem;font-weight:700;color:var(--primary);">${Utils.formatCurrency(o.total)}</div>
           </div>
         </div>
       </div>`).join('');
 
+    refreshIcons();
     // Bind status selects
     el.querySelectorAll('.order-status-select').forEach(sel => {
       sel.onchange = async () => {
@@ -1080,6 +1097,7 @@
         </div>`;
     }
     if ($('order-detail-modal')) $('order-detail-modal').classList.add('active');
+    refreshIcons();
   };
 
   window.AdminPanel.confirmDeleteOrder = function (id) {
@@ -1153,16 +1171,27 @@
 
     // Payment methods toggles
     const el = $('payment-methods-list');
+    const getPaymentLucideIcon = (m) => {
+      const id = ((m.id || '') + ' ' + (m.name || '')).toLowerCase();
+      if (id.includes('pix')) return 'qr-code';
+      if (id.includes('card') || id.includes('cartao') || id.includes('crédito') || id.includes('debito')) return 'credit-card';
+      if (id.includes('dinheiro') || id.includes('cash') || id.includes('money')) return 'banknote';
+      return 'wallet';
+    };
+
     if (el) {
       el.innerHTML = methods.map((m, i) => `
         <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);">
-          <span style="font-size:1.4rem;">${m.icon}</span>
-          <span style="flex:1;font-weight:600;">${m.name}</span>
+          <div style="width:36px;height:36px;border-radius:var(--radius-sm);background:var(--bg-input);display:flex;align-items:center;justify-content:center;color:var(--primary);">
+            <i data-lucide="${getPaymentLucideIcon(m)}" style="width:18px;height:18px;"></i>
+          </div>
+          <span style="flex:1;font-weight:600;">${Utils.sanitize(m.name)}</span>
           <label class="toggle-switch">
             <input type="checkbox" id="pay-toggle-${i}" ${m.active ? 'checked' : ''}>
             <span class="toggle-slider"></span>
           </label>
         </div>`).join('');
+      refreshIcons();
     }
 
     if ($('pix-key-type')) $('pix-key-type').value = pix.keyType || 'Celular';
@@ -1261,7 +1290,7 @@
     const s = DataStore.getSettings();
     if ($('v-store-name')) $('v-store-name').value = s.storeName || '';
     if ($('v-store-tagline')) $('v-store-tagline').value = s.storeTagline || '';
-    if ($('v-logo-emoji')) $('v-logo-emoji').value = s.storeLogoEmoji || '⚡';
+    if ($('v-logo-emoji')) $('v-logo-emoji').value = s.storeLogoEmoji || '';
     if ($('v-theme-color')) $('v-theme-color').value = s.themeColor || '#059669';
     if ($('v-hero-title')) $('v-hero-title').value = (s.hero || {}).title || '';
     if ($('v-hero-subtitle')) $('v-hero-subtitle').value = (s.hero || {}).subtitle || '';
@@ -1393,13 +1422,13 @@
       container.innerHTML = igPostsList.map((post, idx) => `
         <div class="ig-manager-card" style="display:flex;gap:12px;padding:12px;border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:12px;background:var(--bg-body);">
           <div style="width:100px;height:100px;background:var(--border);border-radius:4px;overflow:hidden;flex-shrink:0;position:relative;">
-            ${post.image ? `<img src="${Utils.sanitize(post.image)}" style="width:100%;height:100%;object-fit:cover;">` : '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2rem;">📷</span>'}
+            ${post.image ? `<img src="${Utils.sanitize(post.image)}" style="width:100%;height:100%;object-fit:cover;">` : '<i data-lucide="camera" style="width:24px;height:24px;color:var(--text-muted);"></i>'}
           </div>
           <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
             <div style="display:flex;gap:8px;align-items:center;">
               <input type="text" class="form-control" style="flex:1;padding:4px 8px;font-size:0.85rem;" placeholder="URL da Foto ou faça upload" value="${Utils.sanitize(post.image || '')}" onchange="AdminPanel.updateIgPost(${idx}, 'image', this.value)">
-              <label class="btn btn-secondary btn-sm" style="cursor:pointer;padding:4px 8px;font-size:0.8rem;">
-                📁 Upload
+              <label class="btn btn-secondary btn-sm" style="cursor:pointer;padding:4px 8px;font-size:0.8rem;display:inline-flex;align-items:center;gap:4px;">
+                <i data-lucide="upload" style="width:13px;height:13px;"></i> Upload
                 <input type="file" accept="image/*" style="display:none;" onchange="AdminPanel.uploadIgPostImage(${idx}, this)">
               </label>
             </div>
@@ -1410,14 +1439,15 @@
                 <input type="checkbox" ${post.featured ? 'checked' : ''} onchange="AdminPanel.updateIgPost(${idx}, 'featured', this.checked)"> Destaque (maior)
               </label>
               <div style="display:flex;gap:4px;">
-                <button type="button" class="btn btn-secondary btn-sm" onclick="AdminPanel.moveIgPost(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Subir">⬆️</button>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="AdminPanel.moveIgPost(${idx}, 1)" ${idx === igPostsList.length - 1 ? 'disabled' : ''} title="Descer">⬇️</button>
-                <button type="button" class="btn btn-danger btn-sm" onclick="AdminPanel.removeIgPost(${idx})" title="Remover">✕</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="AdminPanel.moveIgPost(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Subir"><i data-lucide="chevron-up" style="width:13px;height:13px;"></i></button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="AdminPanel.moveIgPost(${idx}, 1)" ${idx === igPostsList.length - 1 ? 'disabled' : ''} title="Descer"><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="AdminPanel.removeIgPost(${idx})" title="Remover"><i data-lucide="x" style="width:13px;height:13px;"></i></button>
               </div>
             </div>
           </div>
         </div>
       `).join('');
+      refreshIcons();
     };
 
     window.AdminPanel.updateIgPost = function(idx, field, val) {
@@ -1483,7 +1513,7 @@
         await DataStore.updateSettings({
           storeName: $('v-store-name').value.trim(),
           storeTagline: $('v-store-tagline').value.trim(),
-          storeLogoEmoji: $('v-logo-emoji').value.trim() || '⚡',
+          storeLogoEmoji: $('v-logo-emoji') ? $('v-logo-emoji').value.trim() : '',
           themeColor: $('v-theme-color').value,
           hero: {
             ...(DataStore.getSettings().hero || {}),
@@ -1535,10 +1565,11 @@
     function renderTags() {
       const container = $('size-tags-container');
       if (!container) return;
+      refreshIcons();
       container.innerHTML = sizes.map(s =>
         `<div class="size-tag">
           <span>${Utils.sanitize(s)}</span>
-          <button type="button" class="size-tag-remove" onclick="AdminPanel._removeSize('${Utils.sanitize(s)}')">✕</button>
+          <button type="button" class="size-tag-remove" onclick="AdminPanel._removeSize('${Utils.sanitize(s)}')"><i data-lucide="x" style="width:12px;height:12px;"></i></button>
         </div>`
       ).join('');
     }
