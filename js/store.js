@@ -770,6 +770,9 @@
   }
 
   // ===== COMPLETE LOOKS ("Monte seu Look") =====
+  let lookQueue = []; // Queue of product IDs to add as a look
+  let lookName = '';
+
   function addLookToCart(lookId) {
     if (!DataStore.isStoreOpen()) {
       Utils.showToast('A loja está fechada no momento.', 'error');
@@ -778,7 +781,6 @@
 
     let prodId1 = '';
     let prodId2 = '';
-    let lookName = '';
 
     if (lookId === 'look_sculpt') {
       prodId1 = 'prod_top_cross';
@@ -798,30 +800,16 @@
       return;
     }
 
-    // Helper to pick first in-stock variant & size
-    function pickFirstVariant(product) {
-      const variants = product.variants || [];
-      for (const v of variants) {
-        const sizeEntry = (v.sizes || []).find(s => s.qty > 0);
-        if (sizeEntry) {
-          return { color: v.color, colorHex: v.colorHex, size: sizeEntry.size };
-        }
-      }
-      return { color: '', colorHex: '', size: 'M' };
-    }
-
-    const var1 = pickFirstVariant(p1);
-    const var2 = pickFirstVariant(p2);
-
-    addToCart(p1, var1.color, var1.colorHex, var1.size, 1);
-    addToCart(p2, var2.color, var2.colorHex, var2.size, 1);
-
-    Utils.showToast(`${lookName} adicionado ao seu carrinho!`, 'success');
-    openCart();
+    // Queue: open product modal for the first piece, then second
+    lookQueue = [prodId2]; // Second piece queued
+    Utils.showToast(`Escolha cor e tamanho para a 1ª peça: ${p1.name}`, 'info');
+    openProductModal(prodId1, null, true); // true = isLookMode
   }
 
   // ===== PRODUCT DETAILS MODAL =====
-  function openProductModal(id, preselectedColor = null) {
+  let isLookModeActive = false;
+
+  function openProductModal(id, preselectedColor = null, isLookMode = false) {
     const product = DataStore.getProductById(id);
     if (!product || !product.active) return;
 
@@ -829,13 +817,24 @@
     modalSelectedColor = null;
     modalSelectedSizeVal = null;
     modalQty = 1;
+    isLookModeActive = isLookMode;
     if (modalProductQty) modalProductQty.textContent = 1;
 
     const finalPrice = Utils.calcDiscountedPrice(product.price, product.promotion);
     const hasPromo = product.promotion && product.promotion.active && product.promotion.discountPercent > 0;
 
+    // Show look step indicator in category label
+    if (modalProductCategory) {
+      if (isLookMode && lookQueue.length > 0) {
+        modalProductCategory.textContent = `${lookName} — Peça 1 de 2`;
+      } else if (isLookMode && lookQueue.length === 0) {
+        modalProductCategory.textContent = `${lookName} — Peça 2 de 2`;
+      } else {
+        modalProductCategory.textContent = product.category || 'Fitness';
+      }
+    }
+
     if (modalProductName) modalProductName.textContent = product.name;
-    if (modalProductCategory) modalProductCategory.textContent = product.category || 'Fitness';
     if (modalProductPrice) modalProductPrice.textContent = Utils.formatCurrency(finalPrice);
 
     if (hasPromo) {
@@ -859,7 +858,10 @@
 
     // Badge
     if (modalProductBadge) {
-      if (product.badge) {
+      if (isLookMode) {
+        modalProductBadge.textContent = lookQueue.length > 0 ? 'Peça 1 de 2 (Look)' : 'Peça 2 de 2 (Look)';
+        modalProductBadge.style.display = '';
+      } else if (product.badge) {
         modalProductBadge.textContent = product.badge;
         modalProductBadge.style.display = '';
       } else {
@@ -890,6 +892,12 @@
 
     // Stock Indicator
     updateModalStockIndicator();
+
+    // Look Mode: hide qty selector since each piece is selected individually as 1 unit
+    const qtyBox = $('.product-modal-qty-box');
+    if (qtyBox) {
+      qtyBox.style.display = isLookMode ? 'none' : 'flex';
+    }
 
     // Open Modal
     if (productDetailsModal) productDetailsModal.classList.add('active');
@@ -1055,10 +1063,21 @@
       return;
     }
 
+    function getAddBtnContent() {
+      if (isLookModeActive) {
+        if (lookQueue.length > 0) {
+          return '<i data-lucide="arrow-right"></i> <span>Avançar para 2ª Peça</span>';
+        } else {
+          return '<i data-lucide="check"></i> <span>Finalizar Look</span>';
+        }
+      }
+      return '<i data-lucide="shopping-bag"></i> <span>Adicionar ao Carrinho</span>';
+    }
+
     const hasVariants = (currentProduct.variants || []).length > 0;
     if (!hasVariants) {
       btnModalAddCart.disabled = false;
-      btnModalAddCart.innerHTML = '<i data-lucide="shopping-bag"></i> <span>Adicionar ao Carrinho</span>';
+      btnModalAddCart.innerHTML = getAddBtnContent();
       refreshIcons();
       return;
     }
@@ -1083,14 +1102,21 @@
     }
 
     btnModalAddCart.disabled = false;
-    btnModalAddCart.innerHTML = '<i data-lucide="shopping-bag"></i> <span>Adicionar ao Carrinho</span>';
+    btnModalAddCart.innerHTML = getAddBtnContent();
     refreshIcons();
   }
 
-  function closeProductModal() {
+  function closeProductModal(isUserCancel = false) {
     if (productDetailsModal) productDetailsModal.classList.remove('active');
     document.body.style.overflow = '';
     currentProduct = null;
+    const qtyBox = $('.product-modal-qty-box');
+    if (qtyBox) qtyBox.style.display = 'flex';
+    if (isUserCancel && isLookModeActive) {
+      isLookModeActive = false;
+      lookQueue = [];
+      lookName = '';
+    }
   }
 
   // ===== ABOUT SECTION =====
@@ -1375,7 +1401,7 @@
             <div class="cart-item-price-row">
               <span class="cart-item-price">${Utils.formatCurrency(item.price * item.qty)}</span>
               <div class="cart-item-qty-control">
-                <button type="button" class="btn-qty-sm" onclick="window.StoreApp?.updateCartQty('${item.id}', '${Utils.sanitize(item.color)}', '${Utils.sanitize(item.size)}', -1)" aria-label="Diminuir">">−</button>
+                <button type="button" class="btn-qty-sm" onclick="window.StoreApp?.updateCartQty('${item.id}', '${Utils.sanitize(item.color)}', '${Utils.sanitize(item.size)}', -1)" aria-label="Diminuir">−</button>
                 <span class="qty-sm-val">${item.qty}</span>
                 <button type="button" class="btn-qty-sm" onclick="window.StoreApp?.updateCartQty('${item.id}', '${Utils.sanitize(item.color)}', '${Utils.sanitize(item.size)}', 1)" aria-label="Aumentar">+</button>
               </div>
@@ -1775,12 +1801,19 @@
     }
 
     // Product Modal
-    if (btnCloseProductModal) btnCloseProductModal.addEventListener('click', closeProductModal);
+    if (btnCloseProductModal) btnCloseProductModal.addEventListener('click', () => closeProductModal(true));
     if (productDetailsModal) {
       productDetailsModal.addEventListener('click', e => {
-        if (e.target === productDetailsModal) closeProductModal();
+        if (e.target === productDetailsModal) closeProductModal(true);
       });
     }
+
+    // ESC key closes modal safely
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && productDetailsModal && productDetailsModal.classList.contains('active')) {
+        closeProductModal(true);
+      }
+    });
 
     // Modal Qty buttons
     if (btnModalQtyMinus) {
@@ -1820,7 +1853,25 @@
         const success = addToCart(currentProduct, color, hex, size, modalQty);
         if (success) {
           closeProductModal();
-          openCart(true);
+
+          // If in look mode, process the next product in the queue
+          if (isLookModeActive && lookQueue.length > 0) {
+            const nextProdId = lookQueue.shift();
+            const nextProduct = DataStore.getProductById(nextProdId);
+            if (nextProduct) {
+              Utils.showToast(`Agora escolha cor e tamanho para a 2ª peça: ${nextProduct.name}`, 'info');
+              setTimeout(() => {
+                openProductModal(nextProdId, null, true);
+              }, 300);
+            }
+          } else if (isLookModeActive && lookQueue.length === 0) {
+            // Look complete - both pieces added
+            isLookModeActive = false;
+            Utils.showToast(`${lookName} completo no seu carrinho!`, 'success');
+            openCart(true);
+          } else {
+            openCart(true);
+          }
         }
       });
     }
