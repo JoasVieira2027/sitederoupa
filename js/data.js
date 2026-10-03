@@ -136,6 +136,7 @@ const DEFAULT_SETTINGS = {
   delivery: {
     deliveryEnabled: true,
     deliveryFee: 15.00,
+    freeDeliveryEnabled: true,
     freeDeliveryThreshold: 199.00,
     estimatedTime: '2 a 5 dias úteis',
     pickupEnabled: true,

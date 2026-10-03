@@ -317,66 +317,114 @@
       <div class="admin-section" id="section-delivery">
         <div class="admin-page-header">
           <div>
-            <h1>Entrega & Retirada</h1>
-            <p>Configure frete, valores para isenção e pontos de retirada</p>
+            <h1>Entrega & Frete</h1>
+            <p>Gerencie taxas de frete, regras de frete grátis e opções de retirada</p>
           </div>
         </div>
 
-        <div class="admin-page-body">
+        <div class="admin-page-body" style="display:flex;flex-direction:column;gap:20px;">
+          
+          <!-- Card 1: Frete a Domicílio -->
           <div class="admin-card">
-            <div class="admin-card-header">
+            <div class="admin-card-header" style="display:flex;justify-content:space-between;align-items:center;">
               <h3>
                 <i data-lucide="truck"></i>
-                <span>Configurações de Entrega</span>
+                <span>Entrega a Domicílio</span>
               </h3>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span id="delivery-enabled-label" style="font-size:0.875rem;font-weight:600;color:var(--text-muted);">Ativo</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="delivery-enabled" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
             </div>
             <div class="admin-card-body">
               <div class="admin-form-grid">
                 <div class="form-group">
                   <label for="delivery-fee">Taxa Padrão de Entrega (R$)</label>
-                  <input type="number" id="delivery-fee" class="form-control" min="0" step="0.50" value="15.00">
-                </div>
-                <div class="form-group">
-                  <label for="delivery-free-threshold">Frete Grátis Acima de (R$)</label>
-                  <input type="number" id="delivery-free-threshold" class="form-control" min="0" step="10" value="199.00">
+                  <input type="number" id="delivery-fee" class="form-control" min="0" step="0.50" value="15.00" placeholder="0.00 para frete grátis geral">
+                  <small style="color:var(--text-muted);font-size:0.75rem;margin-top:4px;display:block;">Deixe 0 para frete gratuito em todas as entregas.</small>
                 </div>
                 <div class="form-group">
                   <label for="delivery-time">Prazo Estimado de Entrega</label>
                   <input type="text" id="delivery-time" class="form-control" placeholder="Ex: 2 a 5 dias úteis">
+                  <small style="color:var(--text-muted);font-size:0.75rem;margin-top:4px;display:block;">Exibido no checkout para orientar o cliente.</small>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Campanha de Frete Grátis -->
+          <div class="admin-card">
+            <div class="admin-card-header" style="display:flex;justify-content:space-between;align-items:center;">
+              <h3>
+                <i data-lucide="gift"></i>
+                <span>Campanha de Frete Grátis (Barra no Carrinho)</span>
+              </h3>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span id="free-delivery-enabled-label" style="font-size:0.875rem;font-weight:600;color:var(--text-muted);">Ativo</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="free-delivery-enabled" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+            <div class="admin-card-body">
+              <div class="admin-form-grid">
+                <div class="form-group">
+                  <label for="delivery-free-threshold">Valor Mínimo para Frete Grátis (R$)</label>
+                  <input type="number" id="delivery-free-threshold" class="form-control" min="0" step="10" value="199.00">
+                  <small style="color:var(--text-muted);font-size:0.75rem;margin-top:4px;display:block;">Compras a partir deste valor ganham frete grátis.</small>
+                </div>
+                <div class="form-group" style="display:flex;flex-direction:column;justify-content:center;">
+                  <div style="background:var(--bg-subtle, rgba(5,150,105,0.08));border:1px solid rgba(5,150,105,0.2);border-radius:8px;padding:12px 16px;display:flex;gap:12px;align-items:flex-start;">
+                    <i data-lucide="info" style="color:var(--primary);flex-shrink:0;margin-top:2px;"></i>
+                    <p style="margin:0;font-size:0.825rem;color:var(--text);line-height:1.45;">
+                      <strong>Controle da Barra:</strong> Quando ativada, a barra no carrinho motiva a cliente calculando quanto falta para o frete grátis. Se <strong>desativada</strong>, a barra de frete grátis desaparece do carrinho e o frete não é isentado por valor mínimo.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Retirada no Local -->
+          <div class="admin-card">
+            <div class="admin-card-header" style="display:flex;justify-content:space-between;align-items:center;">
+              <h3>
+                <i data-lucide="store"></i>
+                <span>Retirada no Ponto / Loja</span>
+              </h3>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span id="pickup-enabled-label" style="font-size:0.875rem;font-weight:600;color:var(--text-muted);">Ativo</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="pickup-enabled" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+            <div class="admin-card-body">
+              <div class="admin-form-grid">
                 <div class="form-group">
                   <label for="pickup-address">Endereço / Ponto de Retirada</label>
                   <input type="text" id="pickup-address" class="form-control" placeholder="Rua, número, bairro ou 'Consulte no WhatsApp'">
                 </div>
-              </div>
-
-              <div class="admin-form-grid" style="margin-top:10px;">
                 <div class="form-group">
-                  <label style="display:flex;align-items:center;gap:10px;">
-                    <label class="toggle-switch">
-                      <input type="checkbox" id="delivery-enabled" checked>
-                      <span class="toggle-slider"></span>
-                    </label>
-                    Habilitar Entrega a Domicílio
-                  </label>
-                </div>
-                <div class="form-group">
-                  <label style="display:flex;align-items:center;gap:10px;">
-                    <label class="toggle-switch">
-                      <input type="checkbox" id="pickup-enabled" checked>
-                      <span class="toggle-slider"></span>
-                    </label>
-                    Habilitar Retirada na Loja / Ponto
-                  </label>
+                  <label for="pickup-estimate">Prazo para Retirada</label>
+                  <input type="text" id="pickup-estimate" class="form-control" placeholder="Ex: Pronto em até 2 horas">
                 </div>
               </div>
-
-              <button type="button" class="btn btn-primary" id="btn-save-delivery" style="margin-top:16px;">
-                <i data-lucide="save"></i>
-                <span>Salvar Configurações</span>
-              </button>
             </div>
           </div>
+
+          <div style="display:flex;justify-content:flex-end;">
+            <button type="button" class="btn btn-primary" id="btn-save-delivery" style="padding:12px 24px;font-size:0.95rem;">
+              <i data-lucide="save"></i>
+              <span>Salvar Configurações de Frete</span>
+            </button>
+          </div>
+
         </div>
       </div>
 

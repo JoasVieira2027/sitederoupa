@@ -93,6 +93,7 @@
   const cartTotalEl = $('cart-total');
   const btnCloseCart = $('btn-close-cart');
   const btnCheckout = $('btn-checkout');
+  const cartShippingBanner = $('cart-shipping-banner');
   const cartShippingFill = $('shipping-progress-fill');
   const cartShippingText = $('shipping-progress-text');
 
@@ -1324,22 +1325,33 @@
     if (cartEmpty) cartEmpty.style.display = count === 0 ? 'flex' : 'none';
 
     // Free Shipping Bar
-    const threshold = (settings && settings.delivery && settings.delivery.freeDeliveryThreshold) || 199;
-    if (cartShippingFill && cartShippingText) {
-      if (count === 0) {
-        cartShippingFill.style.width = '0%';
-        cartShippingFill.classList.remove('completed');
-        cartShippingText.innerHTML = `Faltam <strong>${Utils.formatCurrency(threshold)}</strong> para <strong>FRETE GRÁTIS!</strong>`;
-      } else if (total >= threshold) {
-        cartShippingFill.style.width = '100%';
-        cartShippingFill.classList.add('completed');
-        cartShippingText.innerHTML = `<strong>Parabéns!</strong> Você ganhou <strong>FRETE GRÁTIS!</strong>`;
+    const d = (settings && settings.delivery) || {};
+    const isDeliveryOn = d.deliveryEnabled !== false;
+    const isFreeShippingActive = isDeliveryOn && (d.freeDeliveryEnabled !== false);
+    const threshold = d.freeDeliveryThreshold !== undefined ? d.freeDeliveryThreshold : 199;
+
+    if (cartShippingBanner) {
+      if (!isFreeShippingActive) {
+        cartShippingBanner.style.display = 'none';
       } else {
-        const remaining = threshold - total;
-        const pct = Math.min(100, Math.round((total / threshold) * 100));
-        cartShippingFill.style.width = `${pct}%`;
-        cartShippingFill.classList.remove('completed');
-        cartShippingText.innerHTML = `Faltam <strong>${Utils.formatCurrency(remaining)}</strong> para <strong>FRETE GRÁTIS!</strong>`;
+        cartShippingBanner.style.display = '';
+        if (cartShippingFill && cartShippingText) {
+          if (count === 0) {
+            cartShippingFill.style.width = '0%';
+            cartShippingFill.classList.remove('completed');
+            cartShippingText.innerHTML = `Faltam <strong>${Utils.formatCurrency(threshold)}</strong> para <strong>FRETE GRÁTIS!</strong>`;
+          } else if (total >= threshold) {
+            cartShippingFill.style.width = '100%';
+            cartShippingFill.classList.add('completed');
+            cartShippingText.innerHTML = `<strong>Parabéns!</strong> Você ganhou <strong>FRETE GRÁTIS!</strong>`;
+          } else {
+            const remaining = threshold - total;
+            const pct = Math.min(100, Math.round((total / threshold) * 100));
+            cartShippingFill.style.width = `${pct}%`;
+            cartShippingFill.classList.remove('completed');
+            cartShippingText.innerHTML = `Faltam <strong>${Utils.formatCurrency(remaining)}</strong> para <strong>FRETE GRÁTIS!</strong>`;
+          }
+        }
       }
     }
 
@@ -1574,16 +1586,18 @@
     }
   }
 
-  function renderCheckoutSummary() {
+  function calculateDeliveryFee(subtotal) {
     const s = DataStore.getSettings();
     const d = s.delivery || {};
-    const subtotal = getCartTotal();
+    if (deliveryType !== 'delivery' || d.deliveryEnabled === false) return 0;
+    const isFreeActive = d.freeDeliveryEnabled !== false;
+    const freeAt = isFreeActive ? (d.freeDeliveryThreshold !== undefined ? d.freeDeliveryThreshold : 199) : Infinity;
+    return subtotal >= freeAt ? 0 : (parseFloat(d.deliveryFee) || 0);
+  }
 
-    let fee = 0;
-    if (deliveryType === 'delivery' && d.deliveryEnabled) {
-      const freeAt = d.freeDeliveryThreshold || 199;
-      fee = subtotal >= freeAt ? 0 : (d.deliveryFee || 0);
-    }
+  function renderCheckoutSummary() {
+    const subtotal = getCartTotal();
+    const fee = calculateDeliveryFee(subtotal);
     const total = subtotal + fee;
 
     if (checkoutSubtotal) checkoutSubtotal.textContent = Utils.formatCurrency(subtotal);
@@ -1603,11 +1617,8 @@
   // ===== WHATSAPP ORDER SUBMISSION =====
   function buildWhatsAppMessage(customerData) {
     const s = DataStore.getSettings();
-    const d = s.delivery || {};
     const subtotal = getCartTotal();
-    const fee = deliveryType === 'delivery' && d.deliveryEnabled
-      ? (subtotal >= (d.freeDeliveryThreshold || 199) ? 0 : (d.deliveryFee || 0))
-      : 0;
+    const fee = calculateDeliveryFee(subtotal);
     const total = subtotal + fee;
 
     let msg = `[NOVO PEDIDO] — ${s.storeName}\n`;
@@ -1686,9 +1697,7 @@
     }
 
     const subtotal = getCartTotal();
-    const fee = deliveryType === 'delivery' && d.deliveryEnabled
-      ? (subtotal >= (d.freeDeliveryThreshold || 199) ? 0 : (d.deliveryFee || 0))
-      : 0;
+    const fee = calculateDeliveryFee(subtotal);
     const total = subtotal + fee;
     const payLabel = (s.paymentMethods || []).find(m => m.id === selectedPayment)?.name || selectedPayment;
 
@@ -1938,6 +1947,17 @@
         isHeaderTicking = true;
       }
     }, { passive: true });
+
+    // Cross-tab settings sync (e.g., shipping changes made in admin panel)
+    window.addEventListener('storage', e => {
+      if (e.key === 'fitvibe_settings') {
+        settings = DataStore.getSettings();
+        updateCartUI();
+        if (checkoutModal && checkoutModal.classList.contains('active')) {
+          renderCheckoutSummary();
+        }
+      }
+    });
   }
 
   // Ref close product modal button selector

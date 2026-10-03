@@ -1131,36 +1131,93 @@
   function renderDelivery() {
     const settings = DataStore.getSettings();
     const d = settings.delivery || {};
-    if ($('delivery-fee')) $('delivery-fee').value = d.deliveryFee ?? 15;
-    if ($('delivery-free-threshold')) $('delivery-free-threshold').value = d.freeDeliveryThreshold ?? 250;
-    if ($('delivery-time')) $('delivery-time').value = d.estimatedTime || '';
-    if ($('pickup-address')) $('pickup-address').value = d.pickupAddress || '';
-    if ($('delivery-enabled')) $('delivery-enabled').checked = d.deliveryEnabled !== false;
-    if ($('pickup-enabled')) $('pickup-enabled').checked = d.pickupEnabled !== false;
+
+    const elDeliveryEnabled = $('delivery-enabled');
+    const elDeliveryFee = $('delivery-fee');
+    const elDeliveryFreeThreshold = $('delivery-free-threshold');
+    const elFreeDeliveryEnabled = $('free-delivery-enabled');
+    const elDeliveryTime = $('delivery-time');
+    const elPickupEnabled = $('pickup-enabled');
+    const elPickupAddress = $('pickup-address');
+    const elPickupEstimate = $('pickup-estimate');
+
+    const isDeliveryOn = d.deliveryEnabled !== false;
+    const isFreeOn = d.freeDeliveryEnabled !== false;
+    const isPickupOn = d.pickupEnabled !== false;
+
+    if (elDeliveryEnabled) {
+      elDeliveryEnabled.checked = isDeliveryOn;
+      const lbl = $('delivery-enabled-label');
+      if (lbl) lbl.textContent = isDeliveryOn ? 'Ativo' : 'Desativado';
+      elDeliveryEnabled.onchange = () => {
+        if (lbl) lbl.textContent = elDeliveryEnabled.checked ? 'Ativo' : 'Desativado';
+      };
+    }
+
+    if (elFreeDeliveryEnabled) {
+      elFreeDeliveryEnabled.checked = isFreeOn;
+      const lbl = $('free-delivery-enabled-label');
+      if (lbl) lbl.textContent = isFreeOn ? 'Ativo' : 'Desativado';
+      if (elDeliveryFreeThreshold) {
+        elDeliveryFreeThreshold.disabled = !isFreeOn;
+        elDeliveryFreeThreshold.style.opacity = isFreeOn ? '1' : '0.5';
+      }
+      elFreeDeliveryEnabled.onchange = () => {
+        const active = elFreeDeliveryEnabled.checked;
+        if (lbl) lbl.textContent = active ? 'Ativo' : 'Desativado';
+        if (elDeliveryFreeThreshold) {
+          elDeliveryFreeThreshold.disabled = !active;
+          elDeliveryFreeThreshold.style.opacity = active ? '1' : '0.5';
+        }
+      };
+    }
+
+    if (elPickupEnabled) {
+      elPickupEnabled.checked = isPickupOn;
+      const lbl = $('pickup-enabled-label');
+      if (lbl) lbl.textContent = isPickupOn ? 'Ativo' : 'Desativado';
+      elPickupEnabled.onchange = () => {
+        if (lbl) lbl.textContent = elPickupEnabled.checked ? 'Ativo' : 'Desativado';
+      };
+    }
+
+    if (elDeliveryFee) elDeliveryFee.value = d.deliveryFee !== undefined ? d.deliveryFee : 15;
+    if (elDeliveryFreeThreshold) elDeliveryFreeThreshold.value = d.freeDeliveryThreshold !== undefined ? d.freeDeliveryThreshold : 199;
+    if (elDeliveryTime) elDeliveryTime.value = d.estimatedTime || '';
+    if (elPickupAddress) elPickupAddress.value = d.pickupAddress || '';
+    if (elPickupEstimate) elPickupEstimate.value = d.pickupEstimate || 'Pronto em até 2 horas';
 
     const btn = $('btn-save-delivery');
     if (btn) btn.onclick = async () => {
-      const origText = btn.textContent;
+      const origHtml = btn.innerHTML;
       try {
         btn.disabled = true;
-        btn.textContent = 'Salvando...';
-        await DataStore.updateSetting('delivery', {
-          deliveryEnabled: $('delivery-enabled').checked,
-          deliveryFee: parseFloat($('delivery-fee').value) || 0,
-          freeDeliveryThreshold: parseFloat($('delivery-free-threshold').value) || 0,
-          estimatedTime: $('delivery-time').value.trim(),
-          pickupEnabled: $('pickup-enabled').checked,
-          pickupAddress: $('pickup-address').value.trim(),
-          pickupEstimate: 'Pronto em até 1 hora'
-        });
-        Utils.showToast('Configurações de entrega salvas com sucesso!', 'success');
+        btn.innerHTML = '<i data-lucide="loader" class="spin"></i> <span>Salvando...</span>';
+        refreshIcons();
+
+        const updatedDelivery = {
+          deliveryEnabled: elDeliveryEnabled ? elDeliveryEnabled.checked : true,
+          deliveryFee: elDeliveryFee ? (parseFloat(elDeliveryFee.value) || 0) : 15,
+          freeDeliveryEnabled: elFreeDeliveryEnabled ? elFreeDeliveryEnabled.checked : true,
+          freeDeliveryThreshold: elDeliveryFreeThreshold ? (parseFloat(elDeliveryFreeThreshold.value) || 0) : 199,
+          estimatedTime: elDeliveryTime ? elDeliveryTime.value.trim() : '',
+          pickupEnabled: elPickupEnabled ? elPickupEnabled.checked : true,
+          pickupAddress: elPickupAddress ? elPickupAddress.value.trim() : '',
+          pickupEstimate: elPickupEstimate ? elPickupEstimate.value.trim() : 'Pronto em até 2 horas'
+        };
+
+        await DataStore.updateSetting('delivery', updatedDelivery);
+        Utils.showToast('Configurações de frete e entrega salvas com sucesso!', 'success');
       } catch (err) {
         Utils.showToast('Erro ao salvar entrega: ' + (err.message || ''), 'error');
       } finally {
         btn.disabled = false;
-        btn.textContent = origText;
+        btn.innerHTML = origHtml;
+        refreshIcons();
       }
     };
+
+    refreshIcons();
   }
 
   // ===== 10. PAYMENTS =====
