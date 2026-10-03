@@ -93,7 +93,7 @@
   const cartTotalEl = $('cart-total');
   const btnCloseCart = $('btn-close-cart');
   const btnCheckout = $('btn-checkout');
-  const cartShippingBanner = $('cart-shipping-banner');
+  const cartShippingBanner = $('cart-shipping-progress') || $('cart-shipping-banner');
   const cartShippingFill = $('shipping-progress-fill');
   const cartShippingText = $('shipping-progress-text');
 
@@ -1325,31 +1325,34 @@
     if (cartEmpty) cartEmpty.style.display = count === 0 ? 'flex' : 'none';
 
     // Free Shipping Bar
-    const d = (settings && settings.delivery) || {};
+    const d = (settings && settings.delivery) || (DataStore.getSettings()?.delivery) || {};
     const isDeliveryOn = d.deliveryEnabled !== false;
     const isFreeShippingActive = isDeliveryOn && (d.freeDeliveryEnabled !== false);
-    const threshold = d.freeDeliveryThreshold !== undefined ? d.freeDeliveryThreshold : 199;
+    const threshold = parseFloat(d.freeDeliveryThreshold) || 199;
+    const banner = $('cart-shipping-progress') || cartShippingBanner;
+    const fill = $('shipping-progress-fill') || cartShippingFill;
+    const txt = $('shipping-progress-text') || cartShippingText;
 
-    if (cartShippingBanner) {
+    if (banner) {
       if (!isFreeShippingActive) {
-        cartShippingBanner.style.display = 'none';
+        banner.style.display = 'none';
       } else {
-        cartShippingBanner.style.display = '';
-        if (cartShippingFill && cartShippingText) {
+        banner.style.display = '';
+        if (fill && txt) {
           if (count === 0) {
-            cartShippingFill.style.width = '0%';
-            cartShippingFill.classList.remove('completed');
-            cartShippingText.innerHTML = `Faltam <strong>${Utils.formatCurrency(threshold)}</strong> para <strong>FRETE GRÁTIS!</strong>`;
+            fill.style.width = '0%';
+            fill.classList.remove('completed');
+            txt.innerHTML = `Faltam <strong>${Utils.formatCurrency(threshold)}</strong> para <strong>FRETE GRÁTIS!</strong>`;
           } else if (total >= threshold) {
-            cartShippingFill.style.width = '100%';
-            cartShippingFill.classList.add('completed');
-            cartShippingText.innerHTML = `<strong>Parabéns!</strong> Você ganhou <strong>FRETE GRÁTIS!</strong>`;
+            fill.style.width = '100%';
+            fill.classList.add('completed');
+            txt.innerHTML = `<strong>Parabéns!</strong> Você ganhou <strong>FRETE GRÁTIS!</strong>`;
           } else {
             const remaining = threshold - total;
-            const pct = Math.min(100, Math.round((total / threshold) * 100));
-            cartShippingFill.style.width = `${pct}%`;
-            cartShippingFill.classList.remove('completed');
-            cartShippingText.innerHTML = `Faltam <strong>${Utils.formatCurrency(remaining)}</strong> para <strong>FRETE GRÁTIS!</strong>`;
+            const pct = Math.min(100, Math.max(6, Math.round((total / threshold) * 100)));
+            fill.style.width = `${pct}%`;
+            fill.classList.remove('completed');
+            txt.innerHTML = `Faltam <strong>${Utils.formatCurrency(remaining)}</strong> para <strong>FRETE GRÁTIS!</strong>`;
           }
         }
       }
