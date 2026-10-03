@@ -376,11 +376,14 @@
           </div>
 
           <div class="admin-card">
-            <div class="admin-card-header"><h3>📢 Barra de Anúncio</h3></div>
+            <div class="admin-card-header" style="display:flex;align-items:center;justify-content:space-between;">
+              <h3>📢 Barra de Anúncio (Topo do Site)</h3>
+              <span id="v-ann-badge" class="status-badge inactive">Desativada</span>
+            </div>
             <div class="admin-card-body">
               <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
                 <label class="toggle-switch"><input type="checkbox" id="v-ann-active"><span class="toggle-slider"></span></label>
-                <span style="font-size:0.875rem;font-weight:600;">Exibir barra de anúncio</span>
+                <span style="font-size:0.875rem;font-weight:600;">Exibir barra de anúncio no topo do site</span>
               </div>
               <div class="form-group">
                 <label>Texto do Anúncio</label>

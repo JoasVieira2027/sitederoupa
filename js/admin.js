@@ -1287,8 +1287,46 @@
         } catch (err) { Utils.showToast('Erro: ' + (err.message || ''), 'error'); }
       };
     }
-    if ($('v-ann-active')) $('v-ann-active').checked = (s.announcementBar || {}).active || false;
-    if ($('v-ann-text')) $('v-ann-text').value = (s.announcementBar || {}).text || '';
+    const ann = s.announcementBar || {};
+    const annActive = ann.active === true || ann.active === 'true';
+    const annCheckbox = $('v-ann-active');
+    const annBadge = $('v-ann-badge');
+    const annText = $('v-ann-text');
+
+    if (annCheckbox) {
+      annCheckbox.checked = annActive;
+      if (annBadge) {
+        annBadge.textContent = annActive ? 'Ativa' : 'Desativada';
+        annBadge.className = `status-badge ${annActive ? 'active' : 'inactive'}`;
+      }
+
+      annCheckbox.onchange = async () => {
+        const isActive = annCheckbox.checked;
+        if (annBadge) {
+          annBadge.textContent = isActive ? 'Ativa' : 'Desativada';
+          annBadge.className = `status-badge ${isActive ? 'active' : 'inactive'}`;
+        }
+        try {
+          const currentSettings = DataStore.getSettings();
+          const currentAnn = currentSettings.announcementBar || {};
+          await DataStore.updateSetting('announcementBar', {
+            ...currentAnn,
+            active: isActive,
+            text: (annText ? annText.value.trim() : '') || currentAnn.text || ''
+          });
+          Utils.showToast(isActive ? 'Barra de anúncio ativada!' : 'Barra de anúncio desativada!', 'info');
+        } catch (err) {
+          console.error(err);
+          Utils.showToast('Erro ao atualizar barra de anúncio: ' + (err.message || ''), 'error');
+          annCheckbox.checked = !isActive;
+          if (annBadge) {
+            annBadge.textContent = !isActive ? 'Ativa' : 'Desativada';
+            annBadge.className = `status-badge ${!isActive ? 'active' : 'inactive'}`;
+          }
+        }
+      };
+    }
+    if (annText) annText.value = ann.text || '';
 
     // Featured Collection settings
     const f = s.featuredCollection || {};

@@ -184,11 +184,16 @@
 
     // Announcement
     const ann = settings.announcementBar;
-    if (ann && ann.active && ann.text && announcementBar) {
-      if (announcementText) announcementText.textContent = ann.text;
-      announcementBar.classList.remove('hidden');
-    } else if (announcementBar) {
-      announcementBar.classList.add('hidden');
+    const isAnnActive = Boolean(ann && (ann.active === true || ann.active === 'true'));
+    if (announcementBar) {
+      if (isAnnActive && ann.text && ann.text.trim()) {
+        if (announcementText) announcementText.textContent = ann.text;
+        announcementBar.classList.remove('hidden');
+        announcementBar.style.display = '';
+      } else {
+        announcementBar.classList.add('hidden');
+        announcementBar.style.display = 'none';
+      }
     }
 
     // Hero
@@ -251,18 +256,42 @@
     if (!categoriesFilter) return;
     const categories = DataStore.getCategories();
 
-    let html = `<button class="category-btn ${currentCategory === 'all' ? 'active' : ''}" data-cat="all" id="cat-btn-all">
+    let html = `<button class="category-btn ${currentCategory === 'all' ? 'active' : ''}" data-cat="all" id="cat-btn-all" onclick="window.StoreApp?.selectCategory('all')">
       <span class="category-icon">✨</span> Todos
     </button>`;
 
     categories.forEach(cat => {
-      const isActive = currentCategory === cat.name;
-      html += `<button class="category-btn ${isActive ? 'active' : ''}" data-cat="${Utils.sanitize(cat.name)}" id="cat-btn-${cat.id}">
-        <span class="category-icon">${cat.icon || '👗'}</span> ${Utils.sanitize(cat.name)}
+      const isSel = currentCategory.trim().toLowerCase() === cat.name.trim().toLowerCase();
+      const safeCatName = Utils.sanitize(cat.name);
+      html += `<button class="category-btn ${isSel ? 'active' : ''}" data-cat="${safeCatName}" id="cat-btn-${cat.id}" onclick="window.StoreApp?.selectCategory('${safeCatName.replace(/'/g, "\\'")}')">
+        <span class="category-icon">${cat.icon || '👗'}</span> ${safeCatName}
       </button>`;
     });
 
     categoriesFilter.innerHTML = html;
+  }
+
+  // ===== SELECT CATEGORY =====
+  function selectCategory(catName) {
+    currentCategory = catName || 'all';
+
+    // Update active class on category buttons
+    $$('.category-btn').forEach(btn => {
+      const btnCat = btn.dataset.cat || 'all';
+      if (btnCat.trim().toLowerCase() === currentCategory.trim().toLowerCase()) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    renderProducts();
+
+    // Smooth scroll down to products so customer immediately sees the results
+    const prodSection = $('products');
+    if (prodSection) {
+      prodSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
   // ===== PRODUCTS =====
@@ -270,13 +299,44 @@
     if (!productsGrid) return;
     let products = DataStore.getProducts();
 
+    // Hide or show Featured Collection depending on category
+    const featuredSec = $('featured-section');
+    if (featuredSec) {
+      if (currentCategory !== 'all') {
+        featuredSec.classList.add('hidden');
+      } else {
+        const f = (settings && settings.featuredCollection) || {};
+        if (f.active !== false) {
+          featuredSec.classList.remove('hidden');
+        }
+      }
+    }
+
+    // Dynamic section header based on active category
+    const prodTitle = document.querySelector('#products .section-header h2');
+    const prodLabel = document.querySelector('#products .section-header .section-label');
+    const prodDesc = document.querySelector('#products .section-header p');
+
     if (currentCategory !== 'all') {
-      products = products.filter(p => p.category === currentCategory);
+      products = products.filter(p => p.category && p.category.trim().toLowerCase() === currentCategory.trim().toLowerCase());
+      if (prodTitle) prodTitle.textContent = currentCategory;
+      if (prodLabel) prodLabel.textContent = `Categoria Selecionada (${products.length} peças)`;
+      if (prodDesc) prodDesc.textContent = `Exibindo peças da categoria ${currentCategory}`;
+    } else {
+      if (prodTitle) prodTitle.textContent = 'Nossas Peças';
+      if (prodLabel) prodLabel.textContent = 'Coleção Fitness';
+      if (prodDesc) prodDesc.textContent = 'Alta compressão, respirabilidade máxima e zero transparência';
     }
 
     if (!products.length) {
       productsGrid.innerHTML = '';
-      if (emptyProducts) emptyProducts.classList.remove('hidden');
+      if (emptyProducts) {
+        emptyProducts.classList.remove('hidden');
+        const emptyTitle = emptyProducts.querySelector('h3');
+        const emptyDesc = emptyProducts.querySelector('p');
+        if (emptyTitle) emptyTitle.textContent = currentCategory !== 'all' ? `Nenhuma peça em "${currentCategory}" no momento` : 'Nenhum produto encontrado';
+        if (emptyDesc) emptyDesc.textContent = currentCategory !== 'all' ? 'Novidades exclusivas chegando em breve nesta categoria! Confira outras peças.' : 'Novidades da coleção fitness chegando em breve!';
+      }
       return;
     }
 
@@ -1391,10 +1451,7 @@
       categoriesFilter.onclick = e => {
         const btn = e.target.closest('.category-btn');
         if (!btn) return;
-        $$('.category-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentCategory = btn.dataset.cat;
-        renderProducts();
+        selectCategory(btn.dataset.cat);
       };
     }
 
@@ -1537,6 +1594,13 @@
       }
     }, { passive: true });
   }
+
+  // Expose global methods for inline handlers
+  window.StoreApp = {
+    selectCategory,
+    openProductModal,
+    openCart
+  };
 
   // ===== START =====
   if (document.readyState === 'loading') {
