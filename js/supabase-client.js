@@ -76,8 +76,15 @@
         };
       }
 
-      // No credentials in frontend code - secure architecture
-      return null;
+      // 5. Built-in project configuration fallback (guarantees connectivity across all hosts and devices)
+      const DEFAULT_URL = 'https://vsetnxbjzwimipofibhw.supabase.co';
+      const DEFAULT_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzZXRueGJqendpbWlwb2ZpYmh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NjAzMTMsImV4cCI6MjEwNjUzNjMxM30.9vdcciYa7jh1unUkF4GR6dOBBXHXpk1ATybdmiQUUmU';
+
+      return {
+        url: DEFAULT_URL,
+        anonKey: DEFAULT_ANON,
+        source: 'project_default'
+      };
     },
 
     /**

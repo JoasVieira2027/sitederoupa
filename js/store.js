@@ -120,8 +120,7 @@
 
   // ===== INIT =====
   async function init() {
-    // enableRealtime: false para loja pública poupa conexões e limites do Supabase
-    await DataStore.init({ enableRealtime: false, isAdmin: false });
+    await DataStore.init({ enableRealtime: true, isAdmin: false });
     settings = DataStore.getSettings();
 
     applyBranding();
@@ -135,6 +134,29 @@
     bindEvents();
     loadCart();
     updateCartUI();
+
+    // Listen to real-time sync events from Supabase / Admin changes
+    document.addEventListener('settings-updated', () => {
+      settings = DataStore.getSettings();
+      applyBranding();
+      applyStoreStatus();
+      renderFeaturedCollection();
+      renderAbout();
+      renderInstagramFeed();
+      renderFooter();
+      renderProducts();
+      updateCartUI();
+    });
+
+    document.addEventListener('categories-updated', () => {
+      renderCategories();
+    });
+
+    document.addEventListener('products-updated', () => {
+      renderFeaturedCollection();
+      renderProducts();
+      renderCategories();
+    });
   }
 
   // ===== BRANDING =====
@@ -165,6 +187,8 @@
     if (ann && ann.active && ann.text && announcementBar) {
       if (announcementText) announcementText.textContent = ann.text;
       announcementBar.classList.remove('hidden');
+    } else if (announcementBar) {
+      announcementBar.classList.add('hidden');
     }
 
     // Hero
@@ -226,31 +250,19 @@
   function renderCategories() {
     if (!categoriesFilter) return;
     const categories = DataStore.getCategories();
-    const products = DataStore.getProducts();
 
-    // Only show categories that have active products
-    const usedCats = new Set(products.map(p => p.category));
-
-    let html = `<button class="category-btn active" data-cat="all" id="cat-btn-all">
+    let html = `<button class="category-btn ${currentCategory === 'all' ? 'active' : ''}" data-cat="all" id="cat-btn-all">
       <span class="category-icon">✨</span> Todos
     </button>`;
 
-    categories.filter(c => usedCats.has(c.name)).forEach(cat => {
-      html += `<button class="category-btn" data-cat="${Utils.sanitize(cat.name)}" id="cat-btn-${cat.id}">
+    categories.forEach(cat => {
+      const isActive = currentCategory === cat.name;
+      html += `<button class="category-btn ${isActive ? 'active' : ''}" data-cat="${Utils.sanitize(cat.name)}" id="cat-btn-${cat.id}">
         <span class="category-icon">${cat.icon || '👗'}</span> ${Utils.sanitize(cat.name)}
       </button>`;
     });
 
     categoriesFilter.innerHTML = html;
-
-    categoriesFilter.addEventListener('click', e => {
-      const btn = e.target.closest('.category-btn');
-      if (!btn) return;
-      $$('.category-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentCategory = btn.dataset.cat;
-      renderProducts();
-    });
   }
 
   // ===== PRODUCTS =====
@@ -1374,6 +1386,18 @@
 
   // ===== EVENTS =====
   function bindEvents() {
+    // Categories filter click delegation
+    if (categoriesFilter) {
+      categoriesFilter.onclick = e => {
+        const btn = e.target.closest('.category-btn');
+        if (!btn) return;
+        $$('.category-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentCategory = btn.dataset.cat;
+        renderProducts();
+      };
+    }
+
     // Cart open
     if (btnOpenCart) btnOpenCart.addEventListener('click', openCart);
     if (cartOverlay) cartOverlay.addEventListener('click', closeCart);

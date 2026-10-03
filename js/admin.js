@@ -122,10 +122,34 @@
     // Open dashboard
     navigateTo('dashboard');
 
-    // Listen to real-time orders update
+    // Listen to real-time events from Supabase
     document.addEventListener('orders-updated', () => {
       if (currentSection === 'dashboard') renderDashboard();
       if (currentSection === 'orders') renderOrders();
+    });
+
+    document.addEventListener('settings-updated', () => {
+      const s = DataStore.getSettings();
+      const toggle = $('dash-store-toggle');
+      const badge = $('dash-store-state-badge');
+      if (toggle && toggle.checked !== (s.storeOpen !== false)) {
+        toggle.checked = s.storeOpen !== false;
+      }
+      if (badge) {
+        badge.textContent = s.storeOpen !== false ? 'ABERTA' : 'FECHADA';
+        badge.className = `status-badge ${s.storeOpen !== false ? 'active' : 'inactive'}`;
+      }
+    });
+
+    document.addEventListener('categories-updated', () => {
+      if (currentSection === 'categories') renderCategories();
+      if (currentSection === 'stock') renderStock();
+    });
+
+    document.addEventListener('products-updated', () => {
+      if (currentSection === 'products') renderProducts();
+      if (currentSection === 'stock') renderStock();
+      if (currentSection === 'dashboard') renderDashboard();
     });
   }
 
@@ -173,12 +197,30 @@
     const toggle = $('dash-store-toggle');
     const badge = $('dash-store-state-badge');
     if (toggle) {
-      toggle.checked = settings.storeOpen;
-      if (badge) { badge.textContent = settings.storeOpen ? 'ABERTA' : 'FECHADA'; badge.className = `status-badge ${settings.storeOpen ? 'active' : 'inactive'}`; }
+      const isOpen = settings.storeOpen !== false;
+      toggle.checked = isOpen;
+      if (badge) {
+        badge.textContent = isOpen ? 'ABERTA' : 'FECHADA';
+        badge.className = `status-badge ${isOpen ? 'active' : 'inactive'}`;
+      }
       toggle.onchange = async () => {
-        await DataStore.updateSetting('storeOpen', toggle.checked);
-        if (badge) { badge.textContent = toggle.checked ? 'ABERTA' : 'FECHADA'; badge.className = `status-badge ${toggle.checked ? 'active' : 'inactive'}`; }
-        Utils.showToast(toggle.checked ? 'Loja aberta!' : 'Loja fechada!', 'info');
+        const newState = toggle.checked;
+        if (badge) {
+          badge.textContent = newState ? 'ABERTA' : 'FECHADA';
+          badge.className = `status-badge ${newState ? 'active' : 'inactive'}`;
+        }
+        try {
+          await DataStore.updateSetting('storeOpen', newState);
+          Utils.showToast(newState ? 'Loja aberta com sucesso!' : 'Loja fechada!', 'info');
+        } catch (err) {
+          console.error('[Admin] Erro ao alternar loja:', err);
+          Utils.showToast('Erro ao salvar status: ' + (err.message || ''), 'error');
+          toggle.checked = !newState;
+          if (badge) {
+            badge.textContent = !newState ? 'ABERTA' : 'FECHADA';
+            badge.className = `status-badge ${!newState ? 'active' : 'inactive'}`;
+          }
+        }
       };
     }
 
@@ -928,6 +970,7 @@
         Utils.showToast(editingCategoryId ? 'Categoria atualizada!' : 'Categoria criada!', 'success');
         if ($('category-form-modal')) $('category-form-modal').classList.remove('active');
         renderCategories();
+        renderStock();
       } catch (err) {
         Utils.showToast('Erro: ' + (err.message || ''), 'error');
       }
@@ -1358,7 +1401,10 @@
 
     const btn = $('btn-save-visual');
     if (btn) btn.onclick = async () => {
+      const origText = btn.textContent;
       try {
+        btn.disabled = true;
+        btn.textContent = 'Salvando...';
         await DataStore.updateSettings({
           storeName: $('v-store-name').value.trim(),
           storeTagline: $('v-store-tagline').value.trim(),
@@ -1399,6 +1445,9 @@
         if ($('admin-brand-icon')) $('admin-brand-icon').textContent = $('v-logo-emoji').value.trim();
       } catch (err) {
         Utils.showToast('Erro: ' + (err.message || ''), 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = origText;
       }
     };
   }

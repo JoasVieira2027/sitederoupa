@@ -368,10 +368,15 @@ const DataStore = (function () {
 
   // ===== LOAD FUNCTIONS =====
   async function _loadCategories() {
-    if (!_isAdmin && _isCacheValid(DB_KEYS.CATEGORIES)) {
-      const cached = _loadLocal(DB_KEYS.CATEGORIES);
-      if (cached && cached.length) { _categories = cached; return; }
+    // 1. Initial fast local load
+    const local = _loadLocal(DB_KEYS.CATEGORIES);
+    if (local && local.length) {
+      _categories = local;
+    } else {
+      _categories = [...DEFAULT_CATEGORIES];
     }
+
+    // 2. Fresh sync from Supabase
     if (_supabase) {
       try {
         const { data, error } = await _supabase.from('categories').select('*').order('name');
@@ -382,35 +387,41 @@ const DataStore = (function () {
         }
       } catch (e) { console.warn('[DataStore] categories fetch error:', e); }
     }
-    const local = _loadLocal(DB_KEYS.CATEGORIES);
-    _categories = local && local.length ? local : [...DEFAULT_CATEGORIES];
   }
 
   async function _loadProducts() {
-    if (!_isAdmin && _isCacheValid(DB_KEYS.PRODUCTS)) {
-      const cached = _loadLocal(DB_KEYS.PRODUCTS);
-      if (cached && cached.length) { _products = cached; return; }
+    // 1. Initial fast local load
+    const local = _loadLocal(DB_KEYS.PRODUCTS);
+    if (local && local.length) {
+      _products = local;
+    } else {
+      _products = [...DEFAULT_PRODUCTS];
     }
+    _products.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+    // 2. Fresh sync from Supabase
     if (_supabase) {
       try {
         const { data, error } = await _supabase.from('products').select('*');
         if (!error && data) {
-          _products = data.map(_mapProduct).sort((a, b) => a.displayOrder - b.displayOrder || new Date(b.createdAt) - new Date(a.createdAt));
+          _products = data.map(_mapProduct).sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
           _saveLocal(DB_KEYS.PRODUCTS, _products);
           return;
         }
       } catch (e) { console.warn('[DataStore] products fetch error:', e); }
     }
-    const local = _loadLocal(DB_KEYS.PRODUCTS);
-    _products = local && local.length ? local : [...DEFAULT_PRODUCTS];
-    _products.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
   }
 
   async function _loadSettings() {
-    if (!_isAdmin && _isCacheValid(DB_KEYS.SETTINGS)) {
-      const cached = _loadLocal(DB_KEYS.SETTINGS);
-      if (cached && cached.storeName) { _settings = cached; return; }
+    // 1. Initial fast local load
+    const local = _loadLocal(DB_KEYS.SETTINGS);
+    if (local && local.storeName) {
+      _settings = local;
+    } else {
+      _settings = { ...DEFAULT_SETTINGS };
     }
+
+    // 2. Fresh sync from Supabase
     if (_supabase) {
       try {
         const { data, error } = await _supabase.from('settings').select('*').eq('id', 'main').single();
@@ -421,8 +432,6 @@ const DataStore = (function () {
         }
       } catch (e) { console.warn('[DataStore] settings fetch error:', e); }
     }
-    const local = _loadLocal(DB_KEYS.SETTINGS);
-    _settings = local && local.storeName ? local : { ...DEFAULT_SETTINGS };
   }
 
   async function _loadOrders() {
@@ -437,12 +446,22 @@ const DataStore = (function () {
 
   // ===== REALTIME =====
   function _setupRealtime() {
+    if (!_supabase) return;
     if (_realtimeChannel) { _supabase.removeChannel(_realtimeChannel); }
     _realtimeChannel = _supabase
       .channel('fashion-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => { _loadProducts(); })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, () => { _loadCategories(); })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, () => { _loadSettings(); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async () => {
+        await _loadProducts();
+        document.dispatchEvent(new CustomEvent('products-updated'));
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, async () => {
+        await _loadCategories();
+        document.dispatchEvent(new CustomEvent('categories-updated'));
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, async () => {
+        await _loadSettings();
+        document.dispatchEvent(new CustomEvent('settings-updated'));
+      })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async () => {
         await _loadOrders();
         document.dispatchEvent(new CustomEvent('orders-updated'));
@@ -630,25 +649,33 @@ const DataStore = (function () {
 
     if (_supabase) {
       const { error } = isNew
-        ? await _supabase.from('categories').insert([cat])
+        ? await _supabase.from('categories').insert([{ id: cat.id, name: cat.name, icon: cat.icon }])
         : await _supabase.from('categories').update({ name: cat.name, icon: cat.icon }).eq('id', cat.id);
-      if (error) throw error;
+      if (error) {
+        console.error('[DataStore] Erro ao salvar categoria no Supabase:', error);
+        throw error;
+      }
     }
 
     const idx = _categories.findIndex(c => c.id === cat.id);
     if (idx >= 0) _categories[idx] = cat;
     else _categories.push(cat);
     _saveLocal(DB_KEYS.CATEGORIES, _categories);
+    document.dispatchEvent(new CustomEvent('categories-updated'));
     return cat;
   }
 
   async function deleteCategory(id) {
     if (_supabase) {
       const { error } = await _supabase.from('categories').delete().eq('id', id);
-      if (error) throw error;
+      if (error) {
+        console.error('[DataStore] Erro ao deletar categoria no Supabase:', error);
+        throw error;
+      }
     }
     _categories = _categories.filter(c => c.id !== id);
     _saveLocal(DB_KEYS.CATEGORIES, _categories);
+    document.dispatchEvent(new CustomEvent('categories-updated'));
   }
 
   // ===== SETTINGS MUTATIONS =====
@@ -674,7 +701,7 @@ const DataStore = (function () {
         footer_copyright: _settings.footerCopyright,
         payment_methods: _settings.paymentMethods,
         pix_details: _settings.pixDetails,
-        store_open: _settings.storeOpen,
+        store_open: _settings.storeOpen !== false,
         closed_custom_message: _settings.closedCustomMessage,
         operating_hours: _settings.operatingHours,
         closures: _settings.closures || [],
@@ -700,6 +727,7 @@ const DataStore = (function () {
     }
 
     _saveLocal(DB_KEYS.SETTINGS, _settings);
+    document.dispatchEvent(new CustomEvent('settings-updated'));
   }
 
   async function updateSetting(key, value) {
@@ -756,7 +784,11 @@ const DataStore = (function () {
   // ===== STORE STATUS (open/closed) =====
   function isStoreOpen() {
     const s = _settings;
-    if (!s.storeOpen) return false;
+    // Se o switch da loja estiver desligado (fechada manualmente), a loja está fechada
+    if (s.storeOpen === false) return false;
+
+    // Se o controle de horário não estiver explicitamente ativo, o switch manual storeOpen mantém a loja aberta!
+    if (!s.autoScheduleEnabled) return true;
 
     const now = new Date();
     const dayNames = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
