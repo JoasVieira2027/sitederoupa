@@ -69,10 +69,13 @@
             <path d="M18.5 14L23.5 24.5H19.8L16.8 18.2H18.5V14Z" fill="#064E3B"/>
           </svg>
         </div>
-        <div>
+        <div style="flex:1;min-width:0;">
           <span class="brand-text" id="admin-brand-title">FIT VIBE</span>
           <span class="brand-sub">Activewear Admin</span>
         </div>
+        <button type="button" class="admin-sidebar-close" id="admin-sidebar-close" aria-label="Fechar menu lateral">
+          <i data-lucide="x"></i>
+        </button>
       </div>
 
       <nav class="admin-nav" aria-label="Navegação administrativa">
@@ -133,6 +136,7 @@
         </button>
       </div>
     </aside>
+    <div class="admin-sidebar-backdrop" id="admin-sidebar-backdrop"></div>
 
     <!-- Main Content -->
     <main class="admin-main" id="admin-main" role="main">
@@ -246,13 +250,13 @@
             <h1>Controle de Estoque</h1>
             <p>Edite a quantidade disponível em cada cor e tamanho em tempo real</p>
           </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-            <select id="stock-filter-cat" class="form-control" style="width:180px;">
+          <div class="stock-header-filters">
+            <select id="stock-filter-cat" class="form-control stock-filter-select">
               <option value="all">Todas as Categorias</option>
             </select>
-            <div style="display:flex;align-items:center;background:white;border:1px solid var(--border);border-radius:var(--radius-full);padding:6px 12px;gap:6px;">
-              <i data-lucide="search" style="width:14px;height:14px;color:var(--text-muted);"></i>
-              <input type="search" id="stock-search" style="border:none;background:transparent;outline:none;font-size:0.82rem;width:180px;" placeholder="Buscar produto...">
+            <div class="stock-search-wrap">
+              <i data-lucide="search"></i>
+              <input type="search" id="stock-search" placeholder="Buscar produto...">
             </div>
           </div>
         </div>
@@ -858,9 +862,12 @@
 
   <!-- ===== PRODUCT FORM MODAL ===== -->
   <div class="modal-overlay" id="product-form-modal" role="dialog" aria-modal="true" aria-labelledby="product-form-title">
-    <div class="modal" style="max-width:860px;">
+    <div class="modal modal-product-edit">
       <div class="modal-header">
-        <h3 id="product-form-title">Novo Produto</h3>
+        <div>
+          <h3 id="product-form-title">Novo Produto</h3>
+          <p class="modal-subtitle" style="font-size:0.8rem;color:var(--text-muted);margin:2px 0 0 0;">Detalhes, fotos, preço e variantes de cores e tamanhos</p>
+        </div>
         <button type="button" class="btn-close-modal" id="btn-close-product-form" aria-label="Fechar">
           <i data-lucide="x"></i>
         </button>
@@ -978,7 +985,7 @@
             </div>
           </div>
 
-          <div style="display:flex;gap:12px;justify-content:flex-end;padding-top:16px;border-top:1px solid var(--border);">
+          <div class="modal-sticky-footer">
             <button type="button" class="btn btn-secondary" id="btn-cancel-product">Cancelar</button>
             <button type="submit" class="btn btn-primary" id="btn-save-product">
               <i data-lucide="save"></i>

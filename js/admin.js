@@ -102,24 +102,46 @@
     if ($('admin-brand-icon') && !$('admin-brand-icon').querySelector('svg')) $('admin-brand-icon').textContent = settings.storeName?.charAt(0) || 'F';
     if ($('admin-brand-title')) $('admin-brand-title').textContent = settings.storeName || 'Fit Vibe Activewear';
 
+    // Mobile sidebar toggle & backdrop
+    const mobileToggle = $('admin-mobile-toggle');
+    const sidebar = $('admin-sidebar');
+    const backdrop = $('admin-sidebar-backdrop');
+    const sidebarClose = $('admin-sidebar-close');
+
+    function openSidebar() {
+      if (sidebar) sidebar.classList.add('open');
+      if (backdrop) backdrop.classList.add('active');
+      document.body.classList.add('admin-sidebar-locked');
+    }
+
+    function closeSidebar() {
+      if (sidebar) sidebar.classList.remove('open');
+      if (backdrop) backdrop.classList.remove('active');
+      document.body.classList.remove('admin-sidebar-locked');
+    }
+
+    if (mobileToggle) {
+      mobileToggle.onclick = () => {
+        if (sidebar && sidebar.classList.contains('open')) closeSidebar();
+        else openSidebar();
+      };
+    }
+    if (sidebarClose) sidebarClose.onclick = closeSidebar;
+    if (backdrop) backdrop.onclick = closeSidebar;
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 992) closeSidebar();
+    });
+
     // Nav click
     $$('.admin-nav-item').forEach(item => {
       item.addEventListener('click', () => {
         $$('.admin-nav-item').forEach(n => n.classList.remove('active'));
         item.classList.add('active');
         navigateTo(item.dataset.section);
-        // Close mobile sidebar
-        $('admin-sidebar').classList.remove('open');
+        closeSidebar();
       });
     });
-
-    // Mobile toggle
-    const mobileToggle = $('admin-mobile-toggle');
-    if (mobileToggle) {
-      mobileToggle.addEventListener('click', () => {
-        $('admin-sidebar').classList.toggle('open');
-      });
-    }
 
     // Global modals
     bindGlobalModals();
@@ -447,55 +469,120 @@
     const allSizes = settings.availableSizes || ['PP', 'P', 'M', 'G', 'GG', 'XGG'];
 
     if (!variantList.length) {
-      builder.innerHTML = `<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:20px;">
-        Clique em "+ Adicionar Cor" para cadastrar variantes com foto, cor e quantidade por tamanho.</p>`;
+      builder.innerHTML = `
+        <div class="variant-empty-state">
+          <div class="variant-empty-icon"><i data-lucide="palette"></i></div>
+          <h4>Nenhuma variante de cor adicionada</h4>
+          <p>Adicione cores para definir fotos específicas e controlar o estoque por tamanho.</p>
+          <button type="button" class="btn btn-primary btn-sm" onclick="AdminPanel.addVariant()">
+            <i data-lucide="plus"></i> <span>Adicionar Primeira Cor</span>
+          </button>
+        </div>`;
+      refreshIcons();
       return;
     }
 
-    builder.innerHTML = variantList.map((v, idx) => `
-      <div class="variant-row" data-idx="${idx}">
-        <button type="button" class="btn-remove-variant" onclick="AdminPanel.removeVariant(${idx})"><i data-lucide="x" style="width:13px;height:13px;"></i> Remover Cor</button>
-        <div class="variant-row-header">
-          <div class="color-picker-wrap">
-            <label>Cor:</label>
-            <input type="color" value="${v.colorHex}" onchange="AdminPanel.updateVariantColor(${idx}, 'hex', this.value)">
-            <input type="text" value="${Utils.sanitize(v.color)}" placeholder="Nome da cor" onchange="AdminPanel.updateVariantColor(${idx}, 'name', this.value)" style="font-weight:600;">
-          </div>
-          <div class="variant-image-wrap">
-            <div class="variant-img-preview-thumb" id="variant-thumb-${idx}">
-              ${v.image ? `<img src="${Utils.sanitize(v.image)}" alt="Foto da cor">` : '<i data-lucide="camera" style="width:18px;height:18px;color:var(--text-muted);"></i>'}
+    builder.innerHTML = variantList.map((v, idx) => {
+      const variantTotal = Object.values(v.sizes || {}).reduce((s, qty) => s + (parseInt(qty) || 0), 0);
+
+      const sizesHtml = allSizes.map(size => {
+        const qty = v.sizes[size] !== undefined ? v.sizes[size] : 0;
+        return `
+          <div class="variant-size-pill ${qty === 0 ? 'is-zero' : ''}" data-size="${size}">
+            <div class="variant-size-label">${size}</div>
+            <div class="variant-stepper">
+              <button type="button" class="variant-step-btn minus" onclick="AdminPanel.stepVariantSize(${idx}, '${size}', -1)" aria-label="Diminuir ${size}">
+                <i data-lucide="minus"></i>
+              </button>
+              <input type="number" min="0" max="9999" class="variant-size-input" 
+                value="${qty}" 
+                inputmode="numeric"
+                data-size="${size}"
+                onchange="AdminPanel.updateVariantSize(${idx}, '${size}', this.value)"
+                oninput="AdminPanel.updateVariantSize(${idx}, '${size}', this.value)">
+              <button type="button" class="variant-step-btn plus" onclick="AdminPanel.stepVariantSize(${idx}, '${size}', 1)" aria-label="Aumentar ${size}">
+                <i data-lucide="plus"></i>
+              </button>
             </div>
-            <div class="variant-img-input-box">
-              <input type="text" class="variant-img-url-input" value="${Utils.sanitize(v.image || '')}" placeholder="URL da foto desta cor" onchange="AdminPanel.updateVariantImage(${idx}, this.value)">
-              <label class="btn-variant-upload-label" style="display:inline-flex;align-items:center;gap:4px;">
-                <i data-lucide="upload" style="width:13px;height:13px;"></i> Foto
-                <input type="file" accept="image/*" style="display:none;" onchange="AdminPanel.uploadVariantImage(${idx}, this)">
+          </div>`;
+      }).join('');
+
+      return `
+        <div class="variant-editor-card" data-idx="${idx}">
+          <div class="variant-card-header">
+            <div class="variant-color-main">
+              <label class="variant-color-picker-label" title="Clique para escolher o tom da cor">
+                <span class="variant-color-dot" id="variant-color-preview-${idx}" style="background:${v.colorHex || '#1E293B'};"></span>
+                <input type="color" class="variant-native-color-picker" value="${v.colorHex || '#1E293B'}" 
+                  onchange="AdminPanel.updateVariantColor(${idx}, 'hex', this.value)">
               </label>
-              ${v.image ? `<button type="button" class="btn-variant-clear-img" onclick="AdminPanel.clearVariantImage(${idx})" title="Remover foto desta cor"><i data-lucide="x" style="width:12px;height:12px;"></i></button>` : ''}
+              <div class="variant-color-name-wrap">
+                <input type="text" class="form-control variant-color-name-input" value="${Utils.sanitize(v.color)}" 
+                  placeholder="Nome da cor (ex: Preto Ônix)" 
+                  onchange="AdminPanel.updateVariantColor(${idx}, 'name', this.value)"
+                  oninput="AdminPanel.updateVariantColor(${idx}, 'name', this.value)">
+              </div>
+            </div>
+
+            <div class="variant-header-actions">
+              <span class="variant-subtotal-badge" id="variant-subtotal-${idx}">
+                <i data-lucide="boxes" style="width:12px;height:12px;"></i>
+                <span class="variant-subtotal-val">${variantTotal} un.</span>
+              </span>
+              <button type="button" class="btn-remove-variant" onclick="AdminPanel.removeVariant(${idx})" title="Remover esta cor">
+                <i data-lucide="trash-2"></i>
+                <span>Excluir Cor</span>
+              </button>
             </div>
           </div>
-        </div>
-        <div class="size-qty-grid">
-          ${allSizes.map(size => `
-            <div class="size-qty-item">
-              <label>${size}</label>
-              <input type="number" min="0" class="size-qty-input" value="${v.sizes[size] || 0}"
-                onchange="AdminPanel.updateVariantSize(${idx}, '${size}', this.value)">
-            </div>`).join('')}
-        </div>
-      </div>`).join('');
+
+          <div class="variant-photo-card">
+            <div class="variant-thumb-box" id="variant-thumb-${idx}">
+              ${v.image ? `<img src="${Utils.sanitize(v.image)}" alt="Foto da cor">` : '<i data-lucide="camera" style="width:20px;height:20px;color:var(--text-muted);"></i>'}
+            </div>
+            <div class="variant-photo-fields">
+              <input type="url" class="form-control variant-img-url-input" value="${Utils.sanitize(v.image || '')}" 
+                placeholder="URL da foto desta cor ou selecione do computador..." 
+                onchange="AdminPanel.updateVariantImage(${idx}, this.value)">
+              <div class="variant-photo-btns">
+                <label class="btn btn-secondary btn-sm btn-variant-upload">
+                  <i data-lucide="upload"></i>
+                  <span>Upload Foto</span>
+                  <input type="file" accept="image/*" style="display:none;" onchange="AdminPanel.uploadVariantImage(${idx}, this)">
+                </label>
+                ${v.image ? `
+                  <button type="button" class="btn btn-danger btn-sm btn-variant-clear" onclick="AdminPanel.clearVariantImage(${idx})" title="Remover foto desta cor">
+                    <i data-lucide="x"></i>
+                    <span>Remover</span>
+                  </button>` : ''}
+              </div>
+            </div>
+          </div>
+
+          <div class="variant-sizes-section">
+            <div class="variant-sizes-label">
+              <span>Quantidade em estoque por tamanho:</span>
+            </div>
+            <div class="variant-sizes-grid">${sizesHtml}</div>
+          </div>
+        </div>`;
+    }).join('');
+
     refreshIcons();
   }
 
   // Variant mutations
   window.AdminPanel = window.AdminPanel || {};
 
+  const CURATED_VARIANT_COLORS = ['#1E293B', '#059669', '#2563EB', '#D97706', '#E11D48', '#7C3AED', '#0D9488'];
+
   window.AdminPanel.addVariant = function () {
     const settings = DataStore.getSettings();
     const allSizes = settings.availableSizes || ['PP', 'P', 'M', 'G', 'GG', 'XGG'];
     const sizesObj = {};
     allSizes.forEach(s => { sizesObj[s] = 0; });
-    variantList.push({ color: `Cor ${variantList.length + 1}`, colorHex: '#059669', image: '', sizes: sizesObj });
+    const colorHex = CURATED_VARIANT_COLORS[variantList.length % CURATED_VARIANT_COLORS.length];
+    variantList.push({ color: `Cor ${variantList.length + 1}`, colorHex, image: '', sizes: sizesObj });
     renderVariantBuilder();
   };
 
@@ -506,14 +593,25 @@
 
   window.AdminPanel.updateVariantColor = function (idx, field, val) {
     if (!variantList[idx]) return;
-    if (field === 'hex') variantList[idx].colorHex = val;
-    else variantList[idx].color = val;
+    if (field === 'hex') {
+      variantList[idx].colorHex = val;
+      const preview = $(`variant-color-preview-${idx}`);
+      if (preview) preview.style.background = val;
+    } else {
+      variantList[idx].color = val;
+    }
   };
 
   window.AdminPanel.updateVariantImage = function (idx, val) {
     if (!variantList[idx]) return;
     variantList[idx].image = val.trim();
-    renderVariantBuilder();
+    const thumb = $(`variant-thumb-${idx}`);
+    if (thumb) {
+      thumb.innerHTML = variantList[idx].image
+        ? `<img src="${Utils.sanitize(variantList[idx].image)}" alt="Foto da cor">`
+        : '<i data-lucide="camera" style="width:20px;height:20px;color:var(--text-muted);"></i>';
+      refreshIcons();
+    }
   };
 
   window.AdminPanel.clearVariantImage = function (idx) {
@@ -547,6 +645,46 @@
       }
     } catch (err) {
       Utils.showToast('Erro ao enviar foto: ' + (err.message || ''), 'error');
+    }
+  };
+
+  window.AdminPanel.updateVariantSize = function (idx, size, val) {
+    if (!variantList[idx]) return;
+    const qty = Math.max(0, parseInt(val) || 0);
+    variantList[idx].sizes[size] = qty;
+    
+    // Update subtotal badge
+    const subtotalEl = $(`variant-subtotal-${idx}`);
+    if (subtotalEl) {
+      const sum = Object.values(variantList[idx].sizes).reduce((a, b) => a + (parseInt(b) || 0), 0);
+      const valEl = subtotalEl.querySelector('.variant-subtotal-val');
+      if (valEl) valEl.textContent = `${sum} un.`;
+    }
+  };
+
+  window.AdminPanel.stepVariantSize = function (idx, size, delta) {
+    if (!variantList[idx]) return;
+    const current = variantList[idx].sizes[size] || 0;
+    const nextVal = Math.max(0, current + delta);
+    variantList[idx].sizes[size] = nextVal;
+    
+    // Update DOM pill
+    const card = document.querySelector(`.variant-editor-card[data-idx="${idx}"]`);
+    if (card) {
+      const pill = card.querySelector(`.variant-size-pill[data-size="${size}"]`);
+      if (pill) {
+        const input = pill.querySelector('.variant-size-input');
+        if (input) input.value = nextVal;
+        pill.classList.toggle('is-zero', nextVal === 0);
+      }
+    }
+    
+    // Update subtotal badge
+    const subtotalEl = $(`variant-subtotal-${idx}`);
+    if (subtotalEl) {
+      const sum = Object.values(variantList[idx].sizes).reduce((a, b) => a + (parseInt(b) || 0), 0);
+      const valEl = subtotalEl.querySelector('.variant-subtotal-val');
+      if (valEl) valEl.textContent = `${sum} un.`;
     }
   };
 
@@ -589,11 +727,6 @@
     } catch (err) {
       Utils.showToast('Erro ao mover: ' + (err.message || ''), 'error');
     }
-  };
-
-  window.AdminPanel.updateVariantSize = function (idx, size, val) {
-    if (!variantList[idx]) return;
-    variantList[idx].sizes[size] = Math.max(0, parseInt(val) || 0);
   };
 
   window.AdminPanel.editProduct = function (id) { openProductForm(id); };
@@ -757,7 +890,6 @@
 
   // ===== 6. STOCK MANAGER =====
   function renderStock() {
-    const allProducts = DataStore.getProducts({ includeInactive: true });
     const categories = DataStore.getCategories();
 
     // Populate category filter
@@ -765,15 +897,15 @@
     if (catFilter) {
       catFilter.innerHTML = `<option value="all">Todas as Categorias</option>` +
         categories.map(c => `<option value="${Utils.sanitize(c.name)}">${Utils.sanitize(c.name)}</option>`).join('');
-      catFilter.onchange = () => renderStockList(allProducts);
+      catFilter.onchange = () => renderStockList();
     }
 
     const searchInput = $('stock-search');
     if (searchInput) {
-      searchInput.oninput = Utils.debounce(() => renderStockList(allProducts), 300);
+      searchInput.oninput = Utils.debounce(() => renderStockList(), 300);
     }
 
-    renderStockList(allProducts);
+    renderStockList();
   }
 
   function renderStockList(allProducts) {
@@ -783,14 +915,20 @@
     const catFilter = $('stock-filter-cat');
     const searchInput = $('stock-search');
     const catVal = catFilter ? catFilter.value : 'all';
-    const q = searchInput ? searchInput.value.toLowerCase() : '';
+    const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-    let products = allProducts;
+    let products = allProducts || DataStore.getProducts({ includeInactive: true });
     if (catVal !== 'all') products = products.filter(p => p.category === catVal);
     if (q) products = products.filter(p => p.name.toLowerCase().includes(q));
 
     if (!products.length) {
-      stockList.innerHTML = `<div style="text-align:center;padding:60px;color:var(--text-muted);">Nenhum produto encontrado.</div>`;
+      stockList.innerHTML = `
+        <div class="admin-empty-card" style="text-align:center;padding:50px 20px;background:white;border-radius:var(--radius-xl);border:1px solid var(--border);">
+          <i data-lucide="package-search" style="width:44px;height:44px;color:var(--text-muted);margin-bottom:12px;"></i>
+          <h3 style="font-family:var(--font-display);font-size:1.15rem;font-weight:700;color:var(--carbon);margin-bottom:6px;">Nenhum produto encontrado</h3>
+          <p style="color:var(--text-muted);font-size:0.86rem;margin:0;">Tente outro termo de busca ou selecione outra categoria.</p>
+        </div>`;
+      refreshIcons();
       return;
     }
 
@@ -802,64 +940,110 @@
       const variants = p.variants || [];
 
       if (!variants.length) {
-        return `<div class="admin-card" style="margin-bottom:16px;">
-          <div class="admin-card-header">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div class="admin-product-row-image">${p.image ? `<img src="${Utils.sanitize(p.image)}" alt="">` : '<i data-lucide="image" style="width:18px;height:18px;color:var(--text-muted);"></i>'}</div>
-              <div>
-                <strong>${Utils.sanitize(p.name)}</strong>
-                <div style="font-size:0.75rem;color:var(--text-muted);">${p.category}</div>
+        return `<div class="admin-card stock-product-card" data-product-id="${p.id}">
+          <div class="stock-card-header">
+            <div class="stock-product-meta">
+              <div class="stock-product-thumb">
+                ${p.image ? `<img src="${Utils.sanitize(p.image)}" alt="${Utils.sanitize(p.name)}">` : '<i data-lucide="image" style="width:20px;height:20px;color:var(--text-muted);"></i>'}
+              </div>
+              <div class="stock-product-titles">
+                <h3 class="stock-product-title">${Utils.sanitize(p.name)}</h3>
+                <div class="stock-product-badges">
+                  <span class="stock-category-badge">${Utils.sanitize(p.category)}</span>
+                  <span class="stock-price-tag">${Utils.formatCurrency(p.price)}</span>
+                </div>
               </div>
             </div>
-            <span style="font-size:0.85rem;color:var(--text-muted);">Sem variantes cadastradas</span>
+            <div class="stock-card-actions">
+              <span class="stock-total-badge is-out">Sem variantes</span>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="AdminPanel.editProduct('${p.id}')">
+                <i data-lucide="plus" style="width:13px;height:13px;"></i> Adicionar Variantes
+              </button>
+            </div>
           </div>
         </div>`;
       }
 
       const variantsHtml = variants.map((v, vi) => {
+        const variantTotal = (v.sizes || []).reduce((sum, s) => sum + (s.qty || 0), 0);
         const sizesHtml = allSizes.filter(sz =>
           (v.sizes || []).some(s => s.size === sz)
         ).map(sz => {
           const entry = (v.sizes || []).find(s => s.size === sz);
           const qty = entry ? entry.qty : 0;
-          const colorClass = qty === 0 ? 'out' : qty <= 3 ? 'low' : '';
-          return `<div class="size-qty-item ${colorClass}" style="${colorClass === 'out' ? 'border-color:var(--danger-bg);' : colorClass === 'low' ? 'border-color:var(--warning-bg);' : ''}">
-            <label>${sz}</label>
-            <input type="number" min="0" class="size-qty-input stock-qty-input" 
-              value="${qty}" 
-              data-product="${p.id}" data-color="${Utils.sanitize(v.color)}" data-size="${sz}"
-              style="${qty === 0 ? 'color:var(--danger);border-color:var(--danger);' : qty <= 3 ? 'color:var(--warning);border-color:var(--warning);' : ''}">
+          const statusClass = qty === 0 ? 'is-out' : qty <= 3 ? 'is-low' : 'is-good';
+          const statusText = qty === 0 ? 'Esgotado' : qty <= 3 ? 'Baixo' : 'Disponível';
+
+          return `<div class="stock-size-pill ${statusClass}" data-color="${Utils.sanitize(v.color)}" data-size="${sz}">
+            <div class="stock-size-label-wrap">
+              <span class="stock-size-label">${sz}</span>
+              <span class="stock-size-status">${statusText}</span>
+            </div>
+            <div class="stock-stepper">
+              <button type="button" class="stock-step-btn minus" aria-label="Diminuir ${sz}" onclick="AdminPanel.stepStock(this, -1)">
+                <i data-lucide="minus"></i>
+              </button>
+              <input type="number" min="0" max="9999" class="stock-qty-input" 
+                value="${qty}" 
+                inputmode="numeric"
+                data-product="${p.id}" data-color="${Utils.sanitize(v.color)}" data-size="${sz}"
+                oninput="AdminPanel.onStockInputChange(this)">
+              <button type="button" class="stock-step-btn plus" aria-label="Aumentar ${sz}" onclick="AdminPanel.stepStock(this, 1)">
+                <i data-lucide="plus"></i>
+              </button>
+            </div>
           </div>`;
         }).join('');
 
-        return `<div style="margin-bottom:16px;">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-            <div class="color-swatch" style="background:${v.colorHex || '#ccc'};width:24px;height:24px;border-radius:50%;border:2px solid var(--border);"></div>
-            <strong style="font-size:0.9rem;">${Utils.sanitize(v.color)}</strong>
-          </div>
-          <div class="size-qty-grid">${sizesHtml}</div>
-        </div>`;
-      }).join('<hr style="border:none;border-top:1px dashed var(--border);margin:16px 0;">');
-
-      return `<div class="admin-card" style="margin-bottom:16px;" data-product-id="${p.id}">
-        <div class="admin-card-header">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div class="admin-product-row-image">${p.image ? `<img src="${Utils.sanitize(p.image)}" alt="">` : '<i data-lucide="image" style="width:18px;height:18px;color:var(--text-muted);"></i>'}</div>
-            <div>
-              <strong>${Utils.sanitize(p.name)}</strong>
-              <div style="font-size:0.75rem;color:var(--text-muted);">${p.category} · ${Utils.formatCurrency(p.price)}</div>
+        return `<div class="stock-variant-row" data-color="${Utils.sanitize(v.color)}">
+          <div class="stock-variant-header">
+            <div class="stock-variant-info">
+              <span class="stock-color-dot" style="background:${v.colorHex || '#1E293B'};"></span>
+              <span class="stock-variant-name">${Utils.sanitize(v.color)}</span>
+              ${v.image ? `<img class="stock-variant-thumb" src="${Utils.sanitize(v.image)}" alt="${Utils.sanitize(v.color)}">` : ''}
+              <span class="stock-variant-subtotal" data-color-total="${Utils.sanitize(v.color)}">${variantTotal} un.</span>
+            </div>
+            <div class="stock-quick-actions">
+              <button type="button" class="btn-stock-quick" title="+1 em todos os tamanhos desta cor" onclick="AdminPanel.adjustAllColorStock('${p.id}', '${Utils.sanitize(v.color)}', 1)">+1</button>
+              <button type="button" class="btn-stock-quick" title="+5 em todos os tamanhos desta cor" onclick="AdminPanel.adjustAllColorStock('${p.id}', '${Utils.sanitize(v.color)}', 5)">+5</button>
+              <button type="button" class="btn-stock-quick danger" title="Zerar estoque desta cor" onclick="AdminPanel.adjustAllColorStock('${p.id}', '${Utils.sanitize(v.color)}', -9999)">Zerar</button>
             </div>
           </div>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <span class="status-badge ${totalStock === 0 ? 'inactive' : totalStock <= 5 ? 'pending' : 'active'}">${totalStock === 0 ? 'Esgotado' : `${totalStock} un`}</span>
-            <button class="btn btn-primary btn-sm save-stock-btn" data-product="${p.id}" style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="save" style="width:13px;height:13px;"></i> Salvar</button>
+          <div class="stock-size-grid">${sizesHtml}</div>
+        </div>`;
+      }).join('');
+
+      const totalClass = totalStock === 0 ? 'is-out' : totalStock <= 10 ? 'is-low' : 'is-good';
+
+      return `<div class="admin-card stock-product-card" data-product-id="${p.id}">
+        <div class="stock-card-header">
+          <div class="stock-product-meta">
+            <div class="stock-product-thumb">
+              ${p.image ? `<img src="${Utils.sanitize(p.image)}" alt="${Utils.sanitize(p.name)}">` : '<i data-lucide="image" style="width:20px;height:20px;color:var(--text-muted);"></i>'}
+            </div>
+            <div class="stock-product-titles">
+              <h3 class="stock-product-title">${Utils.sanitize(p.name)}</h3>
+              <div class="stock-product-badges">
+                <span class="stock-category-badge">${Utils.sanitize(p.category)}</span>
+                <span class="stock-price-tag">${Utils.formatCurrency(p.price)}</span>
+              </div>
+            </div>
+          </div>
+          <div class="stock-card-actions">
+            <div class="stock-total-badge ${totalClass}">
+              <span class="stock-total-dot"></span>
+              <span class="stock-total-text" data-product-total="${p.id}">${totalStock === 0 ? 'Esgotado' : `${totalStock} un no total`}</span>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm save-stock-btn" data-product="${p.id}">
+              <i data-lucide="save"></i>
+              <span>Salvar Estoque</span>
+            </button>
           </div>
         </div>
-        <div class="admin-card-body">${variantsHtml}</div>
+        <div class="stock-card-body">${variantsHtml}</div>
       </div>`;
     }).join('');
 
-    // Bind save buttons
     refreshIcons();
     stockList.querySelectorAll('.save-stock-btn').forEach(btn => {
       btn.onclick = async () => {
@@ -868,7 +1052,7 @@
         if (!product) return;
 
         btn.disabled = true;
-        btn.textContent = 'Salvando...';
+        btn.innerHTML = '<span>Salvando...</span>';
 
         try {
           const card = btn.closest(`[data-product-id="${productId}"]`);
@@ -892,17 +1076,108 @@
           product.inStock = totalStock > 0;
           await DataStore.saveProduct(product);
 
-          Utils.showToast('Estoque atualizado!', 'success');
-          renderStockList(DataStore.getProducts({ includeInactive: true }));
+          Utils.showToast(`Estoque de "${product.name}" atualizado! (${totalStock} un)`, 'success');
+          btn.classList.remove('has-changes');
+          btn.innerHTML = '<i data-lucide="check" style="width:13px;height:13px;"></i> Salvo!';
+          setTimeout(() => {
+            btn.innerHTML = '<i data-lucide="save" style="width:13px;height:13px;"></i> Salvar Estoque';
+            refreshIcons();
+          }, 1800);
         } catch (err) {
-          Utils.showToast('Erro: ' + (err.message || ''), 'error');
+          Utils.showToast('Erro ao salvar estoque: ' + (err.message || ''), 'error');
+          btn.innerHTML = '<i data-lucide="save" style="width:13px;height:13px;"></i> Salvar Estoque';
         } finally {
           btn.disabled = false;
-          btn.innerHTML = '<i data-lucide="save" style="width:13px;height:13px;"></i> Salvar'; refreshIcons();
+          refreshIcons();
         }
       };
     });
   }
+
+  // Stock interactive stepper mutations
+  window.AdminPanel.stepStock = function (btn, delta) {
+    const pill = btn.closest('.stock-size-pill');
+    if (!pill) return;
+    const input = pill.querySelector('.stock-qty-input');
+    if (!input) return;
+    const currentVal = parseInt(input.value) || 0;
+    const nextVal = Math.max(0, currentVal + delta);
+    input.value = nextVal;
+    AdminPanel.onStockInputChange(input);
+  };
+
+  window.AdminPanel.onStockInputChange = function (input) {
+    const qty = Math.max(0, parseInt(input.value) || 0);
+    input.value = qty;
+
+    const pill = input.closest('.stock-size-pill');
+    if (pill) {
+      pill.classList.remove('is-out', 'is-low', 'is-good');
+      const statusText = pill.querySelector('.stock-size-status');
+      if (qty === 0) {
+        pill.classList.add('is-out');
+        if (statusText) statusText.textContent = 'Esgotado';
+      } else if (qty <= 3) {
+        pill.classList.add('is-low');
+        if (statusText) statusText.textContent = 'Baixo';
+      } else {
+        pill.classList.add('is-good');
+        if (statusText) statusText.textContent = 'Disponível';
+      }
+    }
+
+    const card = input.closest('.stock-product-card');
+    if (!card) return;
+
+    // Recalculate color subtotal
+    const colorRow = input.closest('.stock-variant-row');
+    if (colorRow) {
+      const colorInputs = colorRow.querySelectorAll('.stock-qty-input');
+      const colorTotal = Array.from(colorInputs).reduce((sum, el) => sum + (parseInt(el.value) || 0), 0);
+      const subtotalEl = colorRow.querySelector('.stock-variant-subtotal');
+      if (subtotalEl) subtotalEl.textContent = `${colorTotal} un.`;
+    }
+
+    // Recalculate product total
+    const allInputs = card.querySelectorAll('.stock-qty-input');
+    const productTotal = Array.from(allInputs).reduce((sum, el) => sum + (parseInt(el.value) || 0), 0);
+    const totalEl = card.querySelector('.stock-total-text');
+    if (totalEl) totalEl.textContent = productTotal === 0 ? 'Esgotado' : `${productTotal} un no total`;
+
+    const totalBadge = card.querySelector('.stock-total-badge');
+    if (totalBadge) {
+      totalBadge.classList.remove('is-out', 'is-low', 'is-good');
+      totalBadge.classList.add(productTotal === 0 ? 'is-out' : productTotal <= 10 ? 'is-low' : 'is-good');
+    }
+
+    // Highlight save button
+    const saveBtn = card.querySelector('.save-stock-btn');
+    if (saveBtn) {
+      saveBtn.classList.add('has-changes');
+      saveBtn.innerHTML = '<i data-lucide="save" style="width:13px;height:13px;"></i> Salvar Alterações *';
+      refreshIcons();
+    }
+  };
+
+  window.AdminPanel.adjustAllColorStock = function (productId, colorName, delta) {
+    const card = document.querySelector(`[data-product-id="${productId}"]`);
+    if (!card) return;
+    const colorRow = card.querySelector(`.stock-variant-row[data-color="${colorName}"]`);
+    if (!colorRow) return;
+
+    const inputs = colorRow.querySelectorAll('.stock-qty-input');
+    inputs.forEach(input => {
+      if (delta === -9999) {
+        input.value = 0;
+      } else {
+        input.value = Math.max(0, (parseInt(input.value) || 0) + delta);
+      }
+    });
+
+    if (inputs.length) {
+      AdminPanel.onStockInputChange(inputs[0]);
+    }
+  };
 
   // ===== 7. CATEGORIES =====
   function renderCategories() {
