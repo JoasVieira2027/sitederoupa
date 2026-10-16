@@ -1424,8 +1424,18 @@
       elDeliveryEnabled.checked = isDeliveryOn;
       const lbl = $('delivery-enabled-label');
       if (lbl) lbl.textContent = isDeliveryOn ? 'Ativo' : 'Desativado';
-      elDeliveryEnabled.onchange = () => {
-        if (lbl) lbl.textContent = elDeliveryEnabled.checked ? 'Ativo' : 'Desativado';
+      elDeliveryEnabled.onchange = async () => {
+        const newVal = elDeliveryEnabled.checked;
+        if (lbl) lbl.textContent = newVal ? 'Ativo' : 'Desativado';
+        try {
+          const cur = DataStore.getSettings().delivery || {};
+          await DataStore.updateSetting('delivery', { ...cur, deliveryEnabled: newVal });
+          Utils.showToast(newVal ? 'Entrega a domicílio ativada!' : 'Entrega a domicílio desativada!', 'info');
+        } catch (err) {
+          Utils.showToast('Erro ao salvar: ' + (err.message || ''), 'error');
+          elDeliveryEnabled.checked = !newVal;
+          if (lbl) lbl.textContent = !newVal ? 'Ativo' : 'Desativado';
+        }
       };
     }
 
@@ -1437,12 +1447,25 @@
         elDeliveryFreeThreshold.disabled = !isFreeOn;
         elDeliveryFreeThreshold.style.opacity = isFreeOn ? '1' : '0.5';
       }
-      elFreeDeliveryEnabled.onchange = () => {
+      elFreeDeliveryEnabled.onchange = async () => {
         const active = elFreeDeliveryEnabled.checked;
         if (lbl) lbl.textContent = active ? 'Ativo' : 'Desativado';
         if (elDeliveryFreeThreshold) {
           elDeliveryFreeThreshold.disabled = !active;
           elDeliveryFreeThreshold.style.opacity = active ? '1' : '0.5';
+        }
+        try {
+          const cur = DataStore.getSettings().delivery || {};
+          await DataStore.updateSetting('delivery', { ...cur, freeDeliveryEnabled: active });
+          Utils.showToast(active ? 'Frete grátis ativado!' : 'Frete grátis desativado!', 'info');
+        } catch (err) {
+          Utils.showToast('Erro ao salvar: ' + (err.message || ''), 'error');
+          elFreeDeliveryEnabled.checked = !active;
+          if (lbl) lbl.textContent = !active ? 'Ativo' : 'Desativado';
+          if (elDeliveryFreeThreshold) {
+            elDeliveryFreeThreshold.disabled = active;
+            elDeliveryFreeThreshold.style.opacity = active ? '0.5' : '1';
+          }
         }
       };
     }
@@ -1451,8 +1474,18 @@
       elPickupEnabled.checked = isPickupOn;
       const lbl = $('pickup-enabled-label');
       if (lbl) lbl.textContent = isPickupOn ? 'Ativo' : 'Desativado';
-      elPickupEnabled.onchange = () => {
-        if (lbl) lbl.textContent = elPickupEnabled.checked ? 'Ativo' : 'Desativado';
+      elPickupEnabled.onchange = async () => {
+        const newVal = elPickupEnabled.checked;
+        if (lbl) lbl.textContent = newVal ? 'Ativo' : 'Desativado';
+        try {
+          const cur = DataStore.getSettings().delivery || {};
+          await DataStore.updateSetting('delivery', { ...cur, pickupEnabled: newVal });
+          Utils.showToast(newVal ? 'Retirada na loja ativada!' : 'Retirada na loja desativada!', 'info');
+        } catch (err) {
+          Utils.showToast('Erro ao salvar: ' + (err.message || ''), 'error');
+          elPickupEnabled.checked = !newVal;
+          if (lbl) lbl.textContent = !newVal ? 'Ativo' : 'Desativado';
+        }
       };
     }
 
@@ -1462,6 +1495,22 @@
     if (elPickupAddress) elPickupAddress.value = d.pickupAddress || '';
     if (elPickupEstimate) elPickupEstimate.value = d.pickupEstimate || 'Pronto em até 2 horas';
 
+    // Render neighborhoods table
+    renderNeighborhoodsTable();
+
+    // Bind neighborhood modal buttons
+    const btnAddNeigh = $('btn-add-neighborhood');
+    if (btnAddNeigh) btnAddNeigh.onclick = () => openNeighborhoodModal();
+
+    const btnCloseNeigh = $('btn-close-neighborhood-form');
+    if (btnCloseNeigh) btnCloseNeigh.onclick = () => closeNeighborhoodModal();
+
+    const btnCancelNeigh = $('btn-cancel-neighborhood');
+    if (btnCancelNeigh) btnCancelNeigh.onclick = () => closeNeighborhoodModal();
+
+    const formNeigh = $('neighborhood-form');
+    if (formNeigh) formNeigh.onsubmit = saveNeighborhoodForm;
+
     const btn = $('btn-save-delivery');
     if (btn) btn.onclick = async () => {
       const origHtml = btn.innerHTML;
@@ -1470,7 +1519,9 @@
         btn.innerHTML = '<i data-lucide="loader" class="spin"></i> <span>Salvando...</span>';
         refreshIcons();
 
+        const curDelivery = DataStore.getSettings().delivery || {};
         const updatedDelivery = {
+          ...curDelivery,
           deliveryEnabled: elDeliveryEnabled ? elDeliveryEnabled.checked : true,
           deliveryFee: elDeliveryFee ? (parseFloat(elDeliveryFee.value) || 0) : 15,
           freeDeliveryEnabled: elFreeDeliveryEnabled ? elFreeDeliveryEnabled.checked : true,
@@ -1493,6 +1544,191 @@
     };
 
     refreshIcons();
+  }
+
+  // ===== NEIGHBORHOODS CRUD =====
+  let editingNeighborhoodId = null;
+
+  function renderNeighborhoodsTable() {
+    const tbody = $('neighborhoods-tbody');
+    if (!tbody) return;
+
+    const s = DataStore.getSettings();
+    const d = s.delivery || {};
+    const list = d.neighborhoods || [];
+
+    if (!list.length) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align:center;padding:36px;color:var(--text-muted);font-size:0.9rem;">
+            Nenhum bairro cadastrado. Clique no botão <strong>+ Novo Bairro</strong> acima para começar.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = list.map(n => {
+      const minText = (n.minOrder && n.minOrder > 0) ? Utils.formatCurrency(n.minOrder) : 'Sem mínimo';
+      const freeText = (n.freeAbove && n.freeAbove > 0) ? Utils.formatCurrency(n.freeAbove) : 'Não configurado';
+      const isActive = n.active !== false;
+
+      return `
+        <tr>
+          <td>
+            <div style="font-weight:700;color:var(--text-primary);font-size:0.92rem;">${Utils.sanitize(n.name)}</div>
+            ${n.estimate ? `<small style="color:var(--text-muted);font-size:0.75rem;display:flex;align-items:center;gap:4px;margin-top:2px;"><i data-lucide="clock" style="width:12px;height:12px;"></i> ${Utils.sanitize(n.estimate)}</small>` : ''}
+          </td>
+          <td>
+            <strong style="color:#7c3aed;font-size:0.95rem;font-weight:700;">${Utils.formatCurrency(n.fee || 0)}</strong>
+          </td>
+          <td>
+            <span style="color:var(--text-secondary);font-size:0.85rem;">${minText}</span>
+          </td>
+          <td>
+            <span style="color:var(--text-secondary);font-size:0.85rem;">${freeText}</span>
+          </td>
+          <td>
+            <span class="status-badge ${isActive ? 'active' : 'inactive'}" style="font-size:0.75rem;padding:3px 10px;border-radius:12px;font-weight:600;display:inline-block;">
+              ${isActive ? 'Ativo' : 'Inativo'}
+            </span>
+          </td>
+          <td style="text-align:right;">
+            <div style="display:inline-flex;gap:6px;justify-content:flex-end;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="AdminPanel.editNeighborhood('${n.id}')" title="Editar Bairro" style="padding:6px 9px;cursor:pointer;">
+                <i data-lucide="edit-3" style="width:14px;height:14px;"></i>
+              </button>
+              <button type="button" class="btn btn-danger btn-sm" onclick="AdminPanel.deleteNeighborhood('${n.id}')" title="Excluir Bairro" style="padding:6px 9px;cursor:pointer;">
+                <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    refreshIcons();
+  }
+
+  function openNeighborhoodModal(id = null) {
+    editingNeighborhoodId = id;
+    const modal = $('neighborhood-form-modal');
+    const title = $('neighborhood-form-title');
+    const form = $('neighborhood-form');
+    if (!modal) return;
+
+    if (form) form.reset();
+
+    if (id) {
+      if (title) title.textContent = 'Editar Bairro';
+      const s = DataStore.getSettings();
+      const list = (s.delivery && s.delivery.neighborhoods) || [];
+      const item = list.find(n => n.id === id);
+      if (item) {
+        if ($('nf-id')) $('nf-id').value = item.id;
+        if ($('nf-name')) $('nf-name').value = item.name || '';
+        if ($('nf-fee')) $('nf-fee').value = item.fee !== undefined ? item.fee : 5;
+        if ($('nf-estimate')) $('nf-estimate').value = item.estimate || '30 a 50 min';
+        if ($('nf-min-order')) $('nf-min-order').value = item.minOrder || 0;
+        if ($('nf-free-above')) $('nf-free-above').value = item.freeAbove || 0;
+        if ($('nf-active')) $('nf-active').checked = item.active !== false;
+      }
+    } else {
+      if (title) title.textContent = 'Novo Bairro';
+      if ($('nf-id')) $('nf-id').value = '';
+      if ($('nf-fee')) $('nf-fee').value = 5;
+      if ($('nf-estimate')) $('nf-estimate').value = '30 a 50 min';
+      if ($('nf-active')) $('nf-active').checked = true;
+      if ($('nf-min-order')) $('nf-min-order').value = 0;
+      if ($('nf-free-above')) $('nf-free-above').value = 0;
+    }
+
+    modal.classList.add('active');
+    refreshIcons();
+  }
+
+  function closeNeighborhoodModal() {
+    const modal = $('neighborhood-form-modal');
+    if (modal) modal.classList.remove('active');
+    editingNeighborhoodId = null;
+  }
+
+  async function saveNeighborhoodForm(e) {
+    if (e) e.preventDefault();
+
+    const name = $('nf-name') ? $('nf-name').value.trim() : '';
+    const fee = $('nf-fee') ? (parseFloat($('nf-fee').value) || 0) : 0;
+    const estimate = $('nf-estimate') ? $('nf-estimate').value.trim() : '30 a 50 min';
+    const minOrder = $('nf-min-order') ? (parseFloat($('nf-min-order').value) || 0) : 0;
+    const freeAbove = $('nf-free-above') ? (parseFloat($('nf-free-above').value) || 0) : 0;
+    const active = $('nf-active') ? $('nf-active').checked : true;
+
+    if (!name) {
+      Utils.showToast('Informe o nome do bairro!', 'error');
+      return;
+    }
+
+    const s = DataStore.getSettings();
+    const curDelivery = s.delivery || {};
+    const neighborhoods = [...(curDelivery.neighborhoods || [])];
+
+    if (editingNeighborhoodId) {
+      const idx = neighborhoods.findIndex(n => n.id === editingNeighborhoodId);
+      if (idx !== -1) {
+        neighborhoods[idx] = {
+          ...neighborhoods[idx],
+          name,
+          fee,
+          estimate,
+          minOrder,
+          freeAbove,
+          active
+        };
+      }
+    } else {
+      neighborhoods.push({
+        id: 'b_' + Date.now(),
+        name,
+        fee,
+        estimate,
+        minOrder,
+        freeAbove,
+        active
+      });
+    }
+
+    try {
+      await DataStore.updateSetting('delivery', {
+        ...curDelivery,
+        neighborhoods
+      });
+      Utils.showToast(editingNeighborhoodId ? 'Bairro atualizado com sucesso!' : 'Bairro adicionado com sucesso!', 'success');
+      closeNeighborhoodModal();
+      renderNeighborhoodsTable();
+    } catch (err) {
+      Utils.showToast('Erro ao salvar bairro: ' + (err.message || ''), 'error');
+    }
+  }
+
+  function deleteNeighborhood(id) {
+    const s = DataStore.getSettings();
+    const curDelivery = s.delivery || {};
+    const item = (curDelivery.neighborhoods || []).find(n => n.id === id);
+    const name = item ? item.name : 'este bairro';
+
+    showConfirm('Excluir Bairro', `Deseja realmente remover o bairro "${name}" da lista de entregas?`, async () => {
+      try {
+        const filtered = (curDelivery.neighborhoods || []).filter(n => n.id !== id);
+        await DataStore.updateSetting('delivery', {
+          ...curDelivery,
+          neighborhoods: filtered
+        });
+        Utils.showToast('Bairro removido com sucesso!', 'success');
+        renderNeighborhoodsTable();
+      } catch (err) {
+        Utils.showToast('Erro ao excluir: ' + (err.message || ''), 'error');
+      }
+    });
   }
 
   // ===== 10. PAYMENTS =====
@@ -1526,6 +1762,47 @@
       refreshIcons();
     }
 
+    // Installments Config
+    const inst = settings.installmentsConfig || { enabled: true, maxInstallments: 3, minInstallmentValue: 0, interestFree: true };
+    const instToggle = $('pay-installments-active');
+    const instBadge = $('installments-active-badge');
+    const instSelect = $('pay-max-installments');
+    const instMin = $('pay-min-installment-val');
+    const instPreview = $('installments-preview-text');
+
+    function updateInstPreview() {
+      const active = instToggle ? instToggle.checked : true;
+      const max = instSelect ? parseInt(instSelect.value, 10) : 3;
+      const minVal = instMin ? parseFloat(instMin.value) || 0 : 0;
+      if (instBadge) {
+        instBadge.textContent = active ? 'Ativo' : 'Desativado';
+        instBadge.className = `status-badge ${active ? 'active' : 'inactive'}`;
+      }
+      if (instPreview) {
+        if (!active) {
+          instPreview.innerHTML = 'Parcelamento desativado (vendas somente à vista).';
+        } else if (max <= 1) {
+          instPreview.innerHTML = 'Configurado para <strong>somente 1x (à vista)</strong> no cartão.';
+        } else {
+          instPreview.innerHTML = `Exibição nos produtos e carrinho: <strong>ou até ${max}x sem juros</strong>${minVal > 0 ? ` (parcela mín. de ${Utils.formatCurrency(minVal)})` : ''}`;
+        }
+      }
+    }
+
+    if (instToggle) {
+      instToggle.checked = inst.enabled !== false;
+      instToggle.onchange = updateInstPreview;
+    }
+    if (instSelect) {
+      instSelect.value = String(inst.maxInstallments || 3);
+      instSelect.onchange = updateInstPreview;
+    }
+    if (instMin) {
+      instMin.value = inst.minInstallmentValue || 0;
+      instMin.oninput = updateInstPreview;
+    }
+    updateInstPreview();
+
     if ($('pix-key-type')) $('pix-key-type').value = pix.keyType || 'Celular';
     if ($('pix-key')) $('pix-key').value = pix.key || '';
     if ($('pix-receiver')) $('pix-receiver').value = pix.receiverName || '';
@@ -1538,8 +1815,15 @@
           ...m,
           active: $(`pay-toggle-${i}`) ? $(`pay-toggle-${i}`).checked : m.active
         }));
+        const instData = {
+          enabled: instToggle ? instToggle.checked : true,
+          maxInstallments: instSelect ? (parseInt(instSelect.value, 10) || 3) : 3,
+          minInstallmentValue: instMin ? (parseFloat(instMin.value) || 0) : 0,
+          interestFree: true
+        };
         await DataStore.updateSettings({
           paymentMethods: updatedMethods,
+          installmentsConfig: instData,
           pixDetails: {
             key: $('pix-key').value.trim(),
             keyType: $('pix-key-type').value,
@@ -1547,7 +1831,7 @@
             instructions: $('pix-instructions').value.trim()
           }
         });
-        Utils.showToast('Pagamentos salvos!', 'success');
+        Utils.showToast('Configurações de pagamentos e parcelamento salvas!', 'success');
       } catch (err) {
         Utils.showToast('Erro: ' + (err.message || ''), 'error');
       }
@@ -1831,6 +2115,22 @@
     
     AdminPanel.renderIgPostsManager();
 
+    // Barra de Benefícios
+    const benefits = s.benefitsBar || [
+      { icon: 'truck', title: 'Frete grátis acima de R$199', desc: 'Entrega rápida e segura para todo o Brasil' },
+      { icon: 'shield-check', title: 'Pagamento seguro', desc: 'Ambiente protegido com confirmação imediata' },
+      { icon: 'refresh-cw', title: 'Troca facilitada', desc: 'Primeira troca sem custo e sem burocracia' },
+      { icon: 'zap', title: 'Envio rápido', desc: 'Despacho ágil com código de rastreamento' }
+    ];
+    if ($('v-benefit-1-title')) $('v-benefit-1-title').value = (benefits[0] && benefits[0].title) || '';
+    if ($('v-benefit-1-desc')) $('v-benefit-1-desc').value = (benefits[0] && benefits[0].desc) || '';
+    if ($('v-benefit-2-title')) $('v-benefit-2-title').value = (benefits[1] && benefits[1].title) || '';
+    if ($('v-benefit-2-desc')) $('v-benefit-2-desc').value = (benefits[1] && benefits[1].desc) || '';
+    if ($('v-benefit-3-title')) $('v-benefit-3-title').value = (benefits[2] && benefits[2].title) || '';
+    if ($('v-benefit-3-desc')) $('v-benefit-3-desc').value = (benefits[2] && benefits[2].desc) || '';
+    if ($('v-benefit-4-title')) $('v-benefit-4-title').value = (benefits[3] && benefits[3].title) || '';
+    if ($('v-benefit-4-desc')) $('v-benefit-4-desc').value = (benefits[3] && benefits[3].desc) || '';
+
     if ($('v-whatsapp')) $('v-whatsapp').value = s.whatsappNumber || '';
     if ($('v-phone')) $('v-phone').value = s.contactPhone || '';
     if ($('v-instagram')) $('v-instagram').value = s.instagram || '';
@@ -1842,6 +2142,30 @@
       try {
         btn.disabled = true;
         btn.textContent = 'Salvando...';
+
+        const updatedBenefits = [
+          {
+            icon: 'truck',
+            title: ($('v-benefit-1-title') ? $('v-benefit-1-title').value.trim() : '') || 'Frete grátis acima de R$199',
+            desc: ($('v-benefit-1-desc') ? $('v-benefit-1-desc').value.trim() : '') || 'Entrega rápida e segura para todo o Brasil'
+          },
+          {
+            icon: 'shield-check',
+            title: ($('v-benefit-2-title') ? $('v-benefit-2-title').value.trim() : '') || 'Pagamento seguro',
+            desc: ($('v-benefit-2-desc') ? $('v-benefit-2-desc').value.trim() : '') || 'Ambiente protegido com confirmação imediata'
+          },
+          {
+            icon: 'refresh-cw',
+            title: ($('v-benefit-3-title') ? $('v-benefit-3-title').value.trim() : '') || 'Troca facilitada',
+            desc: ($('v-benefit-3-desc') ? $('v-benefit-3-desc').value.trim() : '') || 'Primeira troca sem custo e sem burocracia'
+          },
+          {
+            icon: 'zap',
+            title: ($('v-benefit-4-title') ? $('v-benefit-4-title').value.trim() : '') || 'Envio rápido',
+            desc: ($('v-benefit-4-desc') ? $('v-benefit-4-desc').value.trim() : '') || 'Despacho ágil com código de rastreamento'
+          }
+        ];
+
         await DataStore.updateSettings({
           storeName: $('v-store-name').value.trim(),
           storeTagline: $('v-store-tagline').value.trim(),
@@ -1854,13 +2178,14 @@
             ctaText: $('v-hero-cta').value.trim(),
             image: $('v-hero-image') ? $('v-hero-image').value.trim() : ''
           },
+          benefitsBar: updatedBenefits,
           announcementBar: {
             active: $('v-ann-active').checked,
             text: $('v-ann-text').value.trim()
           },
           featuredCollection: {
             active: $('v-featured-active') ? $('v-featured-active').checked : true,
-            title: $('v-featured-title') ? $('v-featured-title').value.trim() : 'Nova Coleção 2026',
+            title: $('v-featured-title') ? $('v-featured-title').value.trim() : 'Nova Coleção',
             subtitle: $('v-featured-subtitle') ? $('v-featured-subtitle').value.trim() : ''
           },
           instagramFeed: {
@@ -2031,19 +2356,27 @@
       $('category-form-modal').addEventListener('click', e => { if (e.target === $('category-form-modal')) $('category-form-modal').classList.remove('active'); });
     }
 
+    // Neighborhood form modal click outside
+    if ($('neighborhood-form-modal')) {
+      $('neighborhood-form-modal').addEventListener('click', e => { if (e.target === $('neighborhood-form-modal')) closeNeighborhoodModal(); });
+    }
+
     // Keyboard ESC
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
-        ['product-form-modal', 'category-form-modal', 'order-detail-modal', 'confirm-modal'].forEach(id => {
+        ['product-form-modal', 'category-form-modal', 'order-detail-modal', 'confirm-modal', 'neighborhood-form-modal'].forEach(id => {
           if ($(id)) $(id).classList.remove('active');
         });
         closeProductForm();
+        closeNeighborhoodModal();
       }
     });
   }
 
   // Expose AdminPanel extras
   window.AdminPanel = window.AdminPanel || {};
+  window.AdminPanel.editNeighborhood = openNeighborhoodModal;
+  window.AdminPanel.deleteNeighborhood = deleteNeighborhood;
 
   // ===== BOOT =====
   if (document.readyState === 'loading') {

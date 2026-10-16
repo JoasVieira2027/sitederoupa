@@ -160,6 +160,7 @@
   let settings = null;
   let deliveryType = 'delivery'; // 'delivery' | 'pickup'
   let selectedPayment = null;
+  let selectedNeighborhoodId = null;
 
   // Icon mapping for clean Lucide icons per category
   const CATEGORY_ICON_MAP = {
@@ -193,6 +194,7 @@
     applyBranding();
     applyStoreStatus();
     renderAnnouncementBar();
+    renderBenefitsBar();
     renderCategories();
     renderFeaturedCollection();
     renderProducts();
@@ -211,6 +213,7 @@
       applyBranding();
       applyStoreStatus();
       renderAnnouncementBar();
+      renderBenefitsBar();
       renderFeaturedCollection();
       renderAbout();
       renderInstagramFeed();
@@ -257,11 +260,24 @@
 
     // Hero content from settings
     if (settings.hero) {
-      if (settings.hero.title && heroTitle) heroTitle.innerHTML = settings.hero.title;
-      if (settings.hero.subtitle && heroSubtitle) heroSubtitle.textContent = settings.hero.subtitle;
-      if (settings.hero.badgeText && heroBadgeText) heroBadgeText.textContent = settings.hero.badgeText;
-      if (settings.hero.ctaText && heroCta) {
-        heroCta.querySelector('span') && (heroCta.querySelector('span').textContent = settings.hero.ctaText);
+      const stripEmoji = (str) => (str || '').replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}]/gu, '').trim();
+
+      const rawTitle = stripEmoji(settings.hero.title);
+      const cleanTitle = (!rawTitle || rawTitle.includes('Treine com Estilo')) ? 'Performance que acompanha seu ritmo.' : rawTitle;
+      if (heroTitle) heroTitle.innerHTML = cleanTitle;
+
+      const rawSub = stripEmoji(settings.hero.subtitle);
+      const cleanSub = (!rawSub || rawSub.length < 10) ? 'Roupas fitness desenvolvidas para oferecer conforto, sustentação e liberdade em cada movimento.' : rawSub;
+      if (heroSubtitle) heroSubtitle.textContent = cleanSub;
+
+      const rawBadge = stripEmoji(settings.hero.badgeText);
+      if (heroBadgeText) heroBadgeText.textContent = rawBadge || 'Coleção Activewear';
+
+      const rawCta = stripEmoji(settings.hero.ctaText);
+      const cleanCta = (!rawCta || rawCta.includes('Coleção Fitness')) ? 'Ver coleção' : rawCta;
+      if (heroCta) {
+        const ctaSpan = heroCta.querySelector('span');
+        if (ctaSpan) ctaSpan.textContent = cleanCta;
       }
       if (settings.hero.image && heroBg) {
         heroBg.style.backgroundImage = `url('${settings.hero.image}')`;
@@ -291,6 +307,87 @@
       // Remove any leftover emojis from text
       const cleanText = ann.text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
       announcementText.textContent = cleanText;
+    }
+  }
+
+  // ===== BENEFITS BAR =====
+  function renderBenefitsBar() {
+    const grid = $('benefits-grid');
+    if (!grid) return;
+    const bList = (settings && Array.isArray(settings.benefitsBar) && settings.benefitsBar.length > 0)
+      ? settings.benefitsBar
+      : [
+          { icon: 'truck', title: 'Frete grátis acima de R$199', desc: 'Entrega rápida e segura para todo o Brasil' },
+          { icon: 'shield-check', title: 'Pagamento seguro', desc: 'Ambiente protegido com confirmação imediata' },
+          { icon: 'refresh-cw', title: 'Troca facilitada', desc: 'Primeira troca sem custo e sem burocracia' },
+          { icon: 'zap', title: 'Envio rápido', desc: 'Despacho ágil com código de rastreamento' }
+        ];
+
+    grid.innerHTML = bList.map(b => `
+      <div class="benefit-card">
+        <div class="benefit-icon-wrapper">
+          <i data-lucide="${b.icon || 'check-circle'}"></i>
+        </div>
+        <div class="benefit-content">
+          <h3>${Utils.sanitize(b.title)}</h3>
+          <p>${Utils.sanitize(b.desc)}</p>
+        </div>
+      </div>
+    `).join('');
+    refreshIcons();
+  }
+
+  // ===== FOOTER RENDERING =====
+  function renderFooter() {
+    if (!settings) return;
+
+    const copyrightEl = $('footer-copyright');
+    if (copyrightEl) {
+      const year = new Date().getFullYear();
+      copyrightEl.textContent = `© ${year} ${settings.storeName || 'Fit Vibe Activewear'}. Todos os direitos reservados.`;
+    }
+
+    // Phone / Contact
+    const phoneEl = $('footer-phone');
+    if (phoneEl) {
+      if (settings.contactPhone && !settings.contactPhone.includes('99999-9999')) {
+        phoneEl.textContent = settings.contactPhone;
+        phoneEl.closest('.footer-contact-item') && (phoneEl.closest('.footer-contact-item').style.display = '');
+      } else {
+        phoneEl.closest('.footer-contact-item') && (phoneEl.closest('.footer-contact-item').style.display = 'none');
+      }
+    }
+
+    // Address
+    const addressEl = $('footer-address');
+    if (addressEl) {
+      if (settings.address && !settings.address.toLowerCase().includes('rua do fitness')) {
+        addressEl.textContent = settings.address;
+        addressEl.closest('.footer-contact-item') && (addressEl.closest('.footer-contact-item').style.display = '');
+      } else {
+        addressEl.closest('.footer-contact-item') && (addressEl.closest('.footer-contact-item').style.display = 'none');
+      }
+    }
+
+    // WhatsApp Link
+    const waEl = $('footer-whatsapp');
+    if (waEl) {
+      if (settings.whatsappNumber && !settings.whatsappNumber.includes('999999999')) {
+        waEl.href = `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent('Olá! Gostaria de falar com o atendimento.')}`;
+        waEl.closest('.footer-contact-item') && (waEl.closest('.footer-contact-item').style.display = '');
+      } else {
+        waEl.closest('.footer-contact-item') && (waEl.closest('.footer-contact-item').style.display = 'none');
+      }
+    }
+
+    // Instagram
+    const igEl = $('footer-instagram');
+    if (igEl) {
+      const handle = settings.instagram || (settings.instagramFeed && settings.instagramFeed.handle) || '';
+      if (handle) {
+        igEl.textContent = handle.startsWith('@') ? handle : `@${handle}`;
+        igEl.href = `https://instagram.com/${handle.replace('@', '')}`;
+      }
     }
   }
 
@@ -362,40 +459,53 @@
   function renderCategories() {
     if (!categoriesFilter) return;
     const categories = DataStore.getCategories();
+    const currentNorm = Utils.normalizeCategory(currentCategory);
 
     let html = `
-      <button type="button" class="category-btn ${currentCategory === 'all' ? 'active' : ''}" data-cat="all" id="cat-btn-all" onclick="window.StoreApp?.selectCategory('all')">
+      <button type="button" class="category-btn ${currentNorm === 'all' || !currentNorm ? 'active' : ''}" data-cat="all" id="cat-btn-all">
         <i data-lucide="layers" class="cat-icon-svg"></i>
         <span>Todas as Peças</span>
       </button>
     `;
 
     categories.forEach(cat => {
-      const isSel = currentCategory.trim().toLowerCase() === cat.name.trim().toLowerCase();
-      const safeCatName = Utils.sanitize(cat.name);
-      const iconKey = cat.name.trim().toLowerCase();
+      const catNorm = Utils.normalizeCategory(cat.name);
+      const isSel = currentNorm === catNorm;
+      const iconKey = catNorm;
       const lucideIcon = CATEGORY_ICON_MAP[iconKey] || 'tag';
+      const displayName = Utils.decodeHtml(cat.name);
 
       html += `
-        <button type="button" class="category-btn ${isSel ? 'active' : ''}" data-cat="${safeCatName}" id="cat-btn-${cat.id}" onclick="window.StoreApp?.selectCategory('${safeCatName.replace(/'/g, "\\'")}')">
+        <button type="button" class="category-btn ${isSel ? 'active' : ''}" data-cat="${Utils.sanitize(cat.name)}" id="cat-btn-${cat.id}">
           <i data-lucide="${lucideIcon}" class="cat-icon-svg"></i>
-          <span>${safeCatName}</span>
+          <span>${Utils.sanitize(displayName)}</span>
         </button>
       `;
     });
 
     categoriesFilter.innerHTML = html;
+    
+    // Bind click events directly on buttons to avoid HTML encoding issues
+    categoriesFilter.querySelectorAll('.category-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cat = btn.dataset.cat || 'all';
+        selectCategory(cat);
+      });
+    });
+
     refreshIcons();
   }
 
   // ===== SELECT CATEGORY =====
   function selectCategory(catName) {
     currentCategory = catName || 'all';
+    const currentNorm = Utils.normalizeCategory(currentCategory);
 
     // Update active state on category buttons
     $$('.category-btn').forEach(btn => {
       const btnCat = btn.dataset.cat || 'all';
-      if (btnCat.trim().toLowerCase() === currentCategory.trim().toLowerCase()) {
+      const btnNorm = Utils.normalizeCategory(btnCat);
+      if (btnNorm === currentNorm || (currentNorm === 'all' && btnNorm === 'all')) {
         btn.classList.add('active');
       } else {
         btn.classList.remove('active');
@@ -464,13 +574,10 @@
   function renderProducts() {
     if (!productsGrid) return;
 
-    // 1. Load active products from DataStore with robust fallback
-    let products = DataStore.getProducts();
-    if (!products || !products.length) {
-      // Automatic fallback so catalog never breaks on initial render
-      const local = DataStore.getProducts({ includeInactive: true });
-      products = local.length ? local.filter(p => p.active) : [];
-    }
+    // 1. Load active products from DataStore
+    let allLoaded = DataStore.getProducts({ includeInactive: false });
+    // Filter only active products
+    let products = allLoaded.filter(p => p && p.active !== false && p.active !== 'false');
 
     // 2. Control visibility of Featured Collection
     if (featuredSection) {
@@ -486,12 +593,12 @@
     }
 
     // 3. Apply category filter
-    if (currentCategory !== 'all') {
+    const currentNorm = Utils.normalizeCategory(currentCategory);
+    if (currentNorm && currentNorm !== 'all') {
       products = products.filter(p => {
         if (!p.category) return false;
-        const catA = p.category.trim().toLowerCase();
-        const catB = currentCategory.trim().toLowerCase();
-        return catA === catB || catA.includes(catB) || catB.includes(catA);
+        const catNorm = Utils.normalizeCategory(p.category);
+        return catNorm === currentNorm || catNorm.includes(currentNorm) || currentNorm.includes(catNorm);
       });
     }
 
@@ -505,7 +612,7 @@
 
     // 5. Apply live search query
     if (searchQuery) {
-      const q = searchQuery.toLowerCase();
+      const q = searchQuery.toLowerCase().trim();
       products = products.filter(p => {
         const nameMatch = p.name && p.name.toLowerCase().includes(q);
         const catMatch = p.category && p.category.toLowerCase().includes(q);
@@ -520,8 +627,8 @@
         productsSectionTitle.textContent = `Resultados para "${searchQuery}"`;
       } else if (currentColorFilter) {
         productsSectionTitle.textContent = `Peças na Cor: ${currentColorFilter}`;
-      } else if (currentCategory !== 'all') {
-        productsSectionTitle.textContent = currentCategory;
+      } else if (currentNorm && currentNorm !== 'all') {
+        productsSectionTitle.textContent = Utils.decodeHtml(currentCategory);
       } else {
         productsSectionTitle.textContent = 'Todas as Peças';
       }
@@ -540,7 +647,7 @@
       if (currentCategory !== 'all' || currentColorFilter || searchQuery) {
         activeFilterChips.classList.remove('hidden');
         const labels = [];
-        if (currentCategory !== 'all') labels.push(`Categoria: ${currentCategory}`);
+        if (currentCategory !== 'all') labels.push(`Categoria: ${Utils.decodeHtml(currentCategory)}`);
         if (currentColorFilter) labels.push(`Cor: ${currentColorFilter}`);
         if (searchQuery) labels.push(`Busca: "${searchQuery}"`);
         filterChipLabel.textContent = labels.join(' • ');
@@ -558,17 +665,21 @@
         const emptyDesc = $('empty-state-desc');
         if (emptyTitle) {
           if (searchQuery) {
-            emptyTitle.textContent = `Nenhum produto encontrado para "${searchQuery}"`;
+            emptyTitle.textContent = `Nenhum resultado para "${searchQuery}"`;
           } else if (currentColorFilter) {
             emptyTitle.textContent = `Nenhuma peça na cor "${currentColorFilter}" no momento`;
           } else if (currentCategory !== 'all') {
-            emptyTitle.textContent = `Nenhuma peça na categoria "${currentCategory}" no momento`;
+            emptyTitle.textContent = `Nenhuma peça na categoria "${Utils.decodeHtml(currentCategory)}" no momento`;
           } else {
-            emptyTitle.textContent = 'Nenhum produto cadastrado no catálogo';
+            emptyTitle.textContent = 'Coleção em atualização';
           }
         }
         if (emptyDesc) {
-          emptyDesc.textContent = 'Novidades exclusivas da coleção fitness chegando em breve! Confira todas as nossas peças disponíveis.';
+          if (searchQuery || currentColorFilter || currentCategory !== 'all') {
+            emptyDesc.textContent = 'Experimente limpar os filtros ou selecionar outra categoria para ver todas as opções disponíveis.';
+          } else {
+            emptyDesc.textContent = 'Nossas peças exclusivas com modelagem anatômica e tecnologia zero transparência estão sendo preparadas. Fale conosco no WhatsApp para conferir a disponibilidade antecipada!';
+          }
         }
       }
       refreshIcons();
@@ -637,8 +748,9 @@
     const isClosed = !DataStore.isStoreOpen();
     const isOut = !p.inStock || totalStock === 0;
 
-    // Calculate installment in 3x
-    const installmentVal = finalPrice / 3;
+    // Calculate installments based on admin settings
+    const instCfg = (settings && settings.installmentsConfig) || (DataStore.getSettings()?.installmentsConfig) || { enabled: true, maxInstallments: 3, minInstallmentValue: 0 };
+    const installmentText = Utils.getInstallmentSummary(finalPrice, instCfg);
 
     // Main image
     const imageHtml = p.image
@@ -656,20 +768,21 @@
     }
 
     // Color Swatches
-    const colors = (p.variants || []).slice(0, 5);
+    const colors = (p.variants || []).slice(0, 6);
     const colorSwatches = colors.map(v =>
       `<span class="color-swatch-mini" style="background:${v.colorHex || '#333'}" title="${Utils.sanitize(v.color)}" data-color="${Utils.sanitize(v.color)}" data-image="${Utils.sanitize(v.image || '')}"></span>`
     ).join('');
 
-    // Stock Status
-    let stockHtml = '';
-    if (isOut) {
-      stockHtml = `<span class="stock-status out"><span class="stock-dot"></span> Esgotado</span>`;
-    } else if (totalStock <= 4) {
-      stockHtml = `<span class="stock-status low"><span class="stock-dot"></span> Últimas ${totalStock} unidades</span>`;
-    } else {
-      stockHtml = `<span class="stock-status ok"><span class="stock-dot"></span> Em estoque</span>`;
-    }
+    // Available Sizes Chips
+    const sizesSet = [];
+    (p.variants || []).forEach(v => {
+      (v.sizes || []).forEach(s => {
+        if (s.qty > 0 && !sizesSet.includes(s.size)) sizesSet.push(s.size);
+      });
+    });
+    const sizesHtml = sizesSet.length > 0
+      ? `<div class="product-sizes-chips">${sizesSet.map(sz => `<span class="product-size-pill">${sz}</span>`).join('')}</div>`
+      : '';
 
     // Price block with 3x installments
     let priceHtml = '';
@@ -689,34 +802,34 @@
     }
 
     return `
-      <article class="product-card ${isOut ? 'out-of-stock' : ''}" data-id="${p.id}" style="animation-delay:${index * 50}ms">
+      <article class="product-card ${isOut ? 'out-of-stock' : ''}" data-id="${p.id}" style="animation-delay:${index * 40}ms">
         <div class="product-card-image-wrapper">
           ${imageHtml}
           ${badgeHtml}
           ${colorSwatches ? `<div class="product-colors-preview">${colorSwatches}</div>` : ''}
           <div class="product-card-quick-view">
             <i data-lucide="eye"></i>
-            <span>Ver Opções</span>
+            <span>Ver Detalhes</span>
           </div>
         </div>
 
         <div class="product-card-body">
           <div class="product-card-meta">
-            <span class="product-card-category">${Utils.sanitize(p.category || 'Fitness')}</span>
-            ${stockHtml}
+            <span class="product-card-category">${Utils.sanitize(Utils.decodeHtml(p.category || 'Fitness'))}</span>
+            ${sizesHtml}
           </div>
 
           <h3 class="product-card-name" title="${Utils.sanitize(p.name)}">${Utils.sanitize(p.name)}</h3>
 
           <div class="product-card-pricing">
             ${priceHtml}
-            <span class="product-card-installment">3x de ${Utils.formatCurrency(installmentVal)} sem juros</span>
+            ${installmentText ? `<span class="product-card-installment">${installmentText}</span>` : ''}
           </div>
 
           <div class="product-card-footer">
             <button type="button" class="btn-add-cart" data-id="${p.id}" ${(isOut || isClosed) ? 'disabled' : ''} aria-label="Adicionar ${Utils.sanitize(p.name)} ao carrinho">
               <i data-lucide="shopping-bag"></i>
-              <span>${isClosed ? 'Loja Fechada' : (isOut ? 'Esgotado' : 'Adicionar')}</span>
+              <span>${isClosed ? 'Loja Fechada' : (isOut ? 'Esgotado' : 'Adicionar à Sacola')}</span>
             </button>
           </div>
         </div>
@@ -854,7 +967,9 @@
 
     // Installments line in modal
     if (modalProductInstallments) {
-      modalProductInstallments.textContent = `em até 3x de ${Utils.formatCurrency(finalPrice / 3)} sem juros`;
+      const instCfg = (settings && settings.installmentsConfig) || (DataStore.getSettings()?.installmentsConfig) || { enabled: true, maxInstallments: 3, minInstallmentValue: 0 };
+      const summary = Utils.getInstallmentSummary(finalPrice, instCfg);
+      modalProductInstallments.textContent = summary || `à vista ${Utils.formatCurrency(finalPrice)}`;
     }
 
     // Badge
@@ -1324,6 +1439,24 @@
     if (cartFooter) cartFooter.style.display = count > 0 ? 'block' : 'none';
     if (cartEmpty) cartEmpty.style.display = count === 0 ? 'flex' : 'none';
 
+    // Installments note in cart footer
+    const cartInstBadge = $('cart-installments-badge');
+    const cartInstText = $('cart-installments-text');
+    const instCfg = (settings && settings.installmentsConfig) || (DataStore.getSettings()?.installmentsConfig) || { enabled: true, maxInstallments: 3, minInstallmentValue: 0 };
+    if (cartInstBadge && cartInstText) {
+      if (count > 0 && instCfg.enabled !== false) {
+        const summary = Utils.getInstallmentSummary(total, instCfg);
+        if (summary) {
+          cartInstText.textContent = summary;
+          cartInstBadge.style.display = 'flex';
+        } else {
+          cartInstBadge.style.display = 'none';
+        }
+      } else {
+        cartInstBadge.style.display = 'none';
+      }
+    }
+
     // Free Shipping Bar
     const d = (settings && settings.delivery) || (DataStore.getSettings()?.delivery) || {};
     const isDeliveryOn = d.deliveryEnabled !== false;
@@ -1464,6 +1597,7 @@
     document.body.style.overflow = 'hidden';
 
     renderDeliveryTabs();
+    populateNeighborhoodSelect();
     renderPaymentOptions();
     renderCheckoutSummary();
     refreshIcons();
@@ -1567,6 +1701,7 @@
   function handlePaymentChange(paymentId) {
     const pixBox = $('pix-checkout-box');
     const cashBox = $('cash-change-box');
+    const cardInstBox = $('card-installments-box');
     const s = DataStore.getSettings();
 
     if (paymentId === 'pix') {
@@ -1587,25 +1722,304 @@
     } else if (cashBox) {
       cashBox.classList.add('hidden');
     }
+
+    if (paymentId === 'credito') {
+      if (cardInstBox) {
+        cardInstBox.classList.remove('hidden');
+        updateCheckoutInstallmentOptions();
+      }
+    } else if (cardInstBox) {
+      cardInstBox.classList.add('hidden');
+    }
+  }
+
+  function updateCheckoutInstallmentOptions() {
+    const select = $('checkout-card-installments');
+    if (!select) return;
+
+    const subtotal = getCartTotal();
+    const fee = calculateDeliveryFee(subtotal) || 0;
+    const total = subtotal + fee;
+    const s = DataStore.getSettings();
+    const instCfg = s.installmentsConfig || { enabled: true, maxInstallments: 3, minInstallmentValue: 0, interestFree: true };
+
+    const list = Utils.calculateInstallments(total, instCfg);
+    select.innerHTML = list.map(opt => `
+      <option value="${opt.count}">${opt.text}</option>
+    `).join('');
+
+    const hint = $('card-installments-hint');
+    if (hint) {
+      if (instCfg.enabled === false || list.length <= 1) {
+        hint.textContent = 'Pagamento em 1x no cartão (à vista). Processado com segurança.';
+      } else {
+        const top = list[list.length - 1];
+        hint.textContent = `Parcelamento em até ${top.count}x sem juros no cartão de crédito.`;
+      }
+    }
+  }
+
+  // ===== NEIGHBORHOOD RATES & DELIVERY CALCULATION =====
+  function populateNeighborhoodSelect() {
+    const sel = $('customer-neighborhood');
+    if (!sel) return;
+
+    const s = DataStore.getSettings();
+    const d = s.delivery || {};
+    const neighborhoods = (d.neighborhoods || []).filter(n => n.active !== false);
+
+    if (!neighborhoods.length) {
+      sel.innerHTML = '<option value="">Entrega geral (sem seleção de bairro)</option>';
+      const alertBox = $('neighborhood-alert-box');
+      if (alertBox) alertBox.style.display = 'none';
+      return;
+    }
+
+    sel.innerHTML = `
+      <option value="">Selecione seu bairro para calcular o frete...</option>
+      ${neighborhoods.map(n => `
+        <option value="${n.id}" ${selectedNeighborhoodId === n.id ? 'selected' : ''}>
+          ${Utils.sanitize(n.name)} — ${Utils.formatCurrency(n.fee || 0)} (${Utils.sanitize(n.estimate || '30 a 50 min')})
+        </option>
+      `).join('')}
+    `;
+
+    if (selectedNeighborhoodId) {
+      sel.value = selectedNeighborhoodId;
+      updateNeighborhoodAlert();
+    }
+  }
+
+  function onSelectNeighborhood(id) {
+    selectedNeighborhoodId = id || null;
+    const sel = $('customer-neighborhood');
+    if (sel) {
+      sel.style.borderColor = '';
+      if (sel.value !== (id || '')) {
+        sel.value = id || '';
+      }
+    }
+
+    updateNeighborhoodAlert();
+    renderCheckoutSummary();
+
+    const modal = $('neighborhood-rates-modal');
+    if (modal && modal.classList.contains('active')) {
+      const searchInput = $('neighborhood-search-input');
+      renderNeighborhoodModalList(searchInput ? searchInput.value : '');
+    }
+  }
+
+  function updateNeighborhoodAlert() {
+    const alertBox = $('neighborhood-alert-box');
+    if (!alertBox) return;
+
+    if (!selectedNeighborhoodId) {
+      alertBox.style.display = 'none';
+      alertBox.innerHTML = '';
+      return;
+    }
+
+    const s = DataStore.getSettings();
+    const d = s.delivery || {};
+    const n = (d.neighborhoods || []).find(x => x.id === selectedNeighborhoodId);
+    if (!n) {
+      alertBox.style.display = 'none';
+      return;
+    }
+
+    const subtotal = getCartTotal();
+    alertBox.style.display = 'block';
+
+    if (n.minOrder && n.minOrder > 0 && subtotal < n.minOrder) {
+      const remaining = n.minOrder - subtotal;
+      alertBox.className = 'neighborhood-alert warning';
+      alertBox.innerHTML = `
+        <i data-lucide="alert-triangle" style="width:16px;height:16px;flex-shrink:0;"></i>
+        <span>Pedido mínimo para <strong>${Utils.sanitize(n.name)}</strong>: <strong>${Utils.formatCurrency(n.minOrder)}</strong>. Faltam <strong>${Utils.formatCurrency(remaining)}</strong>.</span>
+      `;
+      refreshIcons();
+      return;
+    }
+
+    const isFreeByGeneral = (d.freeDeliveryEnabled !== false) && (subtotal >= (parseFloat(d.freeDeliveryThreshold) || 199));
+    const isFreeByNeigh = (n.freeAbove && n.freeAbove > 0 && subtotal >= n.freeAbove);
+
+    if (isFreeByGeneral || isFreeByNeigh) {
+      alertBox.className = 'neighborhood-alert success';
+      alertBox.innerHTML = `
+        <i data-lucide="check-circle" style="width:16px;height:16px;flex-shrink:0;"></i>
+        <span>Parabéns! Você ganhou <strong>Frete Grátis</strong> para <strong>${Utils.sanitize(n.name)}</strong>!</span>
+      `;
+      refreshIcons();
+      return;
+    }
+
+    alertBox.className = 'neighborhood-alert info';
+    alertBox.innerHTML = `
+      <i data-lucide="clock" style="width:16px;height:16px;flex-shrink:0;"></i>
+      <span>Entrega em <strong>${Utils.sanitize(n.name)}</strong>: <strong>${Utils.formatCurrency(n.fee || 0)}</strong> &middot; Prazo estimado: <strong>${Utils.sanitize(n.estimate || '30 a 50 min')}</strong></span>
+    `;
+    refreshIcons();
+  }
+
+  function openNeighborhoodModal() {
+    const modal = $('neighborhood-rates-modal');
+    if (!modal) return;
+
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    const input = $('neighborhood-search-input');
+    if (input) {
+      input.value = '';
+      setTimeout(() => input.focus(), 150);
+    }
+
+    renderNeighborhoodModalList('');
+    refreshIcons();
+  }
+
+  function closeNeighborhoodModal() {
+    const modal = $('neighborhood-rates-modal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    if (!checkoutModal || !checkoutModal.classList.contains('active')) {
+      document.body.style.overflow = '';
+    }
+  }
+
+  function renderNeighborhoodModalList(query = '') {
+    const listEl = $('neighborhood-rates-list');
+    if (!listEl) return;
+
+    const s = DataStore.getSettings();
+    const d = s.delivery || {};
+    const all = (d.neighborhoods || []).filter(n => n.active !== false);
+
+    const q = (query || '').toLowerCase().trim();
+    const filtered = q
+      ? all.filter(n => (n.name || '').toLowerCase().includes(q))
+      : all;
+
+    if (!filtered.length) {
+      listEl.innerHTML = `
+        <div style="text-align:center;padding:32px 16px;color:var(--text-muted);font-size:0.88rem;">
+          <i data-lucide="map-pin-off" style="width:32px;height:32px;margin:0 auto 10px;display:block;opacity:0.4;"></i>
+          Nenhum bairro encontrado para "${Utils.sanitize(query)}".<br>
+          <small style="margin-top:6px;display:block;">Consulte nossa equipe pelo WhatsApp para entregas nessa região.</small>
+        </div>
+      `;
+      refreshIcons();
+      return;
+    }
+
+    listEl.innerHTML = filtered.map(n => {
+      const isSel = selectedNeighborhoodId === n.id;
+      return `
+        <div class="neighborhood-card-item ${isSel ? 'selected' : ''}" onclick="window.StoreApp?.selectNeighborhoodFromModal('${n.id}')">
+          <div class="neighborhood-card-info">
+            <span class="neighborhood-card-name">${Utils.sanitize(n.name)}</span>
+            <span class="neighborhood-card-time">
+              <i data-lucide="clock"></i>
+              <span>${Utils.sanitize(n.estimate || '30 a 50 min')}</span>
+            </span>
+            ${n.minOrder && n.minOrder > 0 ? `
+              <div class="neighborhood-card-badge-row">
+                <span style="font-size:0.7rem;color:#B45309;background:#FEF3C7;padding:1px 6px;border-radius:4px;font-weight:600;">Mín. ${Utils.formatCurrency(n.minOrder)}</span>
+              </div>
+            ` : ''}
+          </div>
+          <div class="neighborhood-card-price-wrap">
+            <span class="neighborhood-card-price">${Utils.formatCurrency(n.fee || 0)}</span>
+            ${isSel ? '<i data-lucide="check" class="neighborhood-card-check"></i>' : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    refreshIcons();
+  }
+
+  function selectNeighborhoodFromModal(id) {
+    onSelectNeighborhood(id);
+    closeNeighborhoodModal();
+
+    const s = DataStore.getSettings();
+    const n = (s.delivery?.neighborhoods || []).find(x => x.id === id);
+    if (n) {
+      Utils.showToast(`Bairro selecionado: ${n.name} (${Utils.formatCurrency(n.fee || 0)})`, 'success');
+    }
   }
 
   function calculateDeliveryFee(subtotal) {
     const s = DataStore.getSettings();
     const d = s.delivery || {};
     if (deliveryType !== 'delivery' || d.deliveryEnabled === false) return 0;
+
     const isFreeActive = d.freeDeliveryEnabled !== false;
     const freeAt = isFreeActive ? (d.freeDeliveryThreshold !== undefined ? d.freeDeliveryThreshold : 199) : Infinity;
-    return subtotal >= freeAt ? 0 : (parseFloat(d.deliveryFee) || 0);
+    if (subtotal >= freeAt) return 0;
+
+    const activeNeighs = (d.neighborhoods || []).filter(n => n.active !== false);
+
+    if (selectedNeighborhoodId) {
+      const n = activeNeighs.find(x => x.id === selectedNeighborhoodId);
+      if (n) {
+        if (n.freeAbove && n.freeAbove > 0 && subtotal >= n.freeAbove) {
+          return 0;
+        }
+        return parseFloat(n.fee) || 0;
+      }
+    }
+
+    // Se a loja tem bairros cadastrados, o frete só é calculado após selecionar o bairro
+    if (activeNeighs.length > 0) {
+      return null;
+    }
+
+    return parseFloat(d.deliveryFee) || 0;
   }
 
   function renderCheckoutSummary() {
     const subtotal = getCartTotal();
     const fee = calculateDeliveryFee(subtotal);
-    const total = subtotal + fee;
+    const s = DataStore.getSettings();
+    const d = s.delivery || {};
+    const activeNeighs = (d.neighborhoods || []).filter(n => n.active !== false);
+    const isPendingNeighborhood = (deliveryType === 'delivery' && activeNeighs.length > 0 && !selectedNeighborhoodId);
 
     if (checkoutSubtotal) checkoutSubtotal.textContent = Utils.formatCurrency(subtotal);
-    if (checkoutDeliveryFee) checkoutDeliveryFee.textContent = fee === 0 ? 'Grátis' : Utils.formatCurrency(fee);
-    if (checkoutTotal) checkoutTotal.textContent = Utils.formatCurrency(total);
+
+    if (checkoutDeliveryFee) {
+      if (deliveryType === 'pickup') {
+        checkoutDeliveryFee.innerHTML = '<span style="color:#059669;font-weight:700;">Grátis (Retirada)</span>';
+      } else if (isPendingNeighborhood) {
+        const isFreeActive = d.freeDeliveryEnabled !== false;
+        const freeAt = isFreeActive ? (d.freeDeliveryThreshold !== undefined ? d.freeDeliveryThreshold : 199) : Infinity;
+        if (subtotal >= freeAt) {
+          checkoutDeliveryFee.innerHTML = '<span style="color:#059669;font-weight:700;">Grátis</span> <small style="color:var(--text-muted);">(Campanha)</small>';
+        } else {
+          checkoutDeliveryFee.innerHTML = '<span style="color:#d97706;font-weight:700;font-size:0.85rem;">Selecione o bairro</span>';
+        }
+      } else if (fee === 0) {
+        checkoutDeliveryFee.innerHTML = '<span style="color:#059669;font-weight:700;">Grátis</span>';
+      } else {
+        const n = selectedNeighborhoodId ? activeNeighs.find(x => x.id === selectedNeighborhoodId) : null;
+        checkoutDeliveryFee.innerHTML = n 
+          ? `<strong>${Utils.formatCurrency(fee)}</strong> <small style="color:var(--text-muted);font-weight:normal;">(${n.name})</small>` 
+          : `<strong>${Utils.formatCurrency(fee)}</strong>`;
+      }
+    }
+
+    const total = subtotal + (fee || 0);
+    if (checkoutTotal) {
+      if (isPendingNeighborhood && fee === null) {
+        checkoutTotal.innerHTML = `${Utils.formatCurrency(subtotal)} <small style="color:var(--text-muted);font-size:0.75rem;font-weight:normal;">(+ frete)</small>`;
+      } else {
+        checkoutTotal.textContent = Utils.formatCurrency(total);
+      }
+    }
 
     if (checkoutItemsEl) {
       checkoutItemsEl.innerHTML = cart.map(item => `
@@ -1615,11 +2029,16 @@
         </div>
       `).join('');
     }
+
+    if (selectedPayment === 'credito') {
+      updateCheckoutInstallmentOptions();
+    }
   }
 
   // ===== WHATSAPP ORDER SUBMISSION =====
   function buildWhatsAppMessage(customerData) {
     const s = DataStore.getSettings();
+    const d = s.delivery || {};
     const subtotal = getCartTotal();
     const fee = calculateDeliveryFee(subtotal);
     const total = subtotal + fee;
@@ -1642,13 +2061,29 @@
 
     if (deliveryType === 'delivery') {
       msg += `Modalidade: Entrega a Domicílio\n`;
+      if (selectedNeighborhoodId) {
+        const n = (d.neighborhoods || []).find(x => x.id === selectedNeighborhoodId);
+        if (n) {
+          msg += `Bairro: ${n.name}\n`;
+        }
+      }
       msg += `Endereço: ${customerData.address}\n`;
-      msg += `Frete: ${fee === 0 ? 'Grátis' : Utils.formatCurrency(fee)}\n`;
+      let feeText = fee === 0 ? 'Grátis' : Utils.formatCurrency(fee);
+      if (selectedNeighborhoodId) {
+        const n = (d.neighborhoods || []).find(x => x.id === selectedNeighborhoodId);
+        if (n && n.estimate) {
+          feeText += ` (Prazo: ${n.estimate})`;
+        }
+      }
+      msg += `Frete: ${feeText}\n`;
     } else {
       msg += `Modalidade: Retirada no Local\n`;
     }
 
     msg += `Pagamento: ${customerData.payment}\n`;
+    if (customerData.installment) {
+      msg += `Parcelamento: ${customerData.installment}\n`;
+    }
     if (customerData.troco) msg += `Troco para: ${customerData.troco}\n`;
     msg += `\nTOTAL A PAGAR: ${Utils.formatCurrency(total)}\n`;
 
@@ -1666,7 +2101,7 @@
 
     const name = $('customer-name') ? $('customer-name').value.trim() : '';
     const phone = $('customer-phone') ? $('customer-phone').value.trim() : '';
-    const address = deliveryType === 'delivery' ? ($('customer-address') ? $('customer-address').value.trim() : '') : '';
+    const rawAddress = $('customer-address') ? $('customer-address').value.trim() : '';
     const obs = $('customer-obs') ? $('customer-obs').value.trim() : '';
     const troco = $('customer-troco') ? $('customer-troco').value.trim() : '';
 
@@ -1677,10 +2112,38 @@
 
     const s = DataStore.getSettings();
     const d = s.delivery || {};
+    const subtotal = getCartTotal();
 
-    if (deliveryType === 'delivery' && d.deliveryEnabled !== false && !address) {
-      Utils.showToast('Informe o endereço de entrega!', 'error');
-      return;
+    let finalAddress = rawAddress;
+    let neighborhoodName = '';
+
+    if (deliveryType === 'delivery' && d.deliveryEnabled !== false) {
+      const activeNeighs = (d.neighborhoods || []).filter(n => n.active !== false);
+
+      if (activeNeighs.length > 0 && !selectedNeighborhoodId) {
+        Utils.showToast('Por favor, selecione seu bairro de entrega!', 'error');
+        const sel = $('customer-neighborhood');
+        if (sel) sel.focus();
+        return;
+      }
+
+      if (selectedNeighborhoodId) {
+        const n = activeNeighs.find(x => x.id === selectedNeighborhoodId);
+        if (n) {
+          neighborhoodName = n.name;
+          finalAddress = `${rawAddress} (Bairro: ${n.name})`;
+          if (n.minOrder && n.minOrder > 0 && subtotal < n.minOrder) {
+            Utils.showToast(`O pedido mínimo para entrega em ${n.name} é de ${Utils.formatCurrency(n.minOrder)}. Faltam ${Utils.formatCurrency(n.minOrder - subtotal)}.`, 'error');
+            return;
+          }
+        }
+      }
+
+      if (!rawAddress) {
+        Utils.showToast('Informe a rua, número e complemento do endereço de entrega!', 'error');
+        $('customer-address')?.focus();
+        return;
+      }
     }
 
     if (!selectedPayment) {
@@ -1699,12 +2162,19 @@
       }
     }
 
-    const subtotal = getCartTotal();
     const fee = calculateDeliveryFee(subtotal);
     const total = subtotal + fee;
     const payLabel = (s.paymentMethods || []).find(m => m.id === selectedPayment)?.name || selectedPayment;
 
-    const customerData = { name, phone, address, obs, troco, payment: payLabel };
+    let installmentText = '';
+    if (selectedPayment === 'credito') {
+      const select = $('checkout-card-installments');
+      if (select && select.selectedOptions && select.selectedOptions[0]) {
+        installmentText = select.selectedOptions[0].textContent;
+      }
+    }
+
+    const customerData = { name, phone, address: finalAddress, neighborhood: neighborhoodName, obs, troco, payment: payLabel, installment: installmentText };
 
     // Decrement stock in DB
     for (const item of cart) {
@@ -1720,13 +2190,14 @@
     // Save order
     try {
       await DataStore.saveOrder({
-        customer: { name, phone, address, obs },
+        customer: { name, phone, address: finalAddress, neighborhood: neighborhoodName, obs, installment: installmentText },
         deliveryType,
         deliveryFee: fee,
         items: cart.map(i => ({ ...i })),
         subtotal,
         total,
         paymentMethod: selectedPayment,
+        paymentInstallment: installmentText,
         status: 'novo'
       });
     } catch (err) {
@@ -1820,10 +2291,35 @@
       });
     }
 
+    // Neighborhood Rates Modal
+    const neighModal = $('neighborhood-rates-modal');
+    const btnCloseNeighRates = $('btn-close-neighborhood-rates');
+    const btnFooterCloseNeigh = $('btn-footer-close-neighborhood');
+    const neighSearchInput = $('neighborhood-search-input');
+
+    if (btnCloseNeighRates) btnCloseNeighRates.addEventListener('click', closeNeighborhoodModal);
+    if (btnFooterCloseNeigh) btnFooterCloseNeigh.addEventListener('click', closeNeighborhoodModal);
+    if (neighModal) {
+      neighModal.addEventListener('click', e => {
+        if (e.target === neighModal) closeNeighborhoodModal();
+      });
+    }
+
+    if (neighSearchInput) {
+      neighSearchInput.addEventListener('input', e => {
+        renderNeighborhoodModalList(e.target.value);
+      });
+    }
+
     // ESC key closes modal safely
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && productDetailsModal && productDetailsModal.classList.contains('active')) {
-        closeProductModal(true);
+      if (e.key === 'Escape') {
+        if (productDetailsModal && productDetailsModal.classList.contains('active')) {
+          closeProductModal(true);
+        }
+        if (neighModal && neighModal.classList.contains('active')) {
+          closeNeighborhoodModal();
+        }
       }
     });
 
@@ -1953,9 +2449,12 @@
 
     // Cross-tab settings sync (e.g., shipping changes made in admin panel)
     window.addEventListener('storage', e => {
-      if (e.key === 'fitvibe_settings') {
+      if (e.key === 'fashion_settings' || e.key === 'fitvibe_settings') {
         settings = DataStore.getSettings();
         updateCartUI();
+        applyBranding();
+        renderBenefitsBar();
+        renderFooter();
         if (checkoutModal && checkoutModal.classList.contains('active')) {
           renderCheckoutSummary();
         }
@@ -1976,6 +2475,10 @@
     openCart,
     updateCartQty: updateCartItemQty,
     removeCartItem: removeFromCart,
+    openNeighborhoodModal,
+    closeNeighborhoodModal,
+    selectNeighborhoodFromModal,
+    onSelectNeighborhood,
     closeMobileMenu: () => {
       if (mobileDrawer) mobileDrawer.classList.remove('active');
       if (mobileDrawerOverlay) mobileDrawerOverlay.classList.remove('active');

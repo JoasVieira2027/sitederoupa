@@ -260,16 +260,16 @@
         
         <div class="hero-badge-pill" id="hero-badge">
           <span class="badge-dot" aria-hidden="true"></span>
-          <span id="hero-badge-text">Coleção Activewear 2026</span>
+          <span id="hero-badge-text">Coleção Activewear</span>
         </div>
 
-        <h1 id="hero-title">Treine com Estilo, <em>Supere Limites</em></h1>
+        <h1 id="hero-title">Performance que acompanha seu ritmo.</h1>
         
-        <p id="hero-subtitle">Activewear de alta compressão com modelagem anatômica e tecnologia zero transparência para o seu treino de alta performance.</p>
+        <p id="hero-subtitle">Roupas fitness desenvolvidas para oferecer conforto, sustentação e liberdade em cada movimento.</p>
 
         <div class="hero-actions">
           <a href="#products" class="btn-hero-primary" id="hero-cta">
-            <span>Ver Coleção Completa</span>
+            <span>Ver coleção</span>
             <i data-lucide="arrow-right" class="btn-icon"></i>
           </a>
           <a href="#" class="btn-hero-secondary" id="hero-whatsapp-btn" target="_blank" rel="noopener noreferrer">
@@ -290,7 +290,7 @@
           </div>
           <div class="hero-mini-feature">
             <i data-lucide="wind"></i>
-            <span>Tecido Dry-Fit</span>
+            <span>Tecido Respirável</span>
           </div>
         </div>
 
@@ -304,38 +304,28 @@
     </a>
   </section>
 
-  <!-- Premium Value Proposition Bar (Benefícios) -->
-  <section class="benefits-section" id="benefits-bar" aria-label="Benefícios e diferenciais da Fit Vibe">
+  <!-- Premium Value Proposition Bar (Benefícios Discretos) -->
+  <section class="benefits-section" id="benefits-bar" aria-label="Benefícios e diferenciais da loja">
     <div class="container">
-      <div class="benefits-grid">
+      <div class="benefits-grid" id="benefits-grid">
         
+        <div class="benefit-card">
+          <div class="benefit-icon-wrapper">
+            <i data-lucide="truck"></i>
+          </div>
+          <div class="benefit-content">
+            <h3 id="benefit-title-1">Frete grátis acima de R$199</h3>
+            <p id="benefit-desc-1">Entrega rápida e segura para todo o Brasil</p>
+          </div>
+        </div>
+
         <div class="benefit-card">
           <div class="benefit-icon-wrapper">
             <i data-lucide="shield-check"></i>
           </div>
           <div class="benefit-content">
-            <h3>Zero Transparência</h3>
-            <p>Gramatura blackout testada e aprovada para agachamentos seguros.</p>
-          </div>
-        </div>
-
-        <div class="benefit-card">
-          <div class="benefit-icon-wrapper">
-            <i data-lucide="activity"></i>
-          </div>
-          <div class="benefit-content">
-            <h3>Alta Compressão</h3>
-            <p>Cós duplo anatômico que modela a silhueta e não enrola no treino.</p>
-          </div>
-        </div>
-
-        <div class="benefit-card">
-          <div class="benefit-icon-wrapper">
-            <i data-lucide="wind"></i>
-          </div>
-          <div class="benefit-content">
-            <h3>Conforto Dry-Fit</h3>
-            <p>Fibras respiráveis com toque macio e evaporação imediata do suor.</p>
+            <h3 id="benefit-title-2">Pagamento seguro</h3>
+            <p id="benefit-desc-2">Ambiente protegido com confirmação imediata</p>
           </div>
         </div>
 
@@ -344,28 +334,18 @@
             <i data-lucide="refresh-cw"></i>
           </div>
           <div class="benefit-content">
-            <h3>Primeira Troca Grátis</h3>
-            <p>7 dias para troca ou devolução sem burocracia nem custos extras.</p>
+            <h3 id="benefit-title-3">Troca facilitada</h3>
+            <p id="benefit-desc-3">Primeira troca sem custo e sem burocracia</p>
           </div>
         </div>
 
         <div class="benefit-card">
           <div class="benefit-icon-wrapper">
-            <i data-lucide="lock"></i>
+            <i data-lucide="zap"></i>
           </div>
           <div class="benefit-content">
-            <h3>Compra 100% Segura</h3>
-            <p>Ambiente protegido de ponta a ponta com confirmação instantânea.</p>
-          </div>
-        </div>
-
-        <div class="benefit-card">
-          <div class="benefit-icon-wrapper">
-            <i data-lucide="credit-card"></i>
-          </div>
-          <div class="benefit-content">
-            <h3>Até 3x Sem Juros</h3>
-            <p>Parcele no cartão de crédito ou aproveite condição especial no Pix.</p>
+            <h3 id="benefit-title-4">Envio rápido</h3>
+            <p id="benefit-desc-4">Despacho ágil com código de rastreamento</p>
           </div>
         </div>
 
@@ -780,9 +760,19 @@
           <span>Subtotal</span>
           <span class="cart-row-val" id="cart-total">R$ 0,00</span>
         </div>
+        <div class="cart-installments-badge" id="cart-installments-badge">
+          <i data-lucide="credit-card"></i>
+          <span id="cart-installments-text">ou até 3x sem juros</span>
+        </div>
         <div class="cart-shipping-notice">
           <i data-lucide="truck"></i>
           <span>Frete calculado na etapa seguinte</span>
+        </div>
+        <div style="text-align:center;margin-top:4px;">
+          <button type="button" class="btn-cart-check-neighborhoods" onclick="window.StoreApp?.openNeighborhoodModal()" style="display:inline-flex;align-items:center;gap:6px;font-size:0.8rem;color:var(--primary, #7c3aed);background:none;border:none;cursor:pointer;padding:2px 0;font-weight:600;">
+            <i data-lucide="map-pin" style="width:13px;height:13px;"></i>
+            <span>Consultar taxas por bairro</span>
+          </button>
         </div>
       </div>
       <button type="button" class="btn-checkout" id="btn-checkout">
@@ -866,8 +856,23 @@
 
           <!-- Delivery Address -->
           <div class="form-group" id="group-delivery-address">
-            <label for="customer-address">Endereço Completo de Entrega <span class="required">*</span></label>
-            <input type="text" id="customer-address" class="form-control" placeholder="Rua, número, complemento, bairro e cidade" required autocomplete="street-address">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <label for="customer-neighborhood" style="margin-bottom:0;font-weight:600;font-size:0.875rem;">Bairro de Entrega <span class="required">*</span></label>
+              <button type="button" class="btn-link-neighborhoods" id="btn-open-neighborhoods-rates" onclick="window.StoreApp?.openNeighborhoodModal()" style="background:none;border:none;color:var(--primary, #7c3aed);font-size:0.8rem;font-weight:600;display:inline-flex;align-items:center;gap:4px;cursor:pointer;padding:0;">
+                <i data-lucide="map-pin" style="width:13px;height:13px;"></i>
+                <span>Ver taxas e prazos</span>
+              </button>
+            </div>
+            <div style="position:relative;margin-bottom:10px;">
+              <select id="customer-neighborhood" class="form-control" style="cursor:pointer;" onchange="window.StoreApp?.onSelectNeighborhood(this.value)">
+                <option value="">Selecione seu bairro para calcular o frete...</option>
+              </select>
+            </div>
+            
+            <div id="neighborhood-alert-box" style="display:none;margin-bottom:12px;padding:10px 14px;border-radius:10px;font-size:0.82rem;line-height:1.4;"></div>
+
+            <label for="customer-address" style="margin-bottom:6px;display:block;font-weight:600;font-size:0.875rem;">Rua, Número e Complemento <span class="required">*</span></label>
+            <input type="text" id="customer-address" class="form-control" placeholder="Ex: Rua das Flores, 123, Apto 101" required autocomplete="street-address">
           </div>
 
           <!-- Pickup Info -->
@@ -890,6 +895,21 @@
             <label class="form-section-label">Forma de Pagamento <span class="required">*</span></label>
             <div class="payment-options" id="payment-options">
               <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Credit Card Installments Box -->
+          <div class="card-installments-box hidden" id="card-installments-box">
+            <div class="card-installments-header">
+              <i data-lucide="credit-card"></i>
+              <strong>Opções de Parcelamento no Cartão</strong>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label for="checkout-card-installments">Escolha em quantas vezes deseja parcelar: <span class="required">*</span></label>
+              <select id="checkout-card-installments" class="form-control card-installments-select">
+                <!-- Dynamically populated by JS -->
+              </select>
+              <small class="card-installments-hint" id="card-installments-hint">O pagamento com cartão será efetuado na entrega ou via link seguro.</small>
             </div>
           </div>
 
@@ -923,6 +943,45 @@
           </button>
         </form>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- Neighborhood Rates & Delivery Times Modal (Image 1) -->
+  <div class="modal-overlay" id="neighborhood-rates-modal" role="dialog" aria-modal="true" aria-labelledby="neighborhood-modal-title">
+    <div class="modal modal-neighborhood-rates">
+      <div class="modal-header neighborhood-modal-header">
+        <div class="neighborhood-header-content">
+          <div class="neighborhood-header-icon">
+            <i data-lucide="map-pin"></i>
+          </div>
+          <div>
+            <h3 id="neighborhood-modal-title">Taxa e tempo de entrega</h3>
+            <p>Consulte as taxas por bairro</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" id="btn-close-neighborhood-rates" aria-label="Fechar consulta de frete">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="modal-body neighborhood-modal-body">
+        <div class="neighborhood-search-wrap">
+          <i data-lucide="search" class="neighborhood-search-icon"></i>
+          <input type="text" id="neighborhood-search-input" class="neighborhood-search-input" placeholder="Buscar seu bairro..." autocomplete="off">
+        </div>
+
+        <div class="neighborhood-rates-list" id="neighborhood-rates-list">
+          <!-- Dynamically populated by JS -->
+        </div>
+      </div>
+
+      <div class="neighborhood-modal-footer">
+        <div class="neighborhood-footer-badge">
+          <i data-lucide="share-2"></i>
+          <span>Entregas rápidas e seguras</span>
+        </div>
+        <button type="button" class="btn-neighborhood-close" id="btn-footer-close-neighborhood">Fechar</button>
       </div>
     </div>
   </div>

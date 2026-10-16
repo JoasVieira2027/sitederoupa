@@ -1038,39 +1038,40 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ===== BENEFITS SECTION ===== */
+/* ===== BENEFITS SECTION (ELEGANTE & DISCRETA) ===== */
 .benefits-section {
-  background: white;
-  padding: 48px 0;
+  background: var(--surface);
+  padding: 24px 0;
   border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02);
 }
 
 .benefits-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
 }
 
 .benefit-card {
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 12px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
   border-radius: var(--radius);
-  transition: transform var(--transition-fast);
+  transition: all var(--transition-fast);
 }
 
 .benefit-card:hover {
-  transform: translateY(-2px);
+  background: var(--surface-alt);
 }
 
 .benefit-icon-wrapper {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius);
-  background: #F0FDF4;
-  color: #059669;
-  border: 1px solid #DCFCE7;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(5, 150, 105, 0.08);
+  color: var(--primary);
+  border: 1px solid rgba(5, 150, 105, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1078,23 +1079,44 @@ body {
 }
 
 .benefit-icon-wrapper svg {
-  width: 22px;
-  height: 22px;
+  width: 19px;
+  height: 19px;
 }
 
 .benefit-content h3 {
-  font-family: var(--font-display);
-  font-size: 0.95rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--carbon);
-  margin-bottom: 3px;
+  margin-bottom: 2px;
+  letter-spacing: -0.1px;
 }
 
 .benefit-content p {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  line-height: 1.45;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  line-height: 1.35;
   margin: 0;
+}
+
+@media (max-width: 992px) {
+  .benefits-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+}
+
+@media (max-width: 580px) {
+  .benefits-section {
+    padding: 18px 0;
+  }
+  .benefits-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .benefit-card {
+    padding: 8px 10px;
+  }
 }
 
 /* ===== SECTION HEADERS ===== */
@@ -1580,6 +1602,24 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.8px;
   color: var(--text-muted);
+}
+
+.product-sizes-chips {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.product-size-pill {
+  font-size: 0.62rem;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--surface-alt);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  line-height: 1.2;
 }
 
 .stock-status {
@@ -2687,6 +2727,26 @@ body {
   font-weight: 800;
 }
 
+.cart-installments-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-alt);
+  color: var(--primary-dark);
+  border: 1px solid rgba(5, 150, 105, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.cart-installments-badge svg {
+  width: 14px;
+  height: 14px;
+  color: var(--primary);
+}
+
 .cart-shipping-notice {
   display: flex;
   align-items: center;
@@ -3125,6 +3185,45 @@ body {
   font-size: 0.74rem;
   color: #15803D;
   margin: 0;
+}
+
+/* Credit Card Installments Box */
+.card-installments-box {
+  background: #F8FAFC;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-top: 14px;
+  margin-bottom: 16px;
+}
+
+.card-installments-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: var(--carbon);
+  margin-bottom: 10px;
+}
+
+.card-installments-header svg {
+  width: 18px;
+  height: 18px;
+  color: var(--primary);
+}
+
+.card-installments-select {
+  background: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.card-installments-hint {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+  line-height: 1.35;
 }
 
 .btn-whatsapp-submit {
@@ -3934,4 +4033,282 @@ body {
   .hero-bg {
     transform: none !important;
   }
+}
+
+/* ============================================================
+   NEIGHBORHOOD DELIVERY RATES MODAL (TAXA E TEMPO DE ENTREGA)
+   Identical to client reference design (Image 1)
+   ============================================================ */
+.modal-neighborhood-rates {
+  max-width: 440px !important;
+  width: 92% !important;
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.25) !important;
+  padding: 0 !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+.neighborhood-modal-header {
+  padding: 18px 22px !important;
+  border-bottom: 1px solid #F1F5F9 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  background: #ffffff !important;
+}
+
+.neighborhood-header-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.neighborhood-header-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #F3E8FF;
+  color: #7C3AED;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.neighborhood-header-icon svg {
+  width: 22px;
+  height: 22px;
+  color: #7C3AED;
+}
+
+.neighborhood-header-content h3 {
+  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.neighborhood-header-content p {
+  font-size: 0.8rem;
+  color: #64748B;
+  margin: 3px 0 0 0;
+}
+
+.neighborhood-modal-body {
+  padding: 16px 20px !important;
+  max-height: calc(85vh - 140px);
+  display: flex;
+  flex-direction: column;
+}
+
+.neighborhood-search-wrap {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.neighborhood-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 17px;
+  height: 17px;
+  color: #94A3B8;
+  pointer-events: none;
+}
+
+.neighborhood-search-input {
+  width: 100%;
+  padding: 11px 16px 11px 40px;
+  border-radius: 12px;
+  border: 1.5px solid #E2E8F0;
+  font-size: 0.88rem;
+  background: #F8FAFC;
+  color: #1E293B;
+  outline: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.neighborhood-search-input:focus {
+  border-color: #7C3AED;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+.neighborhood-rates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E1 transparent;
+}
+
+.neighborhood-rates-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.neighborhood-rates-list::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 10px;
+}
+
+.neighborhood-card-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 18px;
+  border-radius: 14px;
+  border: 1.5px solid #E2E8F0;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.neighborhood-card-item:hover {
+  border-color: #CBD5E1;
+  background: #F8FAFC;
+  transform: translateY(-1px);
+}
+
+.neighborhood-card-item.selected {
+  border-color: #7C3AED !important;
+  background: #FAF5FF !important;
+  box-shadow: 0 0 0 1px #7C3AED;
+}
+
+.neighborhood-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.neighborhood-card-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0F172A;
+  transition: color 0.2s;
+}
+
+.neighborhood-card-item.selected .neighborhood-card-name {
+  color: #581C87;
+}
+
+.neighborhood-card-time {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: #64748B;
+}
+
+.neighborhood-card-time svg {
+  width: 13px;
+  height: 13px;
+  color: #94A3B8;
+}
+
+.neighborhood-card-badge-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.neighborhood-card-price-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.neighborhood-card-price {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #6D28D9;
+  letter-spacing: -0.3px;
+}
+
+.neighborhood-card-check {
+  width: 18px;
+  height: 18px;
+  color: #6D28D9;
+  stroke-width: 2.5;
+}
+
+.neighborhood-modal-footer {
+  padding: 14px 22px;
+  background: #F8FAFC;
+  border-top: 1px solid #F1F5F9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.neighborhood-footer-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.neighborhood-footer-badge svg {
+  width: 15px;
+  height: 15px;
+  color: #94A3B8;
+}
+
+.btn-neighborhood-close {
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  border-radius: 10px;
+  padding: 8px 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1E293B;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-neighborhood-close:hover {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+}
+
+/* Alert box for neighborhood min order or free shipping */
+.neighborhood-alert {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.neighborhood-alert.warning {
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  color: #92400E;
+}
+
+.neighborhood-alert.success {
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  color: #065F46;
+}
+
+.neighborhood-alert.info {
+  background: #F5F3FF;
+  border: 1px solid #DDD6FE;
+  color: #5B21B6;
 }

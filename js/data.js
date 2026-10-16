@@ -114,11 +114,17 @@ const DEFAULT_SETTINGS = {
     title: 'Nova Coleção',
     subtitle: 'Lançamentos e peças exclusivas com tecnologia seamless e alta compressão'
   },
+  benefitsBar: [
+    { id: 'b_shipping', icon: 'truck', title: 'Frete Grátis', desc: 'Acima de R$ 199 para todo o Brasil' },
+    { id: 'b_security', icon: 'shield-check', title: 'Pagamento Seguro', desc: 'PIX e cartão com proteção SSL' },
+    { id: 'b_exchange', icon: 'refresh-cw', title: 'Troca Facilitada', desc: 'Primeira troca sem burocracia' },
+    { id: 'b_fast', icon: 'zap', title: 'Envio Rápido', desc: 'Despacho com rastreamento' }
+  ],
   hero: {
     emoji: '',
-    title: 'Treine com Estilo, <em>Supere Limites</em>',
-    subtitle: 'Activewear premium com modelagem anatômica, alta compressão e zero transparência para seu melhor desempenho.',
-    ctaText: 'Ver Coleção Fitness',
+    title: 'Performance que acompanha seu ritmo.',
+    subtitle: 'Roupas fitness desenvolvidas para oferecer conforto, sustentação e liberdade em cada movimento.',
+    ctaText: 'Ver coleção',
     badgeText: 'Alta Performance'
   },
   about: {
@@ -141,7 +147,23 @@ const DEFAULT_SETTINGS = {
     estimatedTime: '2 a 5 dias úteis',
     pickupEnabled: true,
     pickupAddress: 'Consulte o ponto de retirada pelo WhatsApp',
-    pickupEstimate: 'Pronto em até 2 horas'
+    pickupEstimate: 'Pronto em até 2 horas',
+    neighborhoodsEnabled: true,
+    neighborhoods: [
+      { id: 'b_1', name: 'Águas Compridas', fee: 5.00, minOrder: 0, freeAbove: 0, active: true, estimate: '30 a 50 min' },
+      { id: 'b_2', name: 'Aguazinha', fee: 6.00, minOrder: 0, freeAbove: 0, active: true, estimate: '30 a 50 min' },
+      { id: 'b_3', name: 'Mirueira', fee: 7.00, minOrder: 0, freeAbove: 0, active: true, estimate: '30 a 50 min' },
+      { id: 'b_4', name: 'Porto da Madeira', fee: 6.00, minOrder: 0, freeAbove: 0, active: true, estimate: '30 a 50 min' },
+      { id: 'b_5', name: 'Córrego do Abacaxi', fee: 7.00, minOrder: 0, freeAbove: 0, active: true, estimate: '30 a 50 min' },
+      { id: 'b_6', name: 'Alto Nova Olinda', fee: 5.00, minOrder: 0, freeAbove: 0, active: true, estimate: '30 a 50 min' },
+      { id: 'b_7', name: 'Nova Olinda', fee: 5.00, minOrder: 0, freeAbove: 0, active: true, estimate: '30 a 50 min' },
+      { id: 'b_8', name: 'Alto da Bondade', fee: 7.00, minOrder: 0, freeAbove: 0, active: true, estimate: '30 a 50 min' },
+      { id: 'b_9', name: 'Alto da Conquista', fee: 7.00, minOrder: 0, freeAbove: 0, active: true, estimate: '30 a 50 min' },
+      { id: 'b_10', name: 'Casa Caiada', fee: 12.00, minOrder: 0, freeAbove: 0, active: true, estimate: '30 a 50 min' },
+      { id: 'b_11', name: 'Caixa D\'água', fee: 7.00, minOrder: 0, freeAbove: 0, active: true, estimate: '30 a 50 min' },
+      { id: 'b_12', name: 'Passarinho', fee: 7.00, minOrder: 0, freeAbove: 0, active: true, estimate: '30 a 50 min' },
+      { id: 'b_13', name: 'Sítio Novo', fee: 8.00, minOrder: 0, freeAbove: 0, active: true, estimate: '30 a 50 min' }
+    ]
   },
   instagramFeed: {
     active: true,
@@ -199,6 +221,12 @@ const DEFAULT_SETTINGS = {
     { id: 'debito', name: 'Cartão de Débito', icon: 'credit-card', active: true },
     { id: 'dinheiro', name: 'Dinheiro na Entrega', icon: 'banknote', active: true }
   ],
+  installmentsConfig: {
+    enabled: true,
+    maxInstallments: 3,
+    minInstallmentValue: 0,
+    interestFree: true
+  },
   pixDetails: { key: '', keyType: 'Celular', receiverName: 'Fit Vibe Moda Fitness', instructions: 'Faça o Pix e envie o comprovante pelo WhatsApp para envio imediato!' },
   storeOpen: true,
   closedCustomMessage: 'Estamos fora do horário de atendimento. Deixe sua mensagem no WhatsApp que responderemos rapidinho!',
@@ -258,25 +286,36 @@ const DataStore = (function () {
 
   // ===== MAPPERS: Supabase → JS (snake_case → camelCase) =====
   function _mapProduct(row) {
-    const v = row.variants || row.variants === null ? (row.variants || []) : [];
+    if (!row) return null;
+    let v = row.variants;
+    if (typeof v === 'string') {
+      try { v = JSON.parse(v); } catch { v = []; }
+    }
+    if (!v || !Array.isArray(v)) v = [];
+
+    let promo = row.promotion;
+    if (typeof promo === 'string') {
+      try { promo = JSON.parse(promo); } catch { promo = { active: false, discountPercent: 0 }; }
+    }
+
     return {
       id: row.id,
-      name: row.name,
+      name: row.name || 'Produto sem nome',
       description: row.description || '',
       price: parseFloat(row.price) || 0,
       image: row.image || '',
-      category: row.category,
+      category: (row.category || '').trim(),
       badge: row.badge || '',
-      active: row.active !== false,
-      inStock: row.in_stock !== false,
+      active: row.active !== false && row.active !== 'false',
+      inStock: row.in_stock !== false && row.in_stock !== 'false',
       featured: row.featured === true || Boolean(row.badge && row.badge.toLowerCase().includes('destaque')),
-      variants: Array.isArray(v) ? v.map(item => ({
-        color: item.color || '',
-        colorHex: item.colorHex || '#059669',
+      variants: v.map(item => ({
+        color: (item.color || '').trim(),
+        colorHex: item.colorHex || '#1E293B',
         image: item.image || '',
         sizes: Array.isArray(item.sizes) ? item.sizes : []
-      })) : [],
-      promotion: row.promotion || { active: false, discountPercent: 0 },
+      })),
+      promotion: promo || { active: false, discountPercent: 0 },
       displayOrder: row.display_order || 0,
       createdAt: row.created_at,
       updatedAt: row.updated_at
@@ -306,9 +345,27 @@ const DataStore = (function () {
         }
         return DEFAULT_SETTINGS.featuredCollection;
       })(),
+      benefitsBar: (function () {
+        const parsedHero = parseJsonField(row.hero, {});
+        if (parsedHero && parsedHero._benefitsBar !== undefined) {
+          return parsedHero._benefitsBar;
+        }
+        if (row.benefits_bar !== undefined) {
+          return parseJsonField(row.benefits_bar, DEFAULT_SETTINGS.benefitsBar);
+        }
+        return DEFAULT_SETTINGS.benefitsBar;
+      })(),
       hero: parseJsonField(row.hero, DEFAULT_SETTINGS.hero),
       about: parseJsonField(row.about, DEFAULT_SETTINGS.about),
-      delivery: parseJsonField(row.delivery, DEFAULT_SETTINGS.delivery),
+      delivery: (function () {
+        const d = parseJsonField(row.delivery, DEFAULT_SETTINGS.delivery);
+        return {
+          ...DEFAULT_SETTINGS.delivery,
+          ...(d || {}),
+          neighborhoods: (d && Array.isArray(d.neighborhoods)) ? d.neighborhoods : DEFAULT_SETTINGS.delivery.neighborhoods,
+          neighborhoodsEnabled: d && d.neighborhoodsEnabled !== undefined ? d.neighborhoodsEnabled : true
+        };
+      })(),
       instagramFeed: (function () {
         const parsedHero = parseJsonField(row.hero, {});
         if (parsedHero && parsedHero._instagramFeed !== undefined) {
@@ -326,6 +383,16 @@ const DataStore = (function () {
       address: row.address || DEFAULT_SETTINGS.address,
       footerCopyright: row.footer_copyright || DEFAULT_SETTINGS.footerCopyright,
       paymentMethods: parseJsonField(row.payment_methods, DEFAULT_SETTINGS.paymentMethods),
+      installmentsConfig: (function () {
+        const parsedHero = parseJsonField(row.hero, {});
+        if (parsedHero && parsedHero._installmentsConfig !== undefined) {
+          return { ...DEFAULT_SETTINGS.installmentsConfig, ...parsedHero._installmentsConfig };
+        }
+        if (row.installments_config !== undefined) {
+          return { ...DEFAULT_SETTINGS.installmentsConfig, ...parseJsonField(row.installments_config, {}) };
+        }
+        return DEFAULT_SETTINGS.installmentsConfig;
+      })(),
       pixDetails: parseJsonField(row.pix_details, DEFAULT_SETTINGS.pixDetails),
       storeOpen: row.store_open !== false,
       closedCustomMessage: row.closed_custom_message || DEFAULT_SETTINGS.closedCustomMessage,
@@ -406,7 +473,7 @@ const DataStore = (function () {
   async function _loadProducts() {
     // 1. Initial fast local load
     const local = _loadLocal(DB_KEYS.PRODUCTS);
-    if (local && local.length) {
+    if (local && Array.isArray(local) && local.length) {
       _products = local;
     } else {
       _products = [...DEFAULT_PRODUCTS];
@@ -417,10 +484,12 @@ const DataStore = (function () {
     if (_supabase) {
       try {
         const { data, error } = await _supabase.from('products').select('*');
-        if (!error && data) {
-          _products = data.map(_mapProduct).sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        if (!error && Array.isArray(data) && data.length > 0) {
+          _products = data.map(_mapProduct).filter(Boolean).sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
           _saveLocal(DB_KEYS.PRODUCTS, _products);
           return;
+        } else if (error) {
+          console.warn('[DataStore] products fetch error from Supabase:', error);
         }
       } catch (e) { console.warn('[DataStore] products fetch error:', e); }
     }
@@ -511,10 +580,23 @@ const DataStore = (function () {
    */
   function getProductTotalStock(productId) {
     const p = getProductById(productId);
-    if (!p || !p.variants || !p.variants.length) return 0;
-    return p.variants.reduce((total, variant) => {
-      return total + (variant.sizes || []).reduce((s, sz) => s + (sz.qty || 0), 0);
+    if (!p) return 0;
+    if (!p.variants || !p.variants.length) {
+      // Produto sem variantes cadastradas: se inStock for true, consideramos estoque ativo
+      return p.inStock ? 50 : 0;
+    }
+    const total = p.variants.reduce((acc, variant) => {
+      const sizes = variant.sizes || [];
+      if (!sizes.length) return acc + (variant.qty !== undefined ? (variant.qty || 0) : 10);
+      return acc + sizes.reduce((s, sz) => s + (sz.qty || 0), 0);
     }, 0);
+
+    // Se variantes existem mas não definiram tamanhos/quantidades explicitamente
+    if (total === 0 && p.inStock) {
+      const hasAnySizeDefined = p.variants.some(v => Array.isArray(v.sizes) && v.sizes.length > 0);
+      if (!hasAnySizeDefined) return 25;
+    }
+    return total;
   }
 
   /**
@@ -523,8 +605,9 @@ const DataStore = (function () {
   function getVariantStock(productId, color, size) {
     const p = getProductById(productId);
     if (!p || !p.variants) return 0;
-    const variant = p.variants.find(v => v.color === color);
+    const variant = p.variants.find(v => (v.color || '').toLowerCase() === (color || '').toLowerCase());
     if (!variant) return 0;
+    if (!variant.sizes || !variant.sizes.length) return variant.qty !== undefined ? (variant.qty || 0) : 10;
     const sizeEntry = (variant.sizes || []).find(s => s.size === size);
     return sizeEntry ? (sizeEntry.qty || 0) : 0;
   }
@@ -535,8 +618,9 @@ const DataStore = (function () {
   function getAvailableSizesForColor(productId, color) {
     const p = getProductById(productId);
     if (!p || !p.variants) return [];
-    const variant = p.variants.find(v => v.color === color);
+    const variant = p.variants.find(v => (v.color || '').toLowerCase() === (color || '').toLowerCase());
     if (!variant) return [];
+    if (!variant.sizes || !variant.sizes.length) return (p.variants[0] && p.variants[0].sizes && p.variants[0].sizes.length) ? p.variants[0].sizes.map(s => s.size) : ['P', 'M', 'G'];
     return (variant.sizes || []).filter(s => s.qty > 0).map(s => s.size);
   }
 
@@ -545,10 +629,11 @@ const DataStore = (function () {
    */
   function getAvailableColors(productId) {
     const p = getProductById(productId);
-    if (!p || !p.variants) return [];
-    return p.variants.filter(v =>
-      (v.sizes || []).some(s => s.qty > 0)
-    );
+    if (!p || !p.variants || !p.variants.length) return [];
+    return p.variants.filter(v => {
+      if (!v.sizes || !v.sizes.length) return true;
+      return (v.sizes || []).some(s => s.qty > 0);
+    });
   }
 
   // ===== PRODUCT MUTATIONS =====
@@ -569,31 +654,27 @@ const DataStore = (function () {
         image: product.image || '',
         category: product.category,
         badge: product.badge || '',
-        active: product.active !== false,
-        in_stock: product.inStock !== false,
+        active: product.active !== false && product.active !== 'false',
+        in_stock: product.inStock !== false && product.inStock !== 'false',
         variants: product.variants || [],
         promotion: product.promotion || { active: false, discountPercent: 0 },
         updated_at: product.updatedAt
       };
       if (isNew) row.created_at = product.createdAt;
 
-      // Try saving with extra fields first, fallback if column doesn't exist
       try {
-        const rowWithExtra = { ...row, featured: product.featured === true, display_order: product.displayOrder || 0 };
+        const rowWithFeatured = { ...row, featured: product.featured === true };
         const { error: fErr } = isNew
-          ? await _supabase.from('products').insert([rowWithExtra])
-          : await _supabase.from('products').update(rowWithExtra).eq('id', product.id);
+          ? await _supabase.from('products').insert([rowWithFeatured])
+          : await _supabase.from('products').update(rowWithFeatured).eq('id', product.id);
         if (fErr) {
           const { error } = isNew
             ? await _supabase.from('products').insert([row])
             : await _supabase.from('products').update(row).eq('id', product.id);
-          if (error) throw error;
+          if (error) console.warn('[DataStore] Erro ao persistir produto no Supabase:', error);
         }
       } catch (err) {
-        const { error } = isNew
-          ? await _supabase.from('products').insert([row])
-          : await _supabase.from('products').update(row).eq('id', product.id);
-        if (error) throw error;
+        console.warn('[DataStore] Exceção ao salvar produto no Supabase:', err);
       }
     }
 
@@ -700,7 +781,9 @@ const DataStore = (function () {
       const heroWithExtras = {
         ...(_settings.hero || {}),
         _featuredCollection: _settings.featuredCollection,
-        _instagramFeed: _settings.instagramFeed
+        _instagramFeed: _settings.instagramFeed,
+        _benefitsBar: _settings.benefitsBar,
+        _installmentsConfig: _settings.installmentsConfig
       };
 
       const row = {
@@ -882,6 +965,25 @@ const Utils = {
     return String(str).replace(/[<>\"']/g, c => ({ '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   },
 
+  decodeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+  },
+
+  normalizeCategory(str) {
+    if (!str) return '';
+    return Utils.decodeHtml(String(str))
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  },
+
   showToast(message, type = 'info', duration = 3500) {
     const container = document.getElementById('toast-container');
     if (!container) return;
@@ -920,5 +1022,37 @@ const Utils = {
   calcDiscountedPrice(price, promotion) {
     if (!promotion || !promotion.active || !promotion.discountPercent) return price;
     return price * (1 - promotion.discountPercent / 100);
+  },
+
+  /**
+   * Calcula as opções de parcelamento no cartão
+   */
+  calculateInstallments(amount, config) {
+    const cfg = config || { enabled: true, maxInstallments: 3, minInstallmentValue: 0, interestFree: true };
+    if (!cfg.enabled) {
+      return [{ count: 1, value: amount, text: `1x de ${this.formatCurrency(amount)} à vista` }];
+    }
+    const max = Math.max(1, parseInt(cfg.maxInstallments, 10) || 3);
+    const minVal = parseFloat(cfg.minInstallmentValue) || 0;
+    const list = [];
+    for (let i = 1; i <= max; i++) {
+      const val = amount / i;
+      if (i > 1 && minVal > 0 && val < minVal) break;
+      list.push({
+        count: i,
+        value: val,
+        text: i === 1 
+          ? `1x de ${this.formatCurrency(val)} à vista`
+          : `${i}x de ${this.formatCurrency(val)} sem juros`
+      });
+    }
+    return list;
+  },
+
+  getInstallmentSummary(amount, config) {
+    const list = this.calculateInstallments(amount, config);
+    if (!list || list.length <= 1) return '';
+    const top = list[list.length - 1];
+    return `ou até ${top.count}x de ${this.formatCurrency(top.value)} sem juros`;
   }
 };
