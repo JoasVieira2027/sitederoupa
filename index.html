@@ -26,9 +26,34 @@
   
   <!-- Minimalist Vector Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230F172A'/><path d='M9 8H23V11H12.5V14.5H21V17.5H12.5V24H9V8Z' fill='%2310B981'/><path d='M19 14.5L24 24H20.2L17.5 18.5H19V14.5Z' fill='%2334D399'/></svg>">
+
+  <!-- Schema.org Structured Data (Inspirado no JoyModa para SEO e Google Shopping) -->
+  <script type="application/ld+json" id="schema-structured-data">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "OnlineStore",
+        "@id": "#store",
+        "name": "Fit Vibe Activewear",
+        "description": "Roupas fitness femininas de alta performance. Leggings sem costura, tops de alta sustentação e conjuntos fitness com tecnologia zero transparência.",
+        "currenciesAccepted": "BRL"
+      },
+      {
+        "@type": "CollectionPage",
+        "@id": "#collection",
+        "name": "Coleção Feminina Fit Vibe",
+        "isPartOf": { "@id": "#store" }
+      }
+    ]
+  }
+  </script>
 </head>
 
 <body>
+
+  <!-- Top Accent Bar (Barra de Destaque Superior Fixa - Estilo JoyModa) -->
+  <div class="store-top-accent-bar" id="store-top-accent-bar" aria-hidden="true"></div>
 
   <!-- Toast Container -->
   <div id="toast-container" class="toast-container" aria-live="polite"></div>
@@ -991,7 +1016,7 @@
     <div class="modal modal-product-details">
       <div class="modal-header">
         <div class="product-modal-title-area">
-          <span class="product-modal-category" id="modal-product-category">Categoria</span>
+          <span class="product-modal-category" id="modal-product-category">Fitness Activewear</span>
           <h3 id="modal-product-name" class="product-modal-name">Nome do Produto</h3>
         </div>
         <button type="button" class="btn-close-modal" id="btn-close-product-modal" aria-label="Fechar detalhes">
@@ -1001,18 +1026,43 @@
 
       <div class="product-modal-body">
         
-        <!-- Large Image Area -->
-        <div class="product-modal-image-wrapper">
-          <span class="product-badge badge-custom" id="modal-product-badge" style="display:none;"></span>
-          <div class="product-modal-image-placeholder" id="modal-product-placeholder">
-            <i data-lucide="sparkles"></i>
+        <!-- Large Image Area & Gallery -->
+        <div class="product-modal-media-col">
+          <div class="product-modal-image-wrapper">
+            <span class="product-badge badge-custom" id="modal-product-badge" style="display:none;"></span>
+            <div class="product-modal-image-placeholder" id="modal-product-placeholder">
+              <i data-lucide="sparkles"></i>
+            </div>
+            <img id="modal-product-image" src="" alt="Foto do produto selecionado" loading="lazy" style="display:none;">
+            <button type="button" class="btn-zoom-image" id="btn-zoom-image" aria-label="Visualizar imagem ampliada" title="Ver foto ampliada">
+              <i data-lucide="maximize-2"></i>
+            </button>
           </div>
-          <img id="modal-product-image" src="" alt="Foto do produto selecionado" loading="lazy" style="display:none;">
+
+          <!-- Color Thumbnails Gallery -->
+          <div class="product-modal-gallery-thumbs" id="modal-gallery-thumbs" aria-label="Galeria de fotos por cor">
+            <!-- Dynamically populated by JS -->
+          </div>
         </div>
 
-        <!-- Details & Selector Panel -->
+        <!-- Details & Conversion Panel -->
         <div class="product-modal-details" id="modal-product-details-panel">
           
+          <!-- Social Proof / Rating -->
+          <div class="product-modal-rating" id="modal-product-rating">
+            <div class="rating-stars" aria-label="Avaliação 4.9 estrelas">
+              <span class="star-icon">★</span>
+              <span class="star-icon">★</span>
+              <span class="star-icon">★</span>
+              <span class="star-icon">★</span>
+              <span class="star-icon">★</span>
+            </div>
+            <span class="rating-score">4.9</span>
+            <span class="rating-count">(128 avaliações)</span>
+            <span class="rating-verified"><i data-lucide="shield-check"></i> 100% aprovado</span>
+          </div>
+
+          <!-- Price & Installments -->
           <div class="product-modal-price-row">
             <span class="product-modal-price" id="modal-product-price">R$ 0,00</span>
             <span class="product-modal-original-price" id="modal-product-original-price" style="display:none;"></span>
@@ -1023,52 +1073,173 @@
             em até 3x sem juros no cartão
           </div>
 
-          <!-- Stock Indicator -->
-          <div class="stock-indicator ok" id="modal-stock-indicator">
-            <span class="stock-indicator-dot"></span>
-            <span id="modal-stock-text">Disponível em estoque</span>
-          </div>
-
-          <!-- Description -->
-          <p class="product-modal-desc" id="modal-product-description"></p>
-
           <!-- Color Selector -->
-          <div id="modal-color-section">
-            <div class="variant-label">Cor selecionada: <span id="modal-selected-color-name">—</span></div>
+          <div id="modal-color-section" class="product-modal-section">
+            <div class="variant-label">Cor: <strong id="modal-selected-color-name">—</strong></div>
             <div class="color-selector" id="modal-color-selector">
               <!-- Populated by JS -->
             </div>
           </div>
 
           <!-- Size Selector -->
-          <div id="modal-size-section">
-            <div class="variant-label">Tamanho selecionado: <span id="modal-selected-size">—</span></div>
+          <div id="modal-size-section" class="product-modal-section">
+            <div class="variant-label-row">
+              <div class="variant-label">Tamanho: <strong id="modal-selected-size">—</strong></div>
+              <button type="button" class="btn-size-guide-link" id="btn-open-size-guide" aria-label="Ver tabela de medidas">
+                <i data-lucide="ruler"></i>
+                <span>Tabela de medidas</span>
+              </button>
+            </div>
             <div class="size-selector" id="modal-size-selector">
               <!-- Populated by JS -->
             </div>
           </div>
 
-          <!-- Quantity & Action -->
+          <!-- Stock Indicator -->
+          <div class="stock-indicator ok" id="modal-stock-indicator">
+            <span class="stock-indicator-dot"></span>
+            <span id="modal-stock-text">Disponível em estoque</span>
+          </div>
+
+          <!-- Quantity & Purchase Action Buttons -->
           <div class="product-modal-actions">
-            <div class="product-modal-qty-box">
+            <div class="product-modal-qty-box" aria-label="Quantidade">
               <button type="button" class="qty-btn" id="btn-modal-qty-minus" aria-label="Diminuir quantidade">−</button>
               <span class="qty-value" id="modal-product-qty">1</span>
               <button type="button" class="qty-btn" id="btn-modal-qty-plus" aria-label="Aumentar quantidade">+</button>
             </div>
             <button type="button" class="btn-modal-add-cart" id="btn-modal-add-cart">
               <i data-lucide="shopping-bag"></i>
-              <span>Adicionar ao Carrinho</span>
+              <span>Adicionar à Sacola</span>
+            </button>
+            <button type="button" class="btn-modal-buy-now" id="btn-modal-buy-now" title="Adicionar e ir direto para o checkout">
+              <i data-lucide="zap"></i>
+              <span>Comprar Agora</span>
             </button>
           </div>
 
+          <!-- Trust & Value Badges -->
           <div class="modal-trust-tags">
-            <span><i data-lucide="shield-check"></i> Zero Transparência</span>
-            <span><i data-lucide="refresh-cw"></i> Primeira Troca Grátis</span>
+            <div class="trust-tag-item">
+              <i data-lucide="refresh-cw"></i>
+              <div class="trust-tag-text">
+                <strong>1ª Troca Grátis</strong>
+                <small>7 dias para troca sem custos</small>
+              </div>
+            </div>
+            <div class="trust-tag-item">
+              <i data-lucide="truck"></i>
+              <div class="trust-tag-text">
+                <strong>Envio Rápido</strong>
+                <small>Pronta entrega com rastreamento</small>
+              </div>
+            </div>
+            <div class="trust-tag-item">
+              <i data-lucide="shield-check"></i>
+              <div class="trust-tag-text">
+                <strong>Zero Transparência</strong>
+                <small>Poliamida de alta gramatura</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Accordions for Details & Specifications -->
+          <div class="product-accordions" id="product-accordions">
+            <details class="product-accordion-item" open>
+              <summary class="accordion-header">
+                <span><i data-lucide="file-text"></i> Descrição da Peça</span>
+                <i data-lucide="chevron-down" class="accordion-arrow"></i>
+              </summary>
+              <div class="accordion-content">
+                <p class="product-modal-desc" id="modal-product-description"></p>
+              </div>
+            </details>
+
+            <details class="product-accordion-item">
+              <summary class="accordion-header">
+                <span><i data-lucide="sparkles"></i> Tecido & Detalhes Técnicos</span>
+                <i data-lucide="chevron-down" class="accordion-arrow"></i>
+              </summary>
+              <div class="accordion-content">
+                <ul class="product-tech-specs">
+                  <li><strong>Composição:</strong> 88% Poliamida Nobre, 12% Elastano de Alta Densidade</li>
+                  <li><strong>Modelagem:</strong> Anatômica com cós alto anatômico que não escorrega</li>
+                  <li><strong>Tecnologia:</strong> Dry Fit respirável e tecnologia Zero Transparência garantida</li>
+                  <li><strong>Proteção UV:</strong> Fator UV50+ antibacteriano</li>
+                </ul>
+              </div>
+            </details>
+
+            <details class="product-accordion-item" id="accordion-size-guide">
+              <summary class="accordion-header">
+                <span><i data-lucide="ruler"></i> Tabela de Medidas</span>
+                <i data-lucide="chevron-down" class="accordion-arrow"></i>
+              </summary>
+              <div class="accordion-content">
+                <div class="size-guide-table-wrap">
+                  <table class="size-guide-table">
+                    <thead>
+                      <tr>
+                        <th>Tamanho</th>
+                        <th>Veste</th>
+                        <th>Busto</th>
+                        <th>Cintura</th>
+                        <th>Quadril</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td><strong>PP</strong></td><td>34</td><td>78 - 82 cm</td><td>60 - 64 cm</td><td>86 - 90 cm</td></tr>
+                      <tr><td><strong>P</strong></td><td>36 - 38</td><td>83 - 88 cm</td><td>65 - 70 cm</td><td>91 - 96 cm</td></tr>
+                      <tr><td><strong>M</strong></td><td>40 - 42</td><td>89 - 94 cm</td><td>71 - 76 cm</td><td>97 - 102 cm</td></tr>
+                      <tr><td><strong>G</strong></td><td>44</td><td>95 - 100 cm</td><td>77 - 82 cm</td><td>103 - 108 cm</td></tr>
+                      <tr><td><strong>GG</strong></td><td>46</td><td>101 - 106 cm</td><td>83 - 88 cm</td><td>109 - 114 cm</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </details>
+
+            <details class="product-accordion-item">
+              <summary class="accordion-header">
+                <span><i data-lucide="package-check"></i> Envio, Prazos & Trocas</span>
+                <i data-lucide="chevron-down" class="accordion-arrow"></i>
+              </summary>
+              <div class="accordion-content">
+                <p class="accordion-note">
+                  • <strong>Entrega Ágil:</strong> Enviamos seu pedido direto do nosso estoque com separação prioritária.<br>
+                  • <strong>Frete Grátis:</strong> Válido em compras acima de R$ 199,00.<br>
+                  • <strong>1ª Troca sem Burocracia:</strong> Caso a peça não sirva, solicitamos a troca pelo WhatsApp em até 7 dias corridos.
+                </p>
+              </div>
+            </details>
           </div>
 
         </div>
 
       </div>
+
+      <!-- Mobile Sticky Purchase Bar (Always within thumb reach) -->
+      <div class="product-modal-sticky-bar" id="product-modal-sticky-bar">
+        <div class="sticky-bar-info">
+          <span class="sticky-bar-price" id="modal-sticky-price">R$ 0,00</span>
+          <span class="sticky-bar-variant" id="modal-sticky-variant">Selecione tamanho</span>
+        </div>
+        <button type="button" class="btn-sticky-add-cart" id="btn-sticky-add-cart" aria-label="Adicionar à sacola">
+          <i data-lucide="shopping-bag"></i>
+          <span>Adicionar</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Product Image Lightbox Zoom Modal -->
+  <div class="modal-overlay image-zoom-overlay" id="product-zoom-modal" role="dialog" aria-modal="true" aria-label="Foto ampliada do produto">
+    <div class="image-zoom-container">
+      <button type="button" class="btn-close-zoom" id="btn-close-zoom" aria-label="Fechar visualização ampliada">
+        <i data-lucide="x"></i>
+      </button>
+      <img id="zoom-modal-image" src="" alt="Foto ampliada em alta resolução">
     </div>
   </div>
 

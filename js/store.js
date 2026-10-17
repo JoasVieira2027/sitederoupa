@@ -138,6 +138,17 @@
   const btnModalQtyMinus = $('btn-modal-qty-minus');
   const btnModalQtyPlus = $('btn-modal-qty-plus');
   const btnModalAddCart = $('btn-modal-add-cart');
+  const btnModalBuyNow = $('btn-modal-buy-now');
+  const modalGalleryThumbs = $('modal-gallery-thumbs');
+  const btnZoomImage = $('btn-zoom-image');
+  const productZoomModal = $('product-zoom-modal');
+  const zoomModalImage = $('zoom-modal-image');
+  const btnCloseZoom = $('btn-close-zoom');
+  const btnOpenSizeGuide = $('btn-open-size-guide');
+  const productModalStickyBar = $('product-modal-sticky-bar');
+  const modalStickyPrice = $('modal-sticky-price');
+  const modalStickyVariant = $('modal-sticky-variant');
+  const btnStickyAddCart = $('btn-sticky-add-cart');
 
   // Footer
   const footerBrand = $('footer-brand');
@@ -570,6 +581,47 @@
     }
   }
 
+  // ===== SCHEMA.ORG JSON-LD (SEO Dinâmico Estilo JoyModa) =====
+  function updateSchemaStructuredData(products) {
+    try {
+      const el = $('schema-structured-data');
+      if (!el || !Array.isArray(products) || !products.length) return;
+      const storeName = (settings && settings.storeName) || 'Fit Vibe Activewear';
+      const items = products.slice(0, 30).map((p, idx) => ({
+        "@type": "ListItem",
+        "position": idx + 1,
+        "name": p.name || 'Produto',
+        "url": `${window.location.origin}${window.location.pathname}#product-${p.id}`
+      }));
+      const schema = {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "OnlineStore",
+            "@id": "#store",
+            "name": storeName,
+            "description": "Roupas fitness femininas de alta performance. Modelagem anatômica e zero transparência.",
+            "currenciesAccepted": "BRL"
+          },
+          {
+            "@type": "CollectionPage",
+            "@id": "#collection",
+            "name": "Catálogo de Peças",
+            "isPartOf": { "@id": "#store" },
+            "mainEntity": {
+              "@type": "ItemList",
+              "numberOfItems": products.length,
+              "itemListElement": items
+            }
+          }
+        ]
+      };
+      el.textContent = JSON.stringify(schema, null, 2);
+    } catch (e) {
+      // Ignora silenciosamente se houver restrição
+    }
+  }
+
   // ===== PRODUCTS CATALOG RENDERING =====
   function renderProducts() {
     if (!productsGrid) return;
@@ -693,6 +745,7 @@
     // 8. Render Product Cards
     productsGrid.innerHTML = products.map((p, i) => renderProductCard(p, i)).join('');
     refreshIcons();
+    updateSchemaStructuredData(products);
 
     // 9. Bind Card Click & Quick Selection
     productsGrid.querySelectorAll('.product-card').forEach(card => {
@@ -944,12 +997,13 @@
       } else if (isLookMode && lookQueue.length === 0) {
         modalProductCategory.textContent = `${lookName} — Peça 2 de 2`;
       } else {
-        modalProductCategory.textContent = product.category || 'Fitness';
+        modalProductCategory.textContent = product.category || 'Fitness Activewear';
       }
     }
 
     if (modalProductName) modalProductName.textContent = product.name;
     if (modalProductPrice) modalProductPrice.textContent = Utils.formatCurrency(finalPrice);
+    if (modalStickyPrice) modalStickyPrice.textContent = Utils.formatCurrency(finalPrice);
 
     if (hasPromo) {
       if (modalProductOriginalPrice) {
@@ -969,7 +1023,7 @@
     if (modalProductInstallments) {
       const instCfg = (settings && settings.installmentsConfig) || (DataStore.getSettings()?.installmentsConfig) || { enabled: true, maxInstallments: 3, minInstallmentValue: 0 };
       const summary = Utils.getInstallmentSummary(finalPrice, instCfg);
-      modalProductInstallments.textContent = summary || `à vista ${Utils.formatCurrency(finalPrice)}`;
+      modalProductInstallments.textContent = summary || `em até 3x sem juros de ${Utils.formatCurrency(finalPrice / 3)}`;
     }
 
     // Badge
@@ -985,7 +1039,7 @@
       }
     }
 
-    // Image
+    // Main Image
     if (product.image) {
       if (modalProductImage) {
         modalProductImage.src = product.image;
@@ -998,10 +1052,13 @@
       if (modalProductPlaceholder) modalProductPlaceholder.style.display = 'flex';
     }
 
-    // Description
+    // Description in accordion
     if (modalProductDescription) {
-      modalProductDescription.textContent = product.description || 'Activewear de alta compressão e toque suave para o seu melhor treino.';
+      modalProductDescription.textContent = product.description || 'Activewear de alta compressão e toque suave para o seu melhor treino com tecnologia zero transparência.';
     }
+
+    // Render Gallery Thumbnails (Main photo + each color variant image)
+    renderGalleryThumbs(product, preselectedColor);
 
     // Color Selector
     renderColorSelector(product, preselectedColor);
@@ -1021,6 +1078,73 @@
     refreshIcons();
   }
 
+  function renderGalleryThumbs(product, activeColor = null) {
+    if (!modalGalleryThumbs) return;
+    const thumbs = [];
+
+    // Base product image
+    if (product.image) {
+      thumbs.push({
+        url: product.image,
+        color: null,
+        title: product.name
+      });
+    }
+
+    // Collect all variant images
+    (product.variants || []).forEach(v => {
+      if (v.image && !thumbs.some(t => t.url === v.image)) {
+        thumbs.push({
+          url: v.image,
+          color: v.color,
+          title: v.color
+        });
+      }
+    });
+
+    if (thumbs.length <= 1) {
+      modalGalleryThumbs.style.display = 'none';
+      return;
+    }
+
+    modalGalleryThumbs.style.display = 'flex';
+    modalGalleryThumbs.innerHTML = thumbs.map((t, idx) => {
+      const isSelected = activeColor ? (t.color === activeColor) : (idx === 0);
+      return `
+        <div class="gallery-thumb ${isSelected ? 'active' : ''}" data-url="${t.url}" data-color="${t.color || ''}" title="${Utils.sanitize(t.title || '')}">
+          <img src="${t.url}" alt="${Utils.sanitize(t.title || '')}" loading="lazy">
+          ${t.color ? `<span class="gallery-thumb-color-tag">${Utils.sanitize(t.color)}</span>` : ''}
+        </div>
+      `;
+    }).join('');
+
+    modalGalleryThumbs.querySelectorAll('.gallery-thumb').forEach(thumb => {
+      thumb.addEventListener('click', () => {
+        const url = thumb.dataset.url;
+        const color = thumb.dataset.color;
+
+        modalGalleryThumbs.querySelectorAll('.gallery-thumb').forEach(th => th.classList.remove('active'));
+        thumb.classList.add('active');
+
+        if (modalProductImage && url) {
+          modalProductImage.style.opacity = '0.35';
+          setTimeout(() => {
+            modalProductImage.src = url;
+            modalProductImage.style.opacity = '1';
+          }, 100);
+        }
+
+        // If thumb corresponds to a color option, select that color
+        if (color && modalSelectedColor !== color) {
+          const colorOpt = modalColorSelector?.querySelector(`[data-color="${color}"]`);
+          if (colorOpt && !colorOpt.classList.contains('out-of-stock')) {
+            colorOpt.click();
+          }
+        }
+      });
+    });
+  }
+
   function renderColorSelector(product, preselectedColor = null) {
     if (!modalColorSelector) return;
     const variants = product.variants || [];
@@ -1028,7 +1152,10 @@
     if (!variants.length) {
       $('modal-color-section') && ($('modal-color-section').style.display = 'none');
       $('modal-size-section') && ($('modal-size-section').style.display = 'none');
+      if (modalStickyVariant) modalStickyVariant.textContent = 'Pronto para entrega';
       if (btnModalAddCart) btnModalAddCart.disabled = false;
+      if (btnModalBuyNow) btnModalBuyNow.disabled = false;
+      if (btnStickyAddCart) btnStickyAddCart.disabled = false;
       return;
     }
 
@@ -1039,7 +1166,7 @@
       const totalQty = (v.sizes || []).reduce((s, sz) => s + sz.qty, 0);
       const isOut = totalQty === 0;
       return `
-        <div class="color-option ${isOut ? 'out-of-stock' : ''}" data-color="${Utils.sanitize(v.color)}" data-hex="${v.colorHex || '#333'}" title="${Utils.sanitize(v.color)}">
+        <div class="color-option ${isOut ? 'out-of-stock' : ''}" data-color="${Utils.sanitize(v.color)}" data-hex="${v.colorHex || '#333'}" title="${Utils.sanitize(v.color)} ${isOut ? '(Esgotado)' : ''}">
           <div class="color-swatch" style="background:${v.colorHex || '#333'};"></div>
           <span class="color-option-name">${Utils.sanitize(v.color)}</span>
         </div>
@@ -1053,6 +1180,7 @@
       });
       modalSelectedColor = colorName;
       if (modalSelectedColorName) modalSelectedColorName.textContent = colorName;
+      if (modalStickyVariant) modalStickyVariant.textContent = `${colorName} • Selecione tamanho`;
 
       // Switch to variant image if available
       const variant = (product.variants || []).find(v => v.color === modalSelectedColor);
@@ -1063,7 +1191,15 @@
         setTimeout(() => {
           modalProductImage.src = targetImg;
           modalProductImage.style.opacity = '1';
-        }, 120);
+        }, 100);
+      }
+
+      // Update gallery thumb selection
+      if (modalGalleryThumbs) {
+        modalGalleryThumbs.querySelectorAll('.gallery-thumb').forEach(th => {
+          if (th.dataset.color === colorName) th.classList.add('active');
+          else th.classList.remove('active');
+        });
       }
 
       modalSelectedSizeVal = null;
@@ -1093,6 +1229,7 @@
     } else {
       if (modalSizeSelector) modalSizeSelector.innerHTML = '<span class="empty-hint">Selecione uma cor primeiro</span>';
       if (modalSelectedSize) modalSelectedSize.textContent = '—';
+      if (modalStickyVariant) modalStickyVariant.textContent = 'Selecione uma cor';
       updateModalAddCartBtn();
     }
   }
@@ -1112,7 +1249,7 @@
     const sizesToShow = allSizes.filter(s => productSizes.includes(s));
 
     if (!sizesToShow.length) {
-      modalSizeSelector.innerHTML = '<span class="empty-hint">Nenhum tamanho disponível</span>';
+      modalSizeSelector.innerHTML = '<span class="empty-hint">Nenhum tamanho disponível para esta cor</span>';
       return;
     }
 
@@ -1120,7 +1257,7 @@
       const qty = sizeMap[size] || 0;
       const isOut = qty === 0;
       return `
-        <button type="button" class="size-btn ${isOut ? 'out-of-stock' : ''}" data-size="${size}" data-qty="${qty}" ${isOut ? 'disabled' : ''}>
+        <button type="button" class="size-btn ${isOut ? 'out-of-stock' : ''}" data-size="${size}" data-qty="${qty}" ${isOut ? 'disabled' : ''} title="${size} ${isOut ? '(Esgotado)' : `(${qty} disponíveis)`}">
           <span class="size-btn-label">${size}</span>
           <span class="size-btn-qty">${qty > 0 ? `${qty} un` : 'Esgotado'}</span>
         </button>
@@ -1133,6 +1270,7 @@
         btn.classList.add('selected');
         modalSelectedSizeVal = btn.dataset.size;
         if (modalSelectedSize) modalSelectedSize.textContent = btn.dataset.size;
+        if (modalStickyVariant) modalStickyVariant.textContent = `${modalSelectedColor || ''} / ${btn.dataset.size}`;
 
         const maxQty = parseInt(btn.dataset.qty) || 1;
         modalQty = 1;
@@ -1162,7 +1300,7 @@
       if (modalStockText) modalStockText.textContent = 'Esgotado nesta opção';
     } else if (qty <= 3) {
       modalStockIndicator.classList.add('low');
-      if (modalStockText) modalStockText.textContent = `Últimas ${qty} unidades disponíveis!`;
+      if (modalStockText) modalStockText.textContent = `Apenas ${qty} unidades em estoque!`;
     } else {
       modalStockIndicator.classList.add('ok');
       if (modalStockText) modalStockText.textContent = `Em estoque (${qty} unidades disponíveis)`;
@@ -1176,6 +1314,8 @@
     if (isClosed) {
       btnModalAddCart.disabled = true;
       btnModalAddCart.innerHTML = '<span>Loja Fechada</span>';
+      if (btnModalBuyNow) { btnModalBuyNow.disabled = true; btnModalBuyNow.innerHTML = '<span>Loja Fechada</span>'; }
+      if (btnStickyAddCart) { btnStickyAddCart.disabled = true; btnStickyAddCart.innerHTML = '<span>Fechada</span>'; }
       return;
     }
 
@@ -1187,13 +1327,21 @@
           return '<i data-lucide="check"></i> <span>Finalizar Look</span>';
         }
       }
-      return '<i data-lucide="shopping-bag"></i> <span>Adicionar ao Carrinho</span>';
+      return '<i data-lucide="shopping-bag"></i> <span>Adicionar à Sacola</span>';
     }
 
     const hasVariants = (currentProduct.variants || []).length > 0;
     if (!hasVariants) {
       btnModalAddCart.disabled = false;
       btnModalAddCart.innerHTML = getAddBtnContent();
+      if (btnModalBuyNow) {
+        btnModalBuyNow.disabled = false;
+        btnModalBuyNow.innerHTML = '<i data-lucide="zap"></i> <span>Comprar Agora</span>';
+      }
+      if (btnStickyAddCart) {
+        btnStickyAddCart.disabled = false;
+        btnStickyAddCart.innerHTML = '<i data-lucide="shopping-bag"></i> <span>Adicionar</span>';
+      }
       refreshIcons();
       return;
     }
@@ -1201,12 +1349,16 @@
     if (!modalSelectedColor) {
       btnModalAddCart.disabled = true;
       btnModalAddCart.innerHTML = '<span>Selecione uma cor</span>';
+      if (btnModalBuyNow) { btnModalBuyNow.disabled = true; btnModalBuyNow.innerHTML = '<span>Selecione uma cor</span>'; }
+      if (btnStickyAddCart) { btnStickyAddCart.disabled = true; btnStickyAddCart.innerHTML = '<span>Selecione cor</span>'; }
       return;
     }
 
     if (!modalSelectedSizeVal) {
       btnModalAddCart.disabled = true;
       btnModalAddCart.innerHTML = '<span>Selecione um tamanho</span>';
+      if (btnModalBuyNow) { btnModalBuyNow.disabled = true; btnModalBuyNow.innerHTML = '<span>Selecione um tamanho</span>'; }
+      if (btnStickyAddCart) { btnStickyAddCart.disabled = true; btnStickyAddCart.innerHTML = '<span>Selecione tamanho</span>'; }
       return;
     }
 
@@ -1214,16 +1366,27 @@
     if (qty === 0) {
       btnModalAddCart.disabled = true;
       btnModalAddCart.innerHTML = '<span>Esgotado</span>';
+      if (btnModalBuyNow) { btnModalBuyNow.disabled = true; btnModalBuyNow.innerHTML = '<span>Esgotado</span>'; }
+      if (btnStickyAddCart) { btnStickyAddCart.disabled = true; btnStickyAddCart.innerHTML = '<span>Esgotado</span>'; }
       return;
     }
 
     btnModalAddCart.disabled = false;
     btnModalAddCart.innerHTML = getAddBtnContent();
+    if (btnModalBuyNow) {
+      btnModalBuyNow.disabled = false;
+      btnModalBuyNow.innerHTML = '<i data-lucide="zap"></i> <span>Comprar Agora</span>';
+    }
+    if (btnStickyAddCart) {
+      btnStickyAddCart.disabled = false;
+      btnStickyAddCart.innerHTML = '<i data-lucide="shopping-bag"></i> <span>Adicionar</span>';
+    }
     refreshIcons();
   }
 
   function closeProductModal(isUserCancel = false) {
     if (productDetailsModal) productDetailsModal.classList.remove('active');
+    if (productZoomModal) productZoomModal.classList.remove('active');
     document.body.style.overflow = '';
     currentProduct = null;
     const qtyBox = $('.product-modal-qty-box');
@@ -2314,6 +2477,10 @@
     // ESC key closes modal safely
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
+        if (productZoomModal && productZoomModal.classList.contains('active')) {
+          productZoomModal.classList.remove('active');
+          return;
+        }
         if (productDetailsModal && productDetailsModal.classList.contains('active')) {
           closeProductModal(true);
         }
@@ -2384,6 +2551,67 @@
       });
     }
 
+    // Modal "Comprar Agora" (Direct to Checkout)
+    if (btnModalBuyNow) {
+      btnModalBuyNow.addEventListener('click', () => {
+        if (!currentProduct) return;
+        const color = modalSelectedColor || '';
+        const size = modalSelectedSizeVal || '';
+        const variant = (currentProduct.variants || []).find(v => v.color === color);
+        const hex = variant ? variant.colorHex : '';
+
+        const success = addToCart(currentProduct, color, hex, size, modalQty);
+        if (success) {
+          closeProductModal();
+          openCheckout();
+        }
+      });
+    }
+
+    // Mobile Sticky Bar Add Button (mirrors primary add button)
+    if (btnStickyAddCart) {
+      btnStickyAddCart.addEventListener('click', () => {
+        if (btnModalAddCart) btnModalAddCart.click();
+      });
+    }
+
+    // Product Image Zoom Lightbox
+    if (btnZoomImage) {
+      btnZoomImage.addEventListener('click', () => {
+        if (!modalProductImage || !modalProductImage.src) return;
+        if (zoomModalImage) {
+          zoomModalImage.src = modalProductImage.src;
+          zoomModalImage.alt = currentProduct?.name || 'Foto ampliada';
+        }
+        if (productZoomModal) productZoomModal.classList.add('active');
+      });
+    }
+
+    if (btnCloseZoom) {
+      btnCloseZoom.addEventListener('click', () => {
+        if (productZoomModal) productZoomModal.classList.remove('active');
+      });
+    }
+
+    if (productZoomModal) {
+      productZoomModal.addEventListener('click', e => {
+        if (e.target === productZoomModal) {
+          productZoomModal.classList.remove('active');
+        }
+      });
+    }
+
+    // Open Size Guide Accordion smoothly
+    if (btnOpenSizeGuide) {
+      btnOpenSizeGuide.addEventListener('click', () => {
+        const sizeAccordion = $('accordion-size-guide');
+        if (sizeAccordion) {
+          sizeAccordion.open = true;
+          sizeAccordion.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+    }
+
     // Live Search Handlers
     const handleSearch = Utils.debounce(val => {
       searchQuery = val.trim();
@@ -2447,7 +2675,7 @@
       }
     }, { passive: true });
 
-    // Cross-tab settings sync (e.g., shipping changes made in admin panel)
+    // Cross-tab sync: settings, products, and categories changed in admin panel
     window.addEventListener('storage', e => {
       if (e.key === 'fashion_settings' || e.key === 'fitvibe_settings') {
         settings = DataStore.getSettings();
@@ -2458,8 +2686,37 @@
         if (checkoutModal && checkoutModal.classList.contains('active')) {
           renderCheckoutSummary();
         }
+      } else if (e.key === 'fashion_products') {
+        // Products changed in another tab (Admin) — reload and refresh vitrine
+        DataStore.forceRefresh().then(() => {
+          renderFeaturedCollection();
+          renderProducts();
+          refreshIcons();
+        }).catch(() => {
+          renderProducts();
+          refreshIcons();
+        });
+      } else if (e.key === 'fashion_categories') {
+        // Categories changed in another tab (Admin) — refresh category bar
+        DataStore.forceRefresh().then(() => {
+          renderCategories();
+          renderProducts();
+          refreshIcons();
+        }).catch(() => {
+          renderCategories();
+          refreshIcons();
+        });
       }
     });
+
+
+    // Direct product link support via hash (e.g. #product-123)
+    if (window.location.hash && window.location.hash.startsWith('#product-')) {
+      const prodId = window.location.hash.replace('#product-', '');
+      if (prodId) {
+        setTimeout(() => openProductModal(prodId), 250);
+      }
+    }
   }
 
   // Ref close product modal button selector

@@ -683,6 +683,7 @@ const DataStore = (function () {
     else _products.unshift(product);
 
     _saveLocal(DB_KEYS.PRODUCTS, _products);
+    document.dispatchEvent(new CustomEvent('products-updated'));
     return product;
   }
 
@@ -713,6 +714,7 @@ const DataStore = (function () {
     }
     _products = _products.filter(p => p.id !== id);
     _saveLocal(DB_KEYS.PRODUCTS, _products);
+    document.dispatchEvent(new CustomEvent('products-updated'));
   }
 
   /**
