@@ -1349,16 +1349,14 @@
     if (!modalSelectedColor) {
       btnModalAddCart.disabled = true;
       btnModalAddCart.innerHTML = '<span>Selecione uma cor</span>';
-      if (btnModalBuyNow) { btnModalBuyNow.disabled = true; btnModalBuyNow.innerHTML = '<span>Selecione uma cor</span>'; }
-      if (btnStickyAddCart) { btnStickyAddCart.disabled = true; btnStickyAddCart.innerHTML = '<span>Selecione cor</span>'; }
+      if (btnModalBuyNow) { btnModalBuyNow.disabled = true; btnModalBuyNow.innerHTML = '<i data-lucide="zap"></i> <span>Comprar Agora</span>'; }
       return;
     }
 
     if (!modalSelectedSizeVal) {
       btnModalAddCart.disabled = true;
       btnModalAddCart.innerHTML = '<span>Selecione um tamanho</span>';
-      if (btnModalBuyNow) { btnModalBuyNow.disabled = true; btnModalBuyNow.innerHTML = '<span>Selecione um tamanho</span>'; }
-      if (btnStickyAddCart) { btnStickyAddCart.disabled = true; btnStickyAddCart.innerHTML = '<span>Selecione tamanho</span>'; }
+      if (btnModalBuyNow) { btnModalBuyNow.disabled = true; btnModalBuyNow.innerHTML = '<i data-lucide="zap"></i> <span>Comprar Agora</span>'; }
       return;
     }
 
@@ -1367,7 +1365,6 @@
       btnModalAddCart.disabled = true;
       btnModalAddCart.innerHTML = '<span>Esgotado</span>';
       if (btnModalBuyNow) { btnModalBuyNow.disabled = true; btnModalBuyNow.innerHTML = '<span>Esgotado</span>'; }
-      if (btnStickyAddCart) { btnStickyAddCart.disabled = true; btnStickyAddCart.innerHTML = '<span>Esgotado</span>'; }
       return;
     }
 
