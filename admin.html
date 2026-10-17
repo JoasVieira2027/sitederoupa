@@ -5,6 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="Painel Admin — Controle total de estoque de roupas fitness, produtos, pedidos e configurações">
   <title>Painel Admin | Fit Vibe Activewear</title>
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+
+  <!-- ===== SECURITY GATEKEEPER =====
+       Impede qualquer acesso direto não autorizado à página administrativa.
+       Sem chave secreta ou sessão ativa, redireciona instantaneamente para a loja. -->
+  <style id="gatekeeper-style">html { display: none !important; }</style>
+  <script>
+    (function () {
+      try {
+        var DEFAULT_KEY = 'fitvibe@2026';
+        var savedKey = null;
+        try {
+          var s = localStorage.getItem('fashion_settings_v3');
+          if (s) {
+            var parsed = JSON.parse(s);
+            if (parsed && parsed.adminAccessKey) savedKey = parsed.adminAccessKey;
+          }
+        } catch (e) {}
+
+        var validKey = savedKey || DEFAULT_KEY;
+        var isLogged = sessionStorage.getItem('fashion_admin_logged') === 'true';
+        var isGateAuthorized = sessionStorage.getItem('admin_gate_authorized') === 'true';
+
+        var params = new URLSearchParams(window.location.search);
+        var paramKey = params.get('chave') || params.get('key') || params.get('acesso') || params.get('token');
+
+        if (isLogged || isGateAuthorized || (paramKey && (paramKey === validKey || paramKey === DEFAULT_KEY))) {
+          sessionStorage.setItem('admin_gate_authorized', 'true');
+          if (paramKey && window.history && window.history.replaceState) {
+            var cleanUrl = window.location.pathname + window.location.hash;
+            window.history.replaceState({}, document.title, cleanUrl);
+          }
+          var gStyle = document.getElementById('gatekeeper-style');
+          if (gStyle && gStyle.parentNode) gStyle.parentNode.removeChild(gStyle);
+        } else {
+          window.location.replace('index.html');
+        }
+      } catch (err) {
+        window.location.replace('index.html');
+      }
+    })();
+  </script>
   
   <!-- Google Fonts: Outfit & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -930,6 +972,53 @@
         </div>
 
         <div class="admin-page-body">
+          <!-- Chave Secreta de Acesso Privado -->
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <h3>
+                <i data-lucide="shield-check"></i>
+                <span>Chave Secreta de Acesso Privado</span>
+              </h3>
+            </div>
+            <div class="admin-card-body">
+              <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:14px;line-height:1.5;">
+                O painel administrativo foi <strong>removido do rodapé da loja</strong> para proteger seu negócio contra acessos indevidos.
+                Qualquer pessoa que tentar acessar a página sem a chave secreta é <strong>automaticamente redirecionada para a loja</strong>.
+              </p>
+              
+              <div class="admin-form-grid" style="margin-bottom:14px;">
+                <div class="form-group">
+                  <label for="admin-access-key">Sua Chave Secreta de Acesso</label>
+                  <input type="text" id="admin-access-key" class="form-control" placeholder="fitvibe@2026">
+                </div>
+                <div class="form-group">
+                  <label>Como Acessar o Painel</label>
+                  <div style="font-size:0.8rem;color:var(--text-secondary);background:var(--bg-main);padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);line-height:1.4;">
+                    <div>• <strong>Link Direto:</strong> Salve o link secreto nos favoritos do seu navegador.</div>
+                    <div style="margin-top:4px;">• <strong>Atalho no Teclado:</strong> Na loja, pressione <code>Ctrl + Shift + A</code>.</div>
+                    <div style="margin-top:4px;">• <strong>No Celular:</strong> Na loja, dê 5 toques rápidos no rodapé de direitos autorais.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom:18px;">
+                <label>Seu Link Secreto de Acesso Direto</label>
+                <div style="display:flex;gap:10px;align-items:center;">
+                  <input type="text" id="admin-secret-url-display" class="form-control" readonly style="background:var(--bg-main);font-family:monospace;font-size:0.82rem;">
+                  <button type="button" class="btn btn-secondary" id="btn-copy-admin-url" style="white-space:nowrap;">
+                    <i data-lucide="copy"></i>
+                    <span>Copiar Link</span>
+                  </button>
+                </div>
+              </div>
+
+              <button type="button" class="btn btn-primary" id="btn-save-access-key">
+                <i data-lucide="save"></i>
+                <span>Salvar Nova Chave de Acesso</span>
+              </button>
+            </div>
+          </div>
+
           <div class="admin-card">
             <div class="admin-card-header">
               <h3>

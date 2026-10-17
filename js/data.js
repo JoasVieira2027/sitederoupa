@@ -241,7 +241,8 @@ const DEFAULT_SETTINGS = {
   },
   closures: [],
   availableSizes: ['PP', 'P', 'M', 'G', 'GG'],
-  adminPassword: 'admin123'
+  adminPassword: 'admin123',
+  adminAccessKey: 'fitvibe@2026'
 };
 
 // ============================================================

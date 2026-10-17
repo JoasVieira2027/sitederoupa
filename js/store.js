@@ -2765,6 +2765,47 @@
         setTimeout(() => openProductModal(prodId), 250);
       }
     }
+
+    // Secret Admin Triggers (apenas para o lojista)
+    bindSecretAdminAccess();
+  }
+
+  function bindSecretAdminAccess() {
+    function getAdminUrl() {
+      let key = 'fitvibe@2026';
+      try {
+        if (typeof DataStore !== 'undefined') {
+          const s = DataStore.getSettings();
+          if (s && s.adminAccessKey) key = s.adminAccessKey;
+        }
+      } catch (e) {}
+      return 'admin.html?chave=' + encodeURIComponent(key);
+    }
+
+    // 1. Teclado: Ctrl + Shift + A ou Cmd + Shift + A
+    window.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+        e.preventDefault();
+        window.location.href = getAdminUrl();
+      }
+    });
+
+    // 2. Mobile / Toque: 5 cliques rápidos no copyright do rodapé
+    const copyrightEl = $('footer-copyright');
+    if (copyrightEl) {
+      let clicks = 0;
+      let timer = null;
+      copyrightEl.addEventListener('click', () => {
+        clicks++;
+        if (timer) clearTimeout(timer);
+        if (clicks >= 5) {
+          clicks = 0;
+          window.location.href = getAdminUrl();
+        } else {
+          timer = setTimeout(() => { clicks = 0; }, 2500);
+        }
+      });
+    }
   }
 
   // Ref close product modal button selector

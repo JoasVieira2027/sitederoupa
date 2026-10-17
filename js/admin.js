@@ -87,8 +87,8 @@
       btnLogout.addEventListener('click', async () => {
         if (window.SupabaseService) await window.SupabaseService.signOut();
         sessionStorage.removeItem('fashion_admin_logged');
-        loginModal.classList.add('active');
-        Utils.showToast('Sessão encerrada.', 'info');
+        sessionStorage.removeItem('admin_gate_authorized');
+        window.location.replace('index.html');
       });
     }
   }
@@ -150,6 +150,7 @@
     renderDelivery();
     renderVisual();
     renderPayments();
+    renderSecurity();
 
     // Open dashboard
     navigateTo('dashboard');
@@ -2271,6 +2272,66 @@
 
   // ===== 14. SECURITY =====
   function renderSecurity() {
+    const settings = DataStore.getSettings();
+    const currentKey = settings.adminAccessKey || 'fitvibe@2026';
+
+    const accessKeyInput = $('admin-access-key');
+    const secretUrlDisplay = $('admin-secret-url-display');
+    const btnSaveAccessKey = $('btn-save-access-key');
+    const btnCopyAdminUrl = $('btn-copy-admin-url');
+
+    function updateSecretUrl(key) {
+      const origin = window.location.origin;
+      const path = window.location.pathname;
+      const fullUrl = `${origin}${path}?chave=${encodeURIComponent(key)}`;
+      if (secretUrlDisplay) secretUrlDisplay.value = fullUrl;
+    }
+
+    if (accessKeyInput) {
+      accessKeyInput.value = currentKey;
+      updateSecretUrl(currentKey);
+
+      accessKeyInput.addEventListener('input', () => {
+        const val = accessKeyInput.value.trim();
+        updateSecretUrl(val || 'fitvibe@2026');
+      });
+    }
+
+    if (btnSaveAccessKey) {
+      btnSaveAccessKey.onclick = async () => {
+        const newKey = (accessKeyInput ? accessKeyInput.value.trim() : '');
+        if (!newKey || newKey.length < 4) {
+          Utils.showToast('A chave deve ter no mínimo 4 caracteres!', 'error');
+          return;
+        }
+        try {
+          await DataStore.updateSetting('adminAccessKey', newKey);
+          updateSecretUrl(newKey);
+          Utils.showToast('Chave de acesso secreta atualizada com sucesso!', 'success');
+        } catch (err) {
+          Utils.showToast('Erro ao salvar chave: ' + (err.message || ''), 'error');
+        }
+      };
+    }
+
+    if (btnCopyAdminUrl) {
+      btnCopyAdminUrl.onclick = async () => {
+        const urlToCopy = secretUrlDisplay ? secretUrlDisplay.value : '';
+        if (!urlToCopy) return;
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(urlToCopy);
+          } else {
+            secretUrlDisplay.select();
+            document.execCommand('copy');
+          }
+          Utils.showToast('Link secreto copiado para a área de transferência!', 'success');
+        } catch (err) {
+          Utils.showToast('Link copiado!', 'info');
+        }
+      };
+    }
+
     const savePass = $('btn-save-password');
     if (savePass) {
       savePass.onclick = async () => {
