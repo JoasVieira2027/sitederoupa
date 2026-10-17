@@ -789,20 +789,23 @@
           <i data-lucide="credit-card"></i>
           <span id="cart-installments-text">ou até 3x sem juros</span>
         </div>
-        <div class="cart-shipping-notice">
+        <div class="cart-shipping-notice" id="cart-shipping-notice">
           <i data-lucide="truck"></i>
-          <span>Frete calculado na etapa seguinte</span>
+          <span>Frete calculado no próximo passo (Grátis acima de R$ 199)</span>
         </div>
         <div style="text-align:center;margin-top:4px;">
-          <button type="button" class="btn-cart-check-neighborhoods" onclick="window.StoreApp?.openNeighborhoodModal()" style="display:inline-flex;align-items:center;gap:6px;font-size:0.8rem;color:var(--primary, #7c3aed);background:none;border:none;cursor:pointer;padding:2px 0;font-weight:600;">
+          <button type="button" class="btn-cart-check-neighborhoods" onclick="window.StoreApp?.openNeighborhoodModal()" style="display:inline-flex;align-items:center;gap:6px;font-size:0.8rem;color:var(--primary, #10B981);background:none;border:none;cursor:pointer;padding:2px 0;font-weight:600;">
             <i data-lucide="map-pin" style="width:13px;height:13px;"></i>
-            <span>Consultar taxas por bairro</span>
+            <span>Consultar taxas de entrega por bairro</span>
           </button>
         </div>
       </div>
       <button type="button" class="btn-checkout" id="btn-checkout">
-        <span>Finalizar Pedido</span>
+        <span id="btn-checkout-label">Finalizar Pedido</span>
         <i data-lucide="arrow-right"></i>
+      </button>
+      <button type="button" class="btn-continue-shopping" onclick="window.StoreApp?.openCart(false)">
+        Continuar Comprando
       </button>
       <div class="cart-guarantees">
         <span><i data-lucide="lock"></i> Checkout Seguro</span>
@@ -826,145 +829,179 @@
 
       <div class="modal-body">
         
-        <!-- Delivery Type Selector -->
-        <div class="delivery-tabs-container">
-          <label class="form-section-label">Como deseja receber seu pedido?</label>
-          <div class="delivery-tabs">
-            <button type="button" class="delivery-tab-btn active" id="tab-delivery" data-type="delivery">
-              <i data-lucide="truck" class="tab-icon-svg"></i>
-              <div>
-                <strong>Entrega</strong>
-                <small id="tab-delivery-info">No seu endereço</small>
-              </div>
-            </button>
-            <button type="button" class="delivery-tab-btn" id="tab-pickup" data-type="pickup">
-              <i data-lucide="store" class="tab-icon-svg"></i>
-              <div>
-                <strong>Retirada</strong>
-                <small id="tab-pickup-info">Na loja / ponto</small>
-              </div>
-            </button>
-          </div>
-        </div>
-
-        <!-- Order Summary Breakdown -->
-        <div class="checkout-summary" id="checkout-summary">
-          <h4>Resumo das Peças</h4>
-          <div id="checkout-items"></div>
-          <div class="checkout-breakdown">
-            <div class="checkout-row">
-              <span>Subtotal:</span>
-              <span id="checkout-subtotal">R$ 0,00</span>
-            </div>
-            <div class="checkout-row" id="checkout-delivery-row">
-              <span>Frete:</span>
-              <span id="checkout-delivery-fee">R$ 0,00</span>
-            </div>
-            <div class="checkout-total-row">
-              <span>Total do Pedido:</span>
-              <span id="checkout-total">R$ 0,00</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Customer Details Form -->
+        <!-- Form Organizado por Etapas Claras (Mobile-First) -->
         <form id="checkout-form" novalidate>
-          <div class="form-group">
-            <label for="customer-name">Nome Completo <span class="required">*</span></label>
-            <input type="text" id="customer-name" class="form-control" placeholder="Ex: Ana Souza" required autocomplete="name">
-          </div>
-
-          <div class="form-group">
-            <label for="customer-phone">Telefone / WhatsApp <span class="required">*</span></label>
-            <input type="tel" id="customer-phone" class="form-control" placeholder="(11) 99999-9999" required autocomplete="tel">
-          </div>
-
-          <!-- Delivery Address -->
-          <div class="form-group" id="group-delivery-address">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-              <label for="customer-neighborhood" style="margin-bottom:0;font-weight:600;font-size:0.875rem;">Bairro de Entrega <span class="required">*</span></label>
-              <button type="button" class="btn-link-neighborhoods" id="btn-open-neighborhoods-rates" onclick="window.StoreApp?.openNeighborhoodModal()" style="background:none;border:none;color:var(--primary, #7c3aed);font-size:0.8rem;font-weight:600;display:inline-flex;align-items:center;gap:4px;cursor:pointer;padding:0;">
-                <i data-lucide="map-pin" style="width:13px;height:13px;"></i>
-                <span>Ver taxas e prazos</span>
-              </button>
-            </div>
-            <div style="position:relative;margin-bottom:10px;">
-              <select id="customer-neighborhood" class="form-control" style="cursor:pointer;" onchange="window.StoreApp?.onSelectNeighborhood(this.value)">
-                <option value="">Selecione seu bairro para calcular o frete...</option>
-              </select>
+          
+          <!-- ETAPA 1: Dados do Cliente -->
+          <div class="checkout-step-block">
+            <div class="checkout-step-header">
+              <span class="step-badge">1</span>
+              <h4>Seus Dados</h4>
             </div>
             
-            <div id="neighborhood-alert-box" style="display:none;margin-bottom:12px;padding:10px 14px;border-radius:10px;font-size:0.82rem;line-height:1.4;"></div>
-
-            <label for="customer-address" style="margin-bottom:6px;display:block;font-weight:600;font-size:0.875rem;">Rua, Número e Complemento <span class="required">*</span></label>
-            <input type="text" id="customer-address" class="form-control" placeholder="Ex: Rua das Flores, 123, Apto 101" required autocomplete="street-address">
-          </div>
-
-          <!-- Pickup Info -->
-          <div class="pickup-info-box hidden" id="pickup-info-box">
-            <div class="pickup-info-header">
-              <i data-lucide="map-pin"></i>
-              <strong>Local para Retirada:</strong>
+            <div class="form-group">
+              <label for="customer-name">Nome Completo <span class="required">*</span></label>
+              <input type="text" id="customer-name" class="form-control" placeholder="Ex: Ana Souza" required autocomplete="name">
             </div>
-            <p id="pickup-store-address">Consulte o ponto de retirada pelo WhatsApp</p>
-            <small id="pickup-store-time">Pronto em até 2 horas após confirmação</small>
-          </div>
 
-          <div class="form-group">
-            <label for="customer-obs">Observações / Recado Especial</label>
-            <textarea id="customer-obs" class="form-control" rows="2" placeholder="Dúvidas sobre tamanho, ponto de referência..."></textarea>
-          </div>
-
-          <!-- Payment Options -->
-          <div class="form-group">
-            <label class="form-section-label">Forma de Pagamento <span class="required">*</span></label>
-            <div class="payment-options" id="payment-options">
-              <!-- Populated by JS -->
+            <div class="form-group">
+              <label for="customer-phone">Telefone / WhatsApp <span class="required">*</span></label>
+              <input type="tel" id="customer-phone" class="form-control" placeholder="(11) 99999-9999" required autocomplete="tel">
             </div>
           </div>
 
-          <!-- Credit Card Installments Box -->
-          <div class="card-installments-box hidden" id="card-installments-box">
-            <div class="card-installments-header">
-              <i data-lucide="credit-card"></i>
-              <strong>Opções de Parcelamento no Cartão</strong>
+          <!-- ETAPA 2: Entrega ou Retirada -->
+          <div class="checkout-step-block">
+            <div class="checkout-step-header">
+              <span class="step-badge">2</span>
+              <h4>Entrega ou Retirada</h4>
             </div>
-            <div class="form-group" style="margin-bottom:0;">
-              <label for="checkout-card-installments">Escolha em quantas vezes deseja parcelar: <span class="required">*</span></label>
-              <select id="checkout-card-installments" class="form-control card-installments-select">
-                <!-- Dynamically populated by JS -->
-              </select>
-              <small class="card-installments-hint" id="card-installments-hint">O pagamento com cartão será efetuado na entrega ou via link seguro.</small>
+
+            <div class="delivery-tabs-container">
+              <div class="delivery-tabs">
+                <button type="button" class="delivery-tab-btn active" id="tab-delivery" data-type="delivery">
+                  <i data-lucide="truck" class="tab-icon-svg"></i>
+                  <div>
+                    <strong>Entrega</strong>
+                    <small id="tab-delivery-info">No seu endereço</small>
+                  </div>
+                </button>
+                <button type="button" class="delivery-tab-btn" id="tab-pickup" data-type="pickup">
+                  <i data-lucide="store" class="tab-icon-svg"></i>
+                  <div>
+                    <strong>Retirada</strong>
+                    <small id="tab-pickup-info">Grátis no ponto</small>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Endereço para Entrega -->
+            <div class="form-group" id="group-delivery-address">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <label for="customer-neighborhood" style="margin-bottom:0;font-weight:600;font-size:0.875rem;">Bairro de Entrega <span class="required">*</span></label>
+                <button type="button" class="btn-link-neighborhoods" id="btn-open-neighborhoods-rates" onclick="window.StoreApp?.openNeighborhoodModal()" style="background:none;border:none;color:var(--primary, #10B981);font-size:0.8rem;font-weight:600;display:inline-flex;align-items:center;gap:4px;cursor:pointer;padding:0;">
+                  <i data-lucide="map-pin" style="width:13px;height:13px;"></i>
+                  <span>Ver taxas</span>
+                </button>
+              </div>
+              
+              <div style="position:relative;margin-bottom:10px;">
+                <select id="customer-neighborhood" class="form-control" style="cursor:pointer;" onchange="window.StoreApp?.onSelectNeighborhood(this.value)">
+                  <option value="">Selecione seu bairro para calcular o frete...</option>
+                </select>
+              </div>
+              
+              <div id="neighborhood-alert-box" style="display:none;margin-bottom:12px;padding:10px 14px;border-radius:10px;font-size:0.82rem;line-height:1.4;"></div>
+
+              <label for="customer-address" style="margin-bottom:6px;display:block;font-weight:600;font-size:0.875rem;">Rua, Número e Complemento <span class="required">*</span></label>
+              <input type="text" id="customer-address" class="form-control" placeholder="Ex: Rua das Flores, 123, Apto 101" required autocomplete="street-address">
+            </div>
+
+            <!-- Informações do Ponto de Retirada -->
+            <div class="pickup-info-box hidden" id="pickup-info-box">
+              <div class="pickup-info-header">
+                <i data-lucide="map-pin"></i>
+                <strong>Local para Retirada:</strong>
+              </div>
+              <p id="pickup-store-address">Consulte o ponto de retirada pelo WhatsApp</p>
+              <small id="pickup-store-time">Pronto para retirada em até 2 horas após a confirmação</small>
             </div>
           </div>
 
-          <!-- Pix Payment Details Box -->
-          <div class="pix-checkout-box hidden" id="pix-checkout-box">
-            <div class="pix-box-header">
-              <span class="pix-badge">Chave Pix da Loja</span>
-              <span class="pix-type" id="pix-key-type">Celular</span>
+          <!-- ETAPA 3: Forma de Pagamento -->
+          <div class="checkout-step-block">
+            <div class="checkout-step-header">
+              <span class="step-badge">3</span>
+              <h4>Forma de Pagamento</h4>
             </div>
-            <div class="pix-key-wrapper">
-              <input type="text" readonly id="pix-key-val" value="" class="pix-key-input" aria-label="Chave Pix para copiar">
-              <button type="button" class="btn-copy-pix" id="btn-copy-pix">Copiar Chave</button>
+
+            <div class="form-group" style="margin-bottom: 8px;">
+              <div class="payment-options" id="payment-options">
+                <!-- Populated by JS -->
+              </div>
             </div>
-            <div class="pix-receiver-row">
-              <span>Titular: <strong id="pix-receiver-name">Fit Vibe Activewear</strong></span>
+
+            <!-- Parcelamento Cartão -->
+            <div class="card-installments-box hidden" id="card-installments-box">
+              <div class="card-installments-header">
+                <i data-lucide="credit-card"></i>
+                <strong>Opções de Parcelamento no Cartão</strong>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="checkout-card-installments">Escolha o número de parcelas: <span class="required">*</span></label>
+                <select id="checkout-card-installments" class="form-control card-installments-select">
+                  <!-- Dynamically populated by JS -->
+                </select>
+                <small class="card-installments-hint" id="card-installments-hint">O pagamento com cartão será efetuado na entrega ou via link seguro.</small>
+              </div>
             </div>
-            <p class="pix-instructions-text" id="pix-instructions-text">Faça o Pix e envie o comprovante pelo WhatsApp para envio imediato!</p>
+
+            <!-- Pix Key Box -->
+            <div class="pix-checkout-box hidden" id="pix-checkout-box">
+              <div class="pix-box-header">
+                <span class="pix-badge">Chave Pix da Loja</span>
+                <span class="pix-type" id="pix-key-type">Celular</span>
+              </div>
+              <div class="pix-key-wrapper">
+                <input type="text" readonly id="pix-key-val" value="" class="pix-key-input" aria-label="Chave Pix para copiar">
+                <button type="button" class="btn-copy-pix" id="btn-copy-pix">Copiar Chave</button>
+              </div>
+              <div class="pix-receiver-row">
+                <span>Titular: <strong id="pix-receiver-name">Fit Vibe Activewear</strong></span>
+              </div>
+              <p class="pix-instructions-text" id="pix-instructions-text">Faça o Pix e envie o comprovante pelo WhatsApp para separação prioritária!</p>
+            </div>
+
+            <!-- Troco em Dinheiro -->
+            <div class="cash-change-box hidden" id="cash-change-box">
+              <div class="form-group" style="margin-bottom:0">
+                <label for="customer-troco">Precisa de troco para quanto? (opcional)</label>
+                <input type="text" id="customer-troco" class="form-control" placeholder="Ex: Para R$ 150,00">
+              </div>
+            </div>
           </div>
 
-          <!-- Cash Change Field -->
-          <div class="cash-change-box hidden" id="cash-change-box">
-            <div class="form-group" style="margin-bottom:0">
-              <label for="customer-troco">Precisa de troco para quanto? (opcional)</label>
-              <input type="text" id="customer-troco" class="form-control" placeholder="Ex: Para R$ 200,00">
+          <!-- ETAPA 4: Observações Opcionais -->
+          <div class="checkout-step-block">
+            <div class="checkout-step-header">
+              <span class="step-badge">4</span>
+              <h4>Observações</h4>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <textarea id="customer-obs" class="form-control" rows="2" placeholder="Dúvidas sobre tamanho, ponto de referência... (opcional)"></textarea>
             </div>
           </div>
 
+          <!-- ETAPA 5: Resumo Transparente do Pedido -->
+          <div class="checkout-step-block checkout-summary-block">
+            <div class="checkout-step-header">
+              <span class="step-badge">5</span>
+              <h4>Resumo do Pedido</h4>
+            </div>
+            <div class="checkout-summary" id="checkout-summary">
+              <div id="checkout-items"></div>
+              <div class="checkout-breakdown">
+                <div class="checkout-row">
+                  <span>Subtotal:</span>
+                  <span id="checkout-subtotal">R$ 0,00</span>
+                </div>
+                <div class="checkout-row" id="checkout-delivery-row">
+                  <span>Frete:</span>
+                  <span id="checkout-delivery-fee">R$ 0,00</span>
+                </div>
+                <div class="checkout-total-row">
+                  <span>TOTAL A PAGAR:</span>
+                  <span id="checkout-total">R$ 0,00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ETAPA 6: Botão Final com Destaque Máximo -->
           <button type="submit" class="btn-whatsapp-submit" id="btn-send-whatsapp">
             <i data-lucide="message-circle"></i>
-            <span>Enviar Pedido pelo WhatsApp</span>
+            <span id="btn-send-whatsapp-text">Finalizar Pedido pelo WhatsApp</span>
           </button>
         </form>
 

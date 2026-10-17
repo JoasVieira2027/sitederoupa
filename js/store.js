@@ -1599,6 +1599,11 @@
     if (cartFooter) cartFooter.style.display = count > 0 ? 'block' : 'none';
     if (cartEmpty) cartEmpty.style.display = count === 0 ? 'flex' : 'none';
 
+    const btnChkLabel = $('btn-checkout-label');
+    if (btnChkLabel) {
+      btnChkLabel.textContent = count > 0 ? `Finalizar Pedido • ${Utils.formatCurrency(total)}` : 'Finalizar Pedido';
+    }
+
     // Installments note in cart footer
     const cartInstBadge = $('cart-installments-badge');
     const cartInstText = $('cart-installments-text');
@@ -1689,10 +1694,11 @@
     }
 
     cartItemsContainer.innerHTML = items.map(item => {
-      const colorLabel = item.color ? `<span class="cart-item-tag">${Utils.sanitize(item.color)}</span>` : '';
+      const colorLabel = item.color ? `<span class="cart-item-tag">Cor: ${Utils.sanitize(item.color)}</span>` : '';
       const sizeLabel = item.size ? `<span class="cart-item-tag tag-size">Tam: ${Utils.sanitize(item.size)}</span>` : '';
+      const unitNote = item.qty > 1 ? `<span class="cart-item-unit-note" style="font-size:0.72rem;color:var(--text-muted);font-weight:normal;display:block;">(${item.qty}x ${Utils.formatCurrency(item.price)})</span>` : '';
       const imgHtml = item.image
-        ? `<img src="${Utils.sanitize(item.image)}" alt="${Utils.sanitize(item.name)}">`
+        ? `<img src="${Utils.sanitize(item.image)}" alt="${Utils.sanitize(item.name)}" loading="lazy">`
         : `<div class="cart-item-noimg"><i data-lucide="sparkles"></i></div>`;
 
       return `
@@ -1701,13 +1707,16 @@
             ${imgHtml}
           </div>
           <div class="cart-item-info">
-            <h4 class="cart-item-name">${Utils.sanitize(item.name)}</h4>
+            <h4 class="cart-item-name" title="${Utils.sanitize(item.name)}">${Utils.sanitize(item.name)}</h4>
             <div class="cart-item-tags">
               ${colorLabel}
               ${sizeLabel}
             </div>
             <div class="cart-item-price-row">
-              <span class="cart-item-price">${Utils.formatCurrency(item.price * item.qty)}</span>
+              <div class="cart-item-price-col">
+                <span class="cart-item-price">${Utils.formatCurrency(item.price * item.qty)}</span>
+                ${unitNote}
+              </div>
               <div class="cart-item-qty-control">
                 <button type="button" class="btn-qty-sm" onclick="window.StoreApp?.updateCartQty('${item.id}', '${Utils.sanitize(item.color)}', '${Utils.sanitize(item.size)}', -1)" aria-label="Diminuir">−</button>
                 <span class="qty-sm-val">${item.qty}</span>
@@ -1715,7 +1724,7 @@
               </div>
             </div>
           </div>
-          <button type="button" class="btn-remove-item" onclick="window.StoreApp?.removeCartItem('${item.id}', '${Utils.sanitize(item.color)}', '${Utils.sanitize(item.size)}')" aria-label="Remover item">
+          <button type="button" class="btn-remove-item" onclick="window.StoreApp?.removeCartItem('${item.id}', '${Utils.sanitize(item.color)}', '${Utils.sanitize(item.size)}')" aria-label="Remover item" title="Remover da sacola">
             <i data-lucide="trash-2"></i>
           </button>
         </div>
@@ -2181,6 +2190,15 @@
       }
     }
 
+    const btnSendText = $('btn-send-whatsapp-text');
+    if (btnSendText) {
+      if (isPendingNeighborhood && fee === null) {
+        btnSendText.textContent = `Finalizar Pedido pelo WhatsApp • ${Utils.formatCurrency(subtotal)} (+ frete)`;
+      } else {
+        btnSendText.textContent = `Finalizar Pedido pelo WhatsApp • ${Utils.formatCurrency(total)}`;
+      }
+    }
+
     if (checkoutItemsEl) {
       checkoutItemsEl.innerHTML = cart.map(item => `
         <div class="checkout-item-line">
@@ -2196,38 +2214,38 @@
   }
 
   // ===== WHATSAPP ORDER SUBMISSION =====
-  function buildWhatsAppMessage(customerData) {
+  function buildWhatsAppMessage(customerData, orderNumber) {
     const s = DataStore.getSettings();
     const d = s.delivery || {};
     const subtotal = getCartTotal();
     const fee = calculateDeliveryFee(subtotal);
-    const total = subtotal + fee;
+    const total = subtotal + (fee || 0);
+    const orderNum = orderNumber || `FV-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    let msg = `[NOVO PEDIDO] — ${s.storeName}\n`;
-    msg += `━━━━━━━━━━━━━━━━━━━━━━\n`;
-    msg += `Cliente: ${customerData.name}\n`;
-    msg += `Telefone: ${customerData.phone}\n`;
-    msg += `\nITENS DO PEDIDO:\n`;
+    let msg = `🛍️ *NOVO PEDIDO #${orderNum}* — ${s.storeName}\n`;
+    msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
+    msg += `👤 *Cliente:* ${customerData.name}\n`;
+    msg += `📱 *Telefone:* ${customerData.phone}\n\n`;
+    msg += `📦 *ITENS DO PEDIDO:*\n`;
 
-    cart.forEach(item => {
-      msg += `• ${item.name}`;
-      if (item.color) msg += `\n  Cor: ${item.color}`;
-      if (item.size) msg += ` | Tam: ${item.size}`;
-      msg += `\n  Qtd: ${item.qty} × ${Utils.formatCurrency(item.price)} = ${Utils.formatCurrency(item.price * item.qty)}\n`;
+    cart.forEach((item, idx) => {
+      msg += `${idx + 1}. *${item.name}*\n`;
+      const details = [];
+      if (item.color) details.push(`Cor: ${item.color}`);
+      if (item.size) details.push(`Tam: ${item.size}`);
+      if (details.length) msg += `   ▫ ${details.join(' | ')}\n`;
+      msg += `   ▫ ${item.qty}x ${Utils.formatCurrency(item.price)} = *${Utils.formatCurrency(item.price * item.qty)}*\n`;
     });
 
-    msg += `━━━━━━━━━━━━━━━━━━━━━━\n`;
-    msg += `Subtotal: ${Utils.formatCurrency(subtotal)}\n`;
+    msg += `\n━━━━━━━━━━━━━━━━━━━━━\n`;
+    msg += `💰 *Subtotal:* ${Utils.formatCurrency(subtotal)}\n`;
 
     if (deliveryType === 'delivery') {
-      msg += `Modalidade: Entrega a Domicílio\n`;
-      if (selectedNeighborhoodId) {
-        const n = (d.neighborhoods || []).find(x => x.id === selectedNeighborhoodId);
-        if (n) {
-          msg += `Bairro: ${n.name}\n`;
-        }
+      msg += `🚚 *Modalidade:* Entrega a Domicílio\n`;
+      if (customerData.neighborhood) {
+        msg += `📍 *Bairro:* ${customerData.neighborhood}\n`;
       }
-      msg += `Endereço: ${customerData.address}\n`;
+      msg += `🏠 *Endereço:* ${customerData.address}\n`;
       let feeText = fee === 0 ? 'Grátis' : Utils.formatCurrency(fee);
       if (selectedNeighborhoodId) {
         const n = (d.neighborhoods || []).find(x => x.id === selectedNeighborhoodId);
@@ -2235,23 +2253,28 @@
           feeText += ` (Prazo: ${n.estimate})`;
         }
       }
-      msg += `Frete: ${feeText}\n`;
+      msg += `🛵 *Frete:* ${feeText}\n`;
     } else {
-      msg += `Modalidade: Retirada no Local\n`;
+      msg += `🏬 *Modalidade:* Retirada no Local\n`;
+      const addr = d.pickupAddress || s.address;
+      if (addr) msg += `📍 *Ponto de Retirada:* ${addr}\n`;
+      msg += `🛵 *Frete:* Grátis (Retirada)\n`;
     }
 
-    msg += `Pagamento: ${customerData.payment}\n`;
+    msg += `💳 *Forma de Pagamento:* ${customerData.payment}\n`;
     if (customerData.installment) {
-      msg += `Parcelamento: ${customerData.installment}\n`;
+      msg += `💳 *Parcelamento:* ${customerData.installment}\n`;
     }
-    if (customerData.troco) msg += `Troco para: ${customerData.troco}\n`;
-    msg += `\nTOTAL A PAGAR: ${Utils.formatCurrency(total)}\n`;
+    if (customerData.troco) {
+      msg += `💵 *Troco para:* ${customerData.troco}\n`;
+    }
+    msg += `\n*TOTAL A PAGAR: ${Utils.formatCurrency(total)}*\n`;
 
     if (customerData.obs) {
-      msg += `\nObservações: ${customerData.obs}\n`;
+      msg += `\n📝 *Observação:* ${customerData.obs}\n`;
     }
-    msg += `━━━━━━━━━━━━━━━━━━━━━━\n`;
-    msg += `Pedido gerado pelo site oficial ${s.storeName}`;
+    msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
+    msg += `Aguardando confirmação do pedido!`;
 
     return msg;
   }
@@ -2323,7 +2346,7 @@
     }
 
     const fee = calculateDeliveryFee(subtotal);
-    const total = subtotal + fee;
+    const total = subtotal + (fee || 0);
     const payLabel = (s.paymentMethods || []).find(m => m.id === selectedPayment)?.name || selectedPayment;
 
     let installmentText = '';
@@ -2335,6 +2358,7 @@
     }
 
     const customerData = { name, phone, address: finalAddress, neighborhood: neighborhoodName, obs, troco, payment: payLabel, installment: installmentText };
+    const orderNumber = `FV-${Math.floor(1000 + Math.random() * 9000)}`;
 
     // Decrement stock in DB
     for (const item of cart) {
@@ -2350,6 +2374,8 @@
     // Save order
     try {
       await DataStore.saveOrder({
+        id: `ord_${orderNumber}_${Date.now()}`,
+        orderNumber,
         customer: { name, phone, address: finalAddress, neighborhood: neighborhoodName, obs, installment: installmentText },
         deliveryType,
         deliveryFee: fee,
@@ -2365,7 +2391,7 @@
     }
 
     // Redirect to WhatsApp
-    const msg = buildWhatsAppMessage(customerData);
+    const msg = buildWhatsAppMessage(customerData, orderNumber);
     const waNumber = s.whatsappNumber || '';
     const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`;
 
