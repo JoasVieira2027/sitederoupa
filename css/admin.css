@@ -1609,13 +1609,17 @@ body.admin-sidebar-locked {
     bottom: 0;
     width: 280px;
     transform: translateX(-100%);
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    visibility: hidden;
+    pointer-events: none;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s;
     z-index: 10000;
     box-shadow: 10px 0 40px rgba(0, 0, 0, 0.4);
   }
 
   .admin-sidebar.open {
     transform: translateX(0);
+    visibility: visible;
+    pointer-events: auto;
   }
 
   .admin-mobile-toggle {
