@@ -250,10 +250,32 @@ const DEFAULT_SETTINGS = {
 const DataStore = (function () {
   'use strict';
 
-  let _products = [];
-  let _categories = [];
+  let _products = (function () {
+    try {
+      const r = localStorage.getItem(DB_KEYS.PRODUCTS);
+      const parsed = r ? JSON.parse(r) : null;
+      if (Array.isArray(parsed) && parsed.length) return parsed;
+    } catch (e) {}
+    return [...DEFAULT_PRODUCTS];
+  })();
+
+  let _categories = (function () {
+    try {
+      const r = localStorage.getItem(DB_KEYS.CATEGORIES);
+      const parsed = r ? JSON.parse(r) : null;
+      if (Array.isArray(parsed) && parsed.length) return parsed;
+    } catch (e) {}
+    return [...DEFAULT_CATEGORIES];
+  })();
   let _orders = [];
-  let _settings = { ...DEFAULT_SETTINGS };
+  let _settings = (function () {
+    try {
+      const r = localStorage.getItem(DB_KEYS.SETTINGS);
+      const parsed = r ? JSON.parse(r) : null;
+      if (parsed && typeof parsed === 'object') return { ...DEFAULT_SETTINGS, ...parsed };
+    } catch (e) {}
+    return { ...DEFAULT_SETTINGS };
+  })();
   let _initialized = false;
   let _supabase = null;
   let _isAdmin = false;

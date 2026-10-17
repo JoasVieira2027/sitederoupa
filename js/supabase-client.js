@@ -32,12 +32,16 @@
         }
       } catch (e) {}
 
-      // 2. Try Vercel Serverless Function /api/config
+      // 2. Try Vercel Serverless Function /api/config com timeout rápido (1200ms)
       try {
-        const res = await fetch('/api/config');
+        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        const timeoutId = controller ? setTimeout(() => controller.abort(), 1200) : null;
+        const res = await fetch('/api/config', controller ? { signal: controller.signal } : {});
+        if (timeoutId) clearTimeout(timeoutId);
+
         if (res.ok) {
           const data = await res.json();
-          if (data.supabaseUrl && data.supabaseAnonKey) {
+          if (data && data.supabaseUrl && data.supabaseAnonKey) {
             try {
               sessionStorage.setItem('fashion_api_config', JSON.stringify(data));
             } catch (e) {}
@@ -49,7 +53,7 @@
           }
         }
       } catch (err) {
-        // Not running on web server with /api/config or running locally via file://
+        // Not running on web server with /api/config, timeout or running locally
       }
 
       // 3. Check localStorage override (useful for local development or admin panel config)

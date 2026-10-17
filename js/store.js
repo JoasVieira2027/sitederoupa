@@ -195,13 +195,8 @@
 
   // ===== INIT =====
   async function init() {
-    try {
-      await DataStore.init({ enableRealtime: true, isAdmin: false });
-    } catch (err) {
-      console.warn('[Store] DataStore init fallback:', err);
-    }
+    // 1. Renderização Instantânea Inicial (0ms a partir de cache/defaults seguros)
     settings = DataStore.getSettings();
-
     applyBranding();
     applyStoreStatus();
     renderAnnouncementBar();
@@ -217,6 +212,26 @@
     loadCart();
     updateCartUI();
     refreshIcons();
+
+    // 2. Sincronização em Segundo Plano (Supabase / Servidor)
+    try {
+      await DataStore.init({ enableRealtime: true, isAdmin: false });
+      settings = DataStore.getSettings();
+      applyBranding();
+      applyStoreStatus();
+      renderAnnouncementBar();
+      renderBenefitsBar();
+      renderCategories();
+      renderFeaturedCollection();
+      renderProducts();
+      renderAbout();
+      renderInstagramFeed();
+      renderFooter();
+      updateCartUI();
+      refreshIcons();
+    } catch (err) {
+      console.warn('[Store] DataStore init background fallback:', err);
+    }
 
     // Listen to real-time sync events from Supabase / Admin changes
     document.addEventListener('settings-updated', () => {
@@ -512,7 +527,7 @@
     currentCategory = catName || 'all';
     const currentNorm = Utils.normalizeCategory(currentCategory);
 
-    // Update active state on category buttons
+    // Update active state on category buttons & desktop nav links
     $$('.category-btn').forEach(btn => {
       const btnCat = btn.dataset.cat || 'all';
       const btnNorm = Utils.normalizeCategory(btnCat);
@@ -520,6 +535,16 @@
         btn.classList.add('active');
       } else {
         btn.classList.remove('active');
+      }
+    });
+
+    $$('.nav-cat-link').forEach(link => {
+      const linkCat = link.dataset.cat || 'all';
+      const linkNorm = Utils.normalizeCategory(linkCat);
+      if (linkNorm === currentNorm || (currentNorm === 'all' && linkNorm === 'all')) {
+        link.classList.add('active');
+      } else {
+        link.classList.remove('active');
       }
     });
 

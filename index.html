@@ -112,17 +112,15 @@
         </div>
       </a>
 
-      <!-- Desktop Navigation Menu -->
+      <!-- Desktop Navigation Menu (Categorias Centrais Principais) -->
       <nav class="desktop-nav" aria-label="Navegação principal">
         <ul class="nav-list">
-          <li><a href="#hero" class="nav-link active">Início</a></li>
-          <li><a href="#visual-categories" class="nav-link">Categorias</a></li>
-          <li><a href="#featured-section" class="nav-link">Novidades</a></li>
-          <li><a href="#products" class="nav-link">Coleção</a></li>
+          <li><a href="#products" class="nav-link nav-cat-link active" data-cat="all" onclick="window.StoreApp?.selectCategory('all')">Todas as Peças</a></li>
+          <li><a href="#products" class="nav-link nav-cat-link" data-cat="Conjuntos" onclick="window.StoreApp?.selectCategory('Conjuntos')">Conjuntos</a></li>
+          <li><a href="#products" class="nav-link nav-cat-link" data-cat="Leggings" onclick="window.StoreApp?.selectCategory('Leggings')">Leggings</a></li>
+          <li><a href="#products" class="nav-link nav-cat-link" data-cat="Tops & Croppeds" onclick="window.StoreApp?.selectCategory('Tops & Croppeds')">Tops</a></li>
+          <li><a href="#products" class="nav-link nav-cat-link" data-cat="Shorts & Bermudas" onclick="window.StoreApp?.selectCategory('Shorts & Bermudas')">Shorts</a></li>
           <li><a href="#looks-section" class="nav-link">Monte seu Look</a></li>
-          <li><a href="#color-shop" class="nav-link">Cores</a></li>
-          <li><a href="#about-section" class="nav-link">Sobre</a></li>
-          <li><a href="#instagram-section" class="nav-link">Instagram</a></li>
         </ul>
       </nav>
 
@@ -275,105 +273,22 @@
     </nav>
   </aside>
 
-  <!-- Hero Section -->
+  <!-- Hero Section (Editorial de Moda Fitness Premium) -->
   <section class="hero" id="hero" aria-label="Apresentação da coleção principal">
     <div class="hero-bg" id="hero-bg" style="background-image: url('assets/images/hero_fitness.jpg');"></div>
     <div class="hero-overlay"></div>
     
     <div class="hero-content container">
       <div class="hero-text-block">
+        <h1 id="hero-title">Performance que veste você.</h1>
+        <p id="hero-subtitle">Modelagem anatômica, alta compressão e tecnologia zero transparência para seu treino.</p>
         
-        <div class="hero-badge-pill" id="hero-badge">
-          <span class="badge-dot" aria-hidden="true"></span>
-          <span id="hero-badge-text">Coleção Activewear</span>
-        </div>
-
-        <h1 id="hero-title">Performance que acompanha seu ritmo.</h1>
-        
-        <p id="hero-subtitle">Roupas fitness desenvolvidas para oferecer conforto, sustentação e liberdade em cada movimento.</p>
-
         <div class="hero-actions">
-          <a href="#products" class="btn-hero-primary" id="hero-cta">
+          <a href="#products" class="btn-hero-primary" id="hero-cta" onclick="window.StoreApp?.selectCategory('all')">
             <span>Ver coleção</span>
             <i data-lucide="arrow-right" class="btn-icon"></i>
           </a>
-          <a href="#" class="btn-hero-secondary" id="hero-whatsapp-btn" target="_blank" rel="noopener noreferrer">
-            <i data-lucide="message-circle" class="btn-icon"></i>
-            <span>Atendimento WhatsApp</span>
-          </a>
         </div>
-
-        <!-- Hero Highlights Row -->
-        <div class="hero-mini-features">
-          <div class="hero-mini-feature">
-            <i data-lucide="shield-check"></i>
-            <span>Zero Transparência</span>
-          </div>
-          <div class="hero-mini-feature">
-            <i data-lucide="activity"></i>
-            <span>Alta Compressão</span>
-          </div>
-          <div class="hero-mini-feature">
-            <i data-lucide="wind"></i>
-            <span>Tecido Respirável</span>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Scroll Down Indicator -->
-    <a href="#benefits-bar" class="hero-scroll-indicator" aria-label="Rolar para os benefícios">
-      <span class="scroll-text">Explorar</span>
-      <i data-lucide="chevron-down" class="scroll-icon"></i>
-    </a>
-  </section>
-
-  <!-- Premium Value Proposition Bar (Benefícios Discretos) -->
-  <section class="benefits-section" id="benefits-bar" aria-label="Benefícios e diferenciais da loja">
-    <div class="container">
-      <div class="benefits-grid" id="benefits-grid">
-        
-        <div class="benefit-card">
-          <div class="benefit-icon-wrapper">
-            <i data-lucide="truck"></i>
-          </div>
-          <div class="benefit-content">
-            <h3 id="benefit-title-1">Frete grátis acima de R$199</h3>
-            <p id="benefit-desc-1">Entrega rápida e segura para todo o Brasil</p>
-          </div>
-        </div>
-
-        <div class="benefit-card">
-          <div class="benefit-icon-wrapper">
-            <i data-lucide="shield-check"></i>
-          </div>
-          <div class="benefit-content">
-            <h3 id="benefit-title-2">Pagamento seguro</h3>
-            <p id="benefit-desc-2">Ambiente protegido com confirmação imediata</p>
-          </div>
-        </div>
-
-        <div class="benefit-card">
-          <div class="benefit-icon-wrapper">
-            <i data-lucide="refresh-cw"></i>
-          </div>
-          <div class="benefit-content">
-            <h3 id="benefit-title-3">Troca facilitada</h3>
-            <p id="benefit-desc-3">Primeira troca sem custo e sem burocracia</p>
-          </div>
-        </div>
-
-        <div class="benefit-card">
-          <div class="benefit-icon-wrapper">
-            <i data-lucide="zap"></i>
-          </div>
-          <div class="benefit-content">
-            <h3 id="benefit-title-4">Envio rápido</h3>
-            <p id="benefit-desc-4">Despacho ágil com código de rastreamento</p>
-          </div>
-        </div>
-
       </div>
     </div>
   </section>
@@ -651,47 +566,62 @@
     </div>
   </section>
 
-  <!-- About Section -->
-  <section class="about-section container" id="about-section" aria-label="Sobre a marca Fit Vibe">
-    <div class="about-card">
-      <div class="about-header">
-        <span class="about-tagline" id="about-tagline">Tecnologia, Conforto & Performance</span>
-        <h2 id="about-title">Feito para o Seu Melhor Movimento</h2>
-        <p id="about-text">A Fit Vibe desenvolve roupas esportivas com tecidos nobres e tecnologia têxtil de ponta. Peças que valorizam a silhueta, oferecem sustentação máxima e acompanham cada movimento do seu dia com total segurança.</p>
-      </div>
+  <!-- Benefícios Essenciais de Compra (Posição Estratégica de Confiança antes do Fechamento) -->
+  <section class="benefits-section" id="benefits-bar" aria-label="Benefícios e diferenciais da loja">
+    <div class="container">
+      <div class="benefits-grid" id="benefits-grid">
+        
+        <div class="benefit-card">
+          <div class="benefit-icon-wrapper">
+            <i data-lucide="truck"></i>
+          </div>
+          <div class="benefit-content">
+            <h3 id="benefit-title-1">Frete grátis acima de R$199</h3>
+            <p id="benefit-desc-1">Entrega rápida e segura para todo o Brasil</p>
+          </div>
+        </div>
 
-      <div class="about-features" id="about-features">
-        <div class="about-feature">
-          <div class="about-feature-icon-wrap">
+        <div class="benefit-card">
+          <div class="benefit-icon-wrapper">
             <i data-lucide="shield-check"></i>
           </div>
-          <h4>Zero Transparência</h4>
-          <p>Gramatura blackout testada e aprovada para agachamentos sem medo.</p>
-        </div>
-        <div class="about-feature">
-          <div class="about-feature-icon-wrap">
-            <i data-lucide="wind"></i>
+          <div class="benefit-content">
+            <h3 id="benefit-title-2">Pagamento seguro</h3>
+            <p id="benefit-desc-2">Ambiente protegido com confirmação imediata</p>
           </div>
-          <h4>Tecnologia Dry-Fit</h4>
-          <p>Respirabilidade máxima que evapora o suor e mantém o corpo seco.</p>
         </div>
-        <div class="about-feature">
-          <div class="about-feature-icon-wrap">
-            <i data-lucide="activity"></i>
-          </div>
-          <h4>Alta Compressão</h4>
-          <p>Cós duplo anatômico que modela a cintura sem enrolar no treino.</p>
-        </div>
-        <div class="about-feature">
-          <div class="about-feature-icon-wrap">
+
+        <div class="benefit-card">
+          <div class="benefit-icon-wrapper">
             <i data-lucide="refresh-cw"></i>
           </div>
-          <h4>Troca Descomplicada</h4>
-          <p>Primeira troca 100% grátis e suporte humanizado direto no WhatsApp.</p>
+          <div class="benefit-content">
+            <h3 id="benefit-title-3">1ª Troca grátis</h3>
+            <p id="benefit-desc-3">Sem custo e sem burocracia em até 7 dias</p>
+          </div>
         </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon-wrapper">
+            <i data-lucide="zap"></i>
+          </div>
+          <div class="benefit-content">
+            <h3 id="benefit-title-4">Envio rápido</h3>
+            <p id="benefit-desc-4">Despacho prioritário com rastreamento</p>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
+
+  <!-- Referências institucionais mantidas para sincronização dinâmica com Admin -->
+  <div class="hidden" id="about-section" style="display:none;" aria-hidden="true">
+    <span id="about-tagline"></span>
+    <h2 id="about-title"></h2>
+    <p id="about-text"></p>
+    <div id="about-features"></div>
+  </div>
 
   <!-- Instagram Feed Editorial Showcase -->
   <section class="instagram-section container" id="instagram-section" aria-label="Instagram da Fit Vibe">
