@@ -1,20 +1,26 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="Painel Admin — Controle total de estoque de roupas fitness, produtos, pedidos e configurações">
-  <title>Painel Admin | Fit Vibe Activewear</title>
+  <meta name="description"
+    content="Painel Admin — Controle total de estoque de roupas fitness, produtos, pedidos e configurações">
+  <title>Painel Admin | Donna Fitness PE</title>
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
 
   <!-- ===== SECURITY GATEKEEPER =====
        Impede qualquer acesso direto não autorizado à página administrativa.
        Sem chave secreta ou sessão ativa, redireciona instantaneamente para a loja. -->
-  <style id="gatekeeper-style">html { display: none !important; }</style>
+  <style id="gatekeeper-style">
+    html {
+      display: none !important;
+    }
+  </style>
   <script>
     (function () {
       try {
-        var DEFAULT_KEY = 'fitvibe@2026';
+        var DEFAULT_KEY = 'joas@2026';
         var savedKey = null;
         try {
           var s = localStorage.getItem('fashion_settings_v3');
@@ -22,7 +28,7 @@
             var parsed = JSON.parse(s);
             if (parsed && parsed.adminAccessKey) savedKey = parsed.adminAccessKey;
           }
-        } catch (e) {}
+        } catch (e) { }
 
         var validKey = savedKey || DEFAULT_KEY;
         var isLogged = sessionStorage.getItem('fashion_admin_logged') === 'true';
@@ -47,44 +53,58 @@
       }
     })();
   </script>
-  
+
   <!-- Google Fonts: Outfit & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  
+
   <!-- Stylesheets -->
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/admin.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230F172A'/><path d='M9 8H23V11H12.5V14.5H21V17.5H12.5V24H9V8Z' fill='%2310B981'/><path d='M19 14.5L24 24H20.2L17.5 18.5H19V14.5Z' fill='%2334D399'/></svg>">
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg?v=2">
+  <link rel="alternate icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7.5' fill='%230F172A'/><path d='M7.5 7H10.5V25H7.5Z' fill='%2310B981'/><path d='M12.5 7H17.5C22.5 7 26.5 11 26.5 16C26.5 21 22.5 25 17.5 25H12.5V21.2H17.2C20.1 21.2 22.4 18.9 22.4 16C22.4 13.1 20.1 10.8 17.2 10.8H12.5V7Z' fill='%23FFFFFF'/></svg>">
 </head>
+
 <body>
   <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
   <!-- ===== LOGIN MODAL ===== -->
-  <div class="admin-login-overlay active" id="login-modal" role="dialog" aria-modal="true" aria-labelledby="admin-login-title">
+  <div class="admin-login-overlay active" id="login-modal" role="dialog" aria-modal="true"
+    aria-labelledby="admin-login-title">
     <div class="admin-login-card">
       <div class="admin-login-logo">
-        <svg width="44" height="44" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-          <rect width="32" height="32" rx="8" fill="#10B981"/>
-          <path d="M8.5 7.5H23.5V10.5H12V14H21V17H12V24.5H8.5V7.5Z" fill="#0F172A"/>
-          <path d="M18.5 14L23.5 24.5H19.8L16.8 18.2H18.5V14Z" fill="#064E3B"/>
+        <svg width="48" height="48" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="admLogGrad" x1="7.5" y1="8" x2="12" y2="28" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#34D399"/>
+              <stop offset="100%" stop-color="#059669"/>
+            </linearGradient>
+          </defs>
+          <rect width="36" height="36" rx="9" fill="#0F172A"/>
+          <path d="M 8.5 9 C 8.5 8.4477 8.9477 8 9.5 8 H 11.5 C 12.0523 8 12.5 8.4477 12.5 9 V 27 C 12.5 27.5523 12.0523 28 11.5 28 H 9.5 C 8.9477 28 8.5 27.5523 8.5 27 Z" fill="url(#admLogGrad)"/>
+          <path d="M 14.5 8 H 20 C 25.5228 8 30 12.4772 30 18 C 30 23.5228 25.5228 28 20 28 H 14.5 V 23.8 H 19.8 C 23.0033 23.8 25.6 21.2033 25.6 18 C 25.6 14.7967 23.0033 12.2 19.8 12.2 H 14.5 V 8 Z" fill="#FFFFFF"/>
         </svg>
       </div>
       <h2 class="admin-login-title" id="admin-login-title">Painel Administrativo</h2>
-      <p class="admin-login-subtitle">Fit Vibe Activewear — Acesso do Administrador</p>
-      
+      <p class="admin-login-subtitle">Donna Fitness PE — Acesso do Administrador</p>
+
       <form id="login-form">
         <div class="form-group">
           <label for="login-email">E-mail de Acesso</label>
-          <input type="email" id="login-email" class="form-control" placeholder="admin@suacloja.com" autocomplete="email">
+          <input type="email" id="login-email" class="form-control" placeholder="admin@suacloja.com"
+            autocomplete="email">
         </div>
         <div class="form-group">
           <label for="login-password">Senha do Painel <span class="required">*</span></label>
-          <input type="password" id="login-password" class="form-control" placeholder="Digite sua senha" required autocomplete="current-password">
+          <input type="password" id="login-password" class="form-control" placeholder="Digite sua senha" required
+            autocomplete="current-password">
         </div>
         <button type="submit" class="btn-login" id="btn-login-submit">
           <span>Entrar no Painel</span>
@@ -105,15 +125,21 @@
     <aside class="admin-sidebar" id="admin-sidebar">
       <div class="admin-sidebar-brand">
         <div class="brand-icon">
-          <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-            <rect width="32" height="32" rx="7" fill="#10B981"/>
-            <path d="M8.5 7.5H23.5V10.5H12V14H21V17H12V24.5H8.5V7.5Z" fill="#0B0F19"/>
-            <path d="M18.5 14L23.5 24.5H19.8L16.8 18.2H18.5V14Z" fill="#064E3B"/>
+          <svg width="32" height="32" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="admSideGrad" x1="7.5" y1="8" x2="12" y2="28" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#34D399"/>
+                <stop offset="100%" stop-color="#059669"/>
+              </linearGradient>
+            </defs>
+            <rect width="36" height="36" rx="9" fill="#1E293B" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+            <path d="M 8.5 9 C 8.5 8.4477 8.9477 8 9.5 8 H 11.5 C 12.0523 8 12.5 8.4477 12.5 9 V 27 C 12.5 27.5523 12.0523 28 11.5 28 H 9.5 C 8.9477 28 8.5 27.5523 8.5 27 Z" fill="url(#admSideGrad)"/>
+            <path d="M 14.5 8 H 20 C 25.5228 8 30 12.4772 30 18 C 30 23.5228 25.5228 28 20 28 H 14.5 V 23.8 H 19.8 C 23.0033 23.8 25.6 21.2033 25.6 18 C 25.6 14.7967 23.0033 12.2 19.8 12.2 H 14.5 V 8 Z" fill="#FFFFFF"/>
           </svg>
         </div>
         <div style="flex:1;min-width:0;">
-          <span class="brand-text" id="admin-brand-title">FIT VIBE</span>
-          <span class="brand-sub">Activewear Admin</span>
+          <span class="brand-text" id="admin-brand-title">DONNA</span>
+          <span class="brand-sub">Fitness PE Admin</span>
         </div>
         <button type="button" class="admin-sidebar-close" id="admin-sidebar-close" aria-label="Fechar menu lateral">
           <i data-lucide="x"></i>
@@ -255,9 +281,12 @@
                 <i data-lucide="layers"></i>
                 <span>Catálogo de Peças Fitness</span>
               </h3>
-              <div style="display:flex;align-items:center;background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-full);padding:6px 12px;gap:6px;">
+              <div
+                style="display:flex;align-items:center;background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-full);padding:6px 12px;gap:6px;">
                 <i data-lucide="search" style="width:14px;height:14px;color:var(--text-muted);"></i>
-                <input type="search" id="product-search" style="border:none;background:transparent;outline:none;font-size:0.82rem;width:200px;" placeholder="Buscar produto...">
+                <input type="search" id="product-search"
+                  style="border:none;background:transparent;outline:none;font-size:0.82rem;width:200px;"
+                  placeholder="Buscar produto...">
               </div>
             </div>
 
@@ -369,7 +398,7 @@
         </div>
 
         <div class="admin-page-body" style="display:flex;flex-direction:column;gap:20px;">
-          
+
           <!-- Card 1: Frete a Domicílio -->
           <div class="admin-card">
             <div class="admin-card-header" style="display:flex;justify-content:space-between;align-items:center;">
@@ -378,7 +407,8 @@
                 <span>Entrega a Domicílio</span>
               </h3>
               <div style="display:flex;align-items:center;gap:10px;">
-                <span id="delivery-enabled-label" style="font-size:0.875rem;font-weight:600;color:var(--text-muted);">Ativo</span>
+                <span id="delivery-enabled-label"
+                  style="font-size:0.875rem;font-weight:600;color:var(--text-muted);">Ativo</span>
                 <label class="toggle-switch">
                   <input type="checkbox" id="delivery-enabled" checked>
                   <span class="toggle-slider"></span>
@@ -389,13 +419,16 @@
               <div class="admin-form-grid">
                 <div class="form-group">
                   <label for="delivery-fee">Taxa Padrão de Entrega (R$)</label>
-                  <input type="number" id="delivery-fee" class="form-control" min="0" step="0.50" value="15.00" placeholder="0.00 para frete grátis geral">
-                  <small style="color:var(--text-muted);font-size:0.75rem;margin-top:4px;display:block;">Deixe 0 para frete gratuito em todas as entregas.</small>
+                  <input type="number" id="delivery-fee" class="form-control" min="0" step="0.50" value="15.00"
+                    placeholder="0.00 para frete grátis geral">
+                  <small style="color:var(--text-muted);font-size:0.75rem;margin-top:4px;display:block;">Deixe 0 para
+                    frete gratuito em todas as entregas.</small>
                 </div>
                 <div class="form-group">
                   <label for="delivery-time">Prazo Estimado de Entrega</label>
                   <input type="text" id="delivery-time" class="form-control" placeholder="Ex: 2 a 5 dias úteis">
-                  <small style="color:var(--text-muted);font-size:0.75rem;margin-top:4px;display:block;">Exibido no checkout para orientar o cliente.</small>
+                  <small style="color:var(--text-muted);font-size:0.75rem;margin-top:4px;display:block;">Exibido no
+                    checkout para orientar o cliente.</small>
                 </div>
               </div>
             </div>
@@ -403,16 +436,19 @@
 
           <!-- Card 2: Bairros e Taxas de Entrega -->
           <div class="admin-card" id="card-neighborhoods">
-            <div class="admin-card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+            <div class="admin-card-header"
+              style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
               <div>
                 <h3 style="margin-bottom:4px;">
                   <i data-lucide="map-pin"></i>
                   <span>Bairros e Taxas de Entrega</span>
                 </h3>
-                <p style="margin:0;font-size:0.825rem;color:var(--text-muted);font-weight:normal;">Configure taxas de frete por região, pedido mínimo e regras de entrega grátis.</p>
+                <p style="margin:0;font-size:0.825rem;color:var(--text-muted);font-weight:normal;">Configure taxas de
+                  frete por região, pedido mínimo e regras de entrega grátis.</p>
               </div>
               <div style="display:flex;align-items:center;gap:12px;">
-                <button type="button" class="btn btn-primary" id="btn-add-neighborhood" style="background:#7c3aed;border-color:#7c3aed;padding:9px 18px;font-size:0.875rem;font-weight:600;display:inline-flex;align-items:center;gap:6px;border-radius:var(--radius-md, 10px);cursor:pointer;">
+                <button type="button" class="btn btn-primary" id="btn-add-neighborhood"
+                  style="background:#7c3aed;border-color:#7c3aed;padding:9px 18px;font-size:0.875rem;font-weight:600;display:inline-flex;align-items:center;gap:6px;border-radius:var(--radius-md, 10px);cursor:pointer;">
                   <i data-lucide="plus" style="width:16px;height:16px;"></i>
                   <span>Novo Bairro</span>
                 </button>
@@ -447,7 +483,8 @@
                 <span>Campanha de Frete Grátis (Barra no Carrinho)</span>
               </h3>
               <div style="display:flex;align-items:center;gap:10px;">
-                <span id="free-delivery-enabled-label" style="font-size:0.875rem;font-weight:600;color:var(--text-muted);">Ativo</span>
+                <span id="free-delivery-enabled-label"
+                  style="font-size:0.875rem;font-weight:600;color:var(--text-muted);">Ativo</span>
                 <label class="toggle-switch">
                   <input type="checkbox" id="free-delivery-enabled" checked>
                   <span class="toggle-slider"></span>
@@ -458,14 +495,19 @@
               <div class="admin-form-grid">
                 <div class="form-group">
                   <label for="delivery-free-threshold">Valor Mínimo para Frete Grátis (R$)</label>
-                  <input type="number" id="delivery-free-threshold" class="form-control" min="0" step="10" value="199.00">
-                  <small style="color:var(--text-muted);font-size:0.75rem;margin-top:4px;display:block;">Compras a partir deste valor ganham frete grátis.</small>
+                  <input type="number" id="delivery-free-threshold" class="form-control" min="0" step="10"
+                    value="199.00">
+                  <small style="color:var(--text-muted);font-size:0.75rem;margin-top:4px;display:block;">Compras a
+                    partir deste valor ganham frete grátis.</small>
                 </div>
                 <div class="form-group" style="display:flex;flex-direction:column;justify-content:center;">
-                  <div style="background:var(--bg-subtle, rgba(5,150,105,0.08));border:1px solid rgba(5,150,105,0.2);border-radius:8px;padding:12px 16px;display:flex;gap:12px;align-items:flex-start;">
+                  <div
+                    style="background:var(--bg-subtle, rgba(5,150,105,0.08));border:1px solid rgba(5,150,105,0.2);border-radius:8px;padding:12px 16px;display:flex;gap:12px;align-items:flex-start;">
                     <i data-lucide="info" style="color:var(--primary);flex-shrink:0;margin-top:2px;"></i>
                     <p style="margin:0;font-size:0.825rem;color:var(--text);line-height:1.45;">
-                      <strong>Controle da Barra:</strong> Quando ativada, a barra no carrinho motiva a cliente calculando quanto falta para o frete grátis. Se <strong>desativada</strong>, a barra de frete grátis desaparece do carrinho e o frete não é isentado por valor mínimo.
+                      <strong>Controle da Barra:</strong> Quando ativada, a barra no carrinho motiva a cliente
+                      calculando quanto falta para o frete grátis. Se <strong>desativada</strong>, a barra de frete
+                      grátis desaparece do carrinho e o frete não é isentado por valor mínimo.
                     </p>
                   </div>
                 </div>
@@ -481,7 +523,8 @@
                 <span>Retirada no Ponto / Loja</span>
               </h3>
               <div style="display:flex;align-items:center;gap:10px;">
-                <span id="pickup-enabled-label" style="font-size:0.875rem;font-weight:600;color:var(--text-muted);">Ativo</span>
+                <span id="pickup-enabled-label"
+                  style="font-size:0.875rem;font-weight:600;color:var(--text-muted);">Ativo</span>
                 <label class="toggle-switch">
                   <input type="checkbox" id="pickup-enabled" checked>
                   <span class="toggle-slider"></span>
@@ -492,7 +535,8 @@
               <div class="admin-form-grid">
                 <div class="form-group">
                   <label for="pickup-address">Endereço / Ponto de Retirada</label>
-                  <input type="text" id="pickup-address" class="form-control" placeholder="Rua, número, bairro ou 'Consulte no WhatsApp'">
+                  <input type="text" id="pickup-address" class="form-control"
+                    placeholder="Rua, número, bairro ou 'Consulte no WhatsApp'">
                 </div>
                 <div class="form-group">
                   <label for="pickup-estimate">Prazo para Retirada</label>
@@ -503,7 +547,8 @@
           </div>
 
           <div style="display:flex;justify-content:flex-end;">
-            <button type="button" class="btn btn-primary" id="btn-save-delivery" style="padding:12px 24px;font-size:0.95rem;">
+            <button type="button" class="btn btn-primary" id="btn-save-delivery"
+              style="padding:12px 24px;font-size:0.95rem;">
               <i data-lucide="save"></i>
               <span>Salvar Configurações de Frete</span>
             </button>
@@ -564,13 +609,17 @@
                 </div>
                 <div class="form-group">
                   <label for="pay-min-installment-val">Valor Mínimo da Parcela (R$)</label>
-                  <input type="number" id="pay-min-installment-val" class="form-control" placeholder="0 (Sem valor mínimo)" min="0" step="1" value="0">
-                  <small style="color:var(--text-muted);font-size:0.75rem;margin-top:4px;display:block;">Ex: Se colocar 30, compras abaixo de R$ 60 não parcelam em 2x.</small>
+                  <input type="number" id="pay-min-installment-val" class="form-control"
+                    placeholder="0 (Sem valor mínimo)" min="0" step="1" value="0">
+                  <small style="color:var(--text-muted);font-size:0.75rem;margin-top:4px;display:block;">Ex: Se colocar
+                    30, compras abaixo de R$ 60 não parcelam em 2x.</small>
                 </div>
               </div>
-              <div class="installments-preview-box" style="margin-top:14px;padding:12px 16px;background:var(--bg-body);border:1px solid var(--border);border-radius:var(--radius-md);display:flex;align-items:center;gap:10px;">
+              <div class="installments-preview-box"
+                style="margin-top:14px;padding:12px 16px;background:var(--bg-body);border:1px solid var(--border);border-radius:var(--radius-md);display:flex;align-items:center;gap:10px;">
                 <i data-lucide="info" style="color:var(--primary);width:18px;height:18px;flex-shrink:0;"></i>
-                <span id="installments-preview-text" style="font-size:0.85rem;color:var(--text-secondary);">Exibição nos produtos e carrinho: <strong>ou até 3x sem juros</strong></span>
+                <span id="installments-preview-text" style="font-size:0.85rem;color:var(--text-secondary);">Exibição nos
+                  produtos e carrinho: <strong>ou até 3x sem juros</strong></span>
               </div>
             </div>
           </div>
@@ -600,12 +649,13 @@
                 </div>
                 <div class="form-group">
                   <label for="pix-receiver">Nome do Titular</label>
-                  <input type="text" id="pix-receiver" class="form-control" placeholder="Fit Vibe Activewear">
+                  <input type="text" id="pix-receiver" class="form-control" placeholder="Donna Fitness PE">
                 </div>
               </div>
               <div class="form-group">
                 <label for="pix-instructions">Instruções para o Cliente</label>
-                <textarea id="pix-instructions" class="form-control" rows="2" placeholder="Ex: Faça o Pix e envie o comprovante pelo WhatsApp para envio imediato!"></textarea>
+                <textarea id="pix-instructions" class="form-control" rows="2"
+                  placeholder="Ex: Faça o Pix e envie o comprovante pelo WhatsApp para envio imediato!"></textarea>
               </div>
               <button type="button" class="btn btn-primary" id="btn-save-payments">
                 <i data-lucide="save"></i>
@@ -646,7 +696,8 @@
             <div class="admin-card-body">
               <div class="form-group">
                 <label for="closed-message">Mensagem exibida aos clientes fora do horário</label>
-                <textarea id="closed-message" class="form-control" rows="2" placeholder="Ex: Estamos fora do horário de atendimento. Deixe sua mensagem no WhatsApp que responderemos rapidinho!"></textarea>
+                <textarea id="closed-message" class="form-control" rows="2"
+                  placeholder="Ex: Estamos fora do horário de atendimento. Deixe sua mensagem no WhatsApp que responderemos rapidinho!"></textarea>
               </div>
               <button type="button" class="btn btn-primary" id="btn-save-schedule">
                 <i data-lucide="save"></i>
@@ -667,7 +718,7 @@
         </div>
 
         <div class="admin-page-body">
-          
+
           <!-- Identidade da Loja -->
           <div class="admin-card">
             <div class="admin-card-header">
@@ -680,11 +731,12 @@
               <div class="admin-form-grid">
                 <div class="form-group">
                   <label for="v-store-name">Nome da Loja</label>
-                  <input type="text" id="v-store-name" class="form-control" placeholder="Fit Vibe Activewear">
+                  <input type="text" id="v-store-name" class="form-control" placeholder="Donna Fitness PE">
                 </div>
                 <div class="form-group">
                   <label for="v-store-tagline">Slogan / Tagline</label>
-                  <input type="text" id="v-store-tagline" class="form-control" placeholder="Roupas Fitness de Alta Performance">
+                  <input type="text" id="v-store-tagline" class="form-control"
+                    placeholder="Moda Fitness Feminina & Alta Performance">
                 </div>
                 <div class="form-group">
                   <label for="v-theme-color">Cor Principal de Destaque</label>
@@ -706,7 +758,8 @@
               <div class="admin-form-grid">
                 <div class="form-group">
                   <label for="v-hero-title">Título Principal</label>
-                  <input type="text" id="v-hero-title" class="form-control" placeholder="Performance que acompanha seu ritmo.">
+                  <input type="text" id="v-hero-title" class="form-control"
+                    placeholder="Performance que acompanha seu ritmo.">
                 </div>
                 <div class="form-group">
                   <label for="v-hero-cta">Texto do Botão Principal</label>
@@ -715,12 +768,14 @@
               </div>
               <div class="form-group">
                 <label for="v-hero-subtitle">Subtítulo / Descrição</label>
-                <textarea id="v-hero-subtitle" class="form-control" rows="2" placeholder="Roupas fitness desenvolvidas para oferecer conforto, sustentação e liberdade em cada movimento."></textarea>
+                <textarea id="v-hero-subtitle" class="form-control" rows="2"
+                  placeholder="Roupas fitness desenvolvidas para oferecer conforto, sustentação e liberdade em cada movimento."></textarea>
               </div>
               <div class="form-group">
                 <label>Foto de Fundo do Hero (Fitness)</label>
                 <div style="display:flex;gap:8px;">
-                  <input type="text" id="v-hero-image" class="form-control" placeholder="URL da foto (ex: assets/images/hero_fitness.jpg)">
+                  <input type="text" id="v-hero-image" class="form-control"
+                    placeholder="URL da foto (ex: assets/images/hero_fitness.jpg)">
                   <label class="btn btn-secondary" style="cursor:pointer;white-space:nowrap;">
                     <i data-lucide="upload"></i>
                     <span>Enviar</span>
@@ -743,27 +798,36 @@
               <div class="admin-form-grid">
                 <div class="form-group">
                   <label for="v-benefit-1-title">Benefício 1 (Título)</label>
-                  <input type="text" id="v-benefit-1-title" class="form-control" placeholder="Frete grátis acima de R$199">
-                  <label for="v-benefit-1-desc" style="margin-top:6px;font-size:0.75rem;color:var(--text-muted);">Descrição</label>
-                  <input type="text" id="v-benefit-1-desc" class="form-control" placeholder="Entrega rápida e segura para todo o Brasil">
+                  <input type="text" id="v-benefit-1-title" class="form-control"
+                    placeholder="Frete grátis acima de R$199">
+                  <label for="v-benefit-1-desc"
+                    style="margin-top:6px;font-size:0.75rem;color:var(--text-muted);">Descrição</label>
+                  <input type="text" id="v-benefit-1-desc" class="form-control"
+                    placeholder="Entrega rápida e segura para todo o Brasil">
                 </div>
                 <div class="form-group">
                   <label for="v-benefit-2-title">Benefício 2 (Título)</label>
                   <input type="text" id="v-benefit-2-title" class="form-control" placeholder="Pagamento seguro">
-                  <label for="v-benefit-2-desc" style="margin-top:6px;font-size:0.75rem;color:var(--text-muted);">Descrição</label>
-                  <input type="text" id="v-benefit-2-desc" class="form-control" placeholder="Ambiente protegido com confirmação imediata">
+                  <label for="v-benefit-2-desc"
+                    style="margin-top:6px;font-size:0.75rem;color:var(--text-muted);">Descrição</label>
+                  <input type="text" id="v-benefit-2-desc" class="form-control"
+                    placeholder="Ambiente protegido com confirmação imediata">
                 </div>
                 <div class="form-group">
                   <label for="v-benefit-3-title">Benefício 3 (Título)</label>
                   <input type="text" id="v-benefit-3-title" class="form-control" placeholder="Troca facilitada">
-                  <label for="v-benefit-3-desc" style="margin-top:6px;font-size:0.75rem;color:var(--text-muted);">Descrição</label>
-                  <input type="text" id="v-benefit-3-desc" class="form-control" placeholder="Primeira troca sem custo e sem burocracia">
+                  <label for="v-benefit-3-desc"
+                    style="margin-top:6px;font-size:0.75rem;color:var(--text-muted);">Descrição</label>
+                  <input type="text" id="v-benefit-3-desc" class="form-control"
+                    placeholder="Primeira troca sem custo e sem burocracia">
                 </div>
                 <div class="form-group">
                   <label for="v-benefit-4-title">Benefício 4 (Título)</label>
                   <input type="text" id="v-benefit-4-title" class="form-control" placeholder="Envio rápido">
-                  <label for="v-benefit-4-desc" style="margin-top:6px;font-size:0.75rem;color:var(--text-muted);">Descrição</label>
-                  <input type="text" id="v-benefit-4-desc" class="form-control" placeholder="Despacho ágil com código de rastreamento">
+                  <label for="v-benefit-4-desc"
+                    style="margin-top:6px;font-size:0.75rem;color:var(--text-muted);">Descrição</label>
+                  <input type="text" id="v-benefit-4-desc" class="form-control"
+                    placeholder="Despacho ágil com código de rastreamento">
                 </div>
               </div>
             </div>
@@ -787,7 +851,8 @@
             <div class="admin-card-body">
               <div class="form-group">
                 <label for="v-ann-text">Texto do Anúncio</label>
-                <input type="text" id="v-ann-text" class="form-control" placeholder="FRETE GRÁTIS nas compras acima de R$ 199 • Até 3x sem juros • Zero Transparência">
+                <input type="text" id="v-ann-text" class="form-control"
+                  placeholder="FRETE GRÁTIS nas compras acima de R$ 199 • Até 3x sem juros • Zero Transparência">
               </div>
             </div>
           </div>
@@ -815,11 +880,13 @@
                 </div>
                 <div class="form-group">
                   <label for="v-featured-subtitle">Subtítulo / Chamada</label>
-                  <input type="text" id="v-featured-subtitle" class="form-control" placeholder="Lançamentos e peças exclusivas com tecnologia de alta compressão">
+                  <input type="text" id="v-featured-subtitle" class="form-control"
+                    placeholder="Lançamentos e peças exclusivas com tecnologia de alta compressão">
                 </div>
               </div>
               <p style="font-size:0.8rem;color:var(--text-muted);margin:0;">
-                Dica: Marque os produtos com "Destaque" na listagem ou no cadastro para exibi-los nesta seção na loja pública!
+                Dica: Marque os produtos com "Destaque" na listagem ou no cadastro para exibi-los nesta seção na loja
+                pública!
               </p>
             </div>
           </div>
@@ -844,7 +911,8 @@
                 </div>
                 <div class="form-group">
                   <label for="v-ig-profile">Link do Perfil</label>
-                  <input type="text" id="v-ig-profile" class="form-control" placeholder="https://instagram.com/fitvibe.activewear">
+                  <input type="text" id="v-ig-profile" class="form-control"
+                    placeholder="https://instagram.com/fitvibe.activewear">
                 </div>
                 <div class="form-group">
                   <label for="v-ig-title">Título da Seção</label>
@@ -852,20 +920,25 @@
                 </div>
                 <div class="form-group">
                   <label for="v-ig-subtitle">Subtítulo da Seção</label>
-                  <input type="text" id="v-ig-subtitle" class="form-control" placeholder="Confira nossos treinos, novidades diárias e bastidores exclusivos">
+                  <input type="text" id="v-ig-subtitle" class="form-control"
+                    placeholder="Confira nossos treinos, novidades diárias e bastidores exclusivos">
                 </div>
               </div>
 
               <div class="form-group">
                 <label for="v-ig-bio">Linha de Destaque / Bio</label>
-                <input type="text" id="v-ig-bio" class="form-control" placeholder="Activewear premium com modelagem anatômica e zero transparência">
+                <input type="text" id="v-ig-bio" class="form-control"
+                  placeholder="Activewear premium com modelagem anatômica e zero transparência">
               </div>
 
               <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+                <div
+                  style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
                   <div>
-                    <h4 style="margin:0;font-size:0.92rem;font-weight:700;color:var(--carbon);">Fotos Lifestyle do Feed</h4>
-                    <small style="color:var(--text-muted);font-size:0.78rem;">Fotos exibidas no carrossel/grid visual do Instagram no rodapé</small>
+                    <h4 style="margin:0;font-size:0.92rem;font-weight:700;color:var(--carbon);">Fotos Lifestyle do Feed
+                    </h4>
+                    <small style="color:var(--text-muted);font-size:0.78rem;">Fotos exibidas no carrossel/grid visual do
+                      Instagram no rodapé</small>
                   </div>
                   <button type="button" class="btn btn-secondary btn-sm" id="btn-add-ig-post">
                     <i data-lucide="plus"></i>
@@ -933,11 +1006,13 @@
               </h3>
             </div>
             <div class="admin-card-body">
-              <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:14px;">Estes tamanhos serão disponibilizados ao cadastrar novas cores e variantes nos produtos.</p>
+              <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:14px;">Estes tamanhos serão
+                disponibilizados ao cadastrar novas cores e variantes nos produtos.</p>
               <div class="size-tags" id="size-tags-container" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
-              
+
               <div style="display:flex;gap:10px;align-items:center;margin-top:18px;">
-                <input type="text" id="new-size-input" class="form-control" style="max-width:180px;" placeholder="Ex: XGG, 42, Único...">
+                <input type="text" id="new-size-input" class="form-control" style="max-width:180px;"
+                  placeholder="Ex: XGG, 42, Único...">
                 <button type="button" class="btn btn-primary" id="btn-add-size">
                   <i data-lucide="plus"></i>
                   <span>Adicionar</span>
@@ -947,9 +1022,12 @@
               <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);">
                 <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:10px;">Predefinições rápidas:</p>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                  <button type="button" class="btn btn-secondary btn-sm" onclick="AdminPanel.setPresetSizes(['PP','P','M','G','GG','XGG'])">PP ao XGG</button>
-                  <button type="button" class="btn btn-secondary btn-sm" onclick="AdminPanel.setPresetSizes(['XS','S','M','L','XL','XXL'])">XS ao XXL</button>
-                  <button type="button" class="btn btn-secondary btn-sm" onclick="AdminPanel.setPresetSizes(['P','M','G'])">P, M, G</button>
+                  <button type="button" class="btn btn-secondary btn-sm"
+                    onclick="AdminPanel.setPresetSizes(['PP','P','M','G','GG','XGG'])">PP ao XGG</button>
+                  <button type="button" class="btn btn-secondary btn-sm"
+                    onclick="AdminPanel.setPresetSizes(['XS','S','M','L','XL','XXL'])">XS ao XXL</button>
+                  <button type="button" class="btn btn-secondary btn-sm"
+                    onclick="AdminPanel.setPresetSizes(['P','M','G'])">P, M, G</button>
                 </div>
               </div>
 
@@ -982,10 +1060,12 @@
             </div>
             <div class="admin-card-body">
               <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:14px;line-height:1.5;">
-                O painel administrativo foi <strong>removido do rodapé da loja</strong> para proteger seu negócio contra acessos indevidos.
-                Qualquer pessoa que tentar acessar a página sem a chave secreta é <strong>automaticamente redirecionada para a loja</strong>.
+                O painel administrativo foi <strong>removido do rodapé da loja</strong> para proteger seu negócio contra
+                acessos indevidos.
+                Qualquer pessoa que tentar acessar a página sem a chave secreta é <strong>automaticamente redirecionada
+                  para a loja</strong>.
               </p>
-              
+
               <div class="admin-form-grid" style="margin-bottom:14px;">
                 <div class="form-group">
                   <label for="admin-access-key">Sua Chave Secreta de Acesso</label>
@@ -993,10 +1073,13 @@
                 </div>
                 <div class="form-group">
                   <label>Como Acessar o Painel</label>
-                  <div style="font-size:0.8rem;color:var(--text-secondary);background:var(--bg-main);padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);line-height:1.4;">
+                  <div
+                    style="font-size:0.8rem;color:var(--text-secondary);background:var(--bg-main);padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);line-height:1.4;">
                     <div>• <strong>Link Direto:</strong> Salve o link secreto nos favoritos do seu navegador.</div>
-                    <div style="margin-top:4px;">• <strong>Atalho no Teclado:</strong> Na loja, pressione <code>Ctrl + Shift + A</code>.</div>
-                    <div style="margin-top:4px;">• <strong>No Celular:</strong> Na loja, dê 5 toques rápidos no rodapé de direitos autorais.</div>
+                    <div style="margin-top:4px;">• <strong>Atalho no Teclado:</strong> Na loja, pressione
+                      <code>Ctrl + Shift + A</code>.</div>
+                    <div style="margin-top:4px;">• <strong>No Celular:</strong> Na loja, dê 5 toques rápidos no rodapé
+                      de direitos autorais.</div>
                   </div>
                 </div>
               </div>
@@ -1004,7 +1087,8 @@
               <div class="form-group" style="margin-bottom:18px;">
                 <label>Seu Link Secreto de Acesso Direto</label>
                 <div style="display:flex;gap:10px;align-items:center;">
-                  <input type="text" id="admin-secret-url-display" class="form-control" readonly style="background:var(--bg-main);font-family:monospace;font-size:0.82rem;">
+                  <input type="text" id="admin-secret-url-display" class="form-control" readonly
+                    style="background:var(--bg-main);font-family:monospace;font-size:0.82rem;">
                   <button type="button" class="btn btn-secondary" id="btn-copy-admin-url" style="white-space:nowrap;">
                     <i data-lucide="copy"></i>
                     <span>Copiar Link</span>
@@ -1069,12 +1153,14 @@
   </div>
 
   <!-- ===== PRODUCT FORM MODAL ===== -->
-  <div class="modal-overlay" id="product-form-modal" role="dialog" aria-modal="true" aria-labelledby="product-form-title">
+  <div class="modal-overlay" id="product-form-modal" role="dialog" aria-modal="true"
+    aria-labelledby="product-form-title">
     <div class="modal modal-product-edit">
       <div class="modal-header">
         <div>
           <h3 id="product-form-title">Novo Produto</h3>
-          <p class="modal-subtitle" style="font-size:0.8rem;color:var(--text-muted);margin:2px 0 0 0;">Detalhes, fotos, preço e variantes de cores e tamanhos</p>
+          <p class="modal-subtitle" style="font-size:0.8rem;color:var(--text-muted);margin:2px 0 0 0;">Detalhes, fotos,
+            preço e variantes de cores e tamanhos</p>
         </div>
         <button type="button" class="btn-close-modal" id="btn-close-product-form" aria-label="Fechar">
           <i data-lucide="x"></i>
@@ -1086,7 +1172,8 @@
           <div class="admin-form-grid">
             <div class="form-group">
               <label for="pf-name">Nome da Peça Fitness <span class="required">*</span></label>
-              <input type="text" id="pf-name" class="form-control" placeholder="Ex: Legging Sculpt Sem Costura Cós Alto" required>
+              <input type="text" id="pf-name" class="form-control" placeholder="Ex: Legging Sculpt Sem Costura Cós Alto"
+                required>
             </div>
             <div class="form-group">
               <label for="pf-category">Categoria <span class="required">*</span></label>
@@ -1098,13 +1185,15 @@
             </div>
             <div class="form-group">
               <label for="pf-badge">Selo / Destaque Visual</label>
-              <input type="text" id="pf-badge" class="form-control" placeholder="Ex: Zero Transparência, Alta Compressão">
+              <input type="text" id="pf-badge" class="form-control"
+                placeholder="Ex: Zero Transparência, Alta Compressão">
             </div>
           </div>
 
           <div class="form-group">
             <label for="pf-description">Descrição & Detalhes do Tecido</label>
-            <textarea id="pf-description" class="form-control" rows="3" placeholder="Ex: Poliamida com elastano, tecnologia dry-fit respirável, toque gelado, cós duplo que não enrola no treino..."></textarea>
+            <textarea id="pf-description" class="form-control" rows="3"
+              placeholder="Ex: Poliamida com elastano, tecnologia dry-fit respirável, toque gelado, cós duplo que não enrola no treino..."></textarea>
           </div>
 
           <!-- Image Upload -->
@@ -1187,8 +1276,10 @@
             <div class="form-group">
               <label for="pf-display-order">Posição na Vitrine</label>
               <div style="display:flex;align-items:center;gap:10px;">
-                <input type="number" id="pf-display-order" class="form-control" min="0" max="9999" value="0" style="width:90px;">
-                <span style="font-size:0.78rem;color:var(--text-muted);">0 = início &middot; maior número = ao fundo</span>
+                <input type="number" id="pf-display-order" class="form-control" min="0" max="9999" value="0"
+                  style="width:90px;">
+                <span style="font-size:0.78rem;color:var(--text-muted);">0 = início &middot; maior número = ao
+                  fundo</span>
               </div>
             </div>
           </div>
@@ -1206,7 +1297,8 @@
   </div>
 
   <!-- ===== NEIGHBORHOOD FORM MODAL ===== -->
-  <div class="modal-overlay" id="neighborhood-form-modal" role="dialog" aria-modal="true" aria-labelledby="neighborhood-form-title">
+  <div class="modal-overlay" id="neighborhood-form-modal" role="dialog" aria-modal="true"
+    aria-labelledby="neighborhood-form-title">
     <div class="modal" style="max-width:480px;">
       <div class="modal-header">
         <h3 id="neighborhood-form-title">Novo Bairro</h3>
@@ -1217,7 +1309,7 @@
       <div class="modal-body">
         <form id="neighborhood-form">
           <input type="hidden" id="nf-id">
-          
+
           <div class="form-group">
             <label for="nf-name">Nome do Bairro <span class="required">*</span></label>
             <input type="text" id="nf-name" class="form-control" placeholder="Ex: Águas Compridas" required>
@@ -1230,20 +1322,25 @@
             </div>
             <div class="form-group" style="margin-bottom:0;">
               <label for="nf-estimate">Prazo Estimado</label>
-              <input type="text" id="nf-estimate" class="form-control" placeholder="Ex: 30 a 50 min" value="30 a 50 min">
+              <input type="text" id="nf-estimate" class="form-control" placeholder="Ex: 30 a 50 min"
+                value="30 a 50 min">
             </div>
           </div>
 
           <div class="admin-form-grid" style="margin-bottom:16px;">
             <div class="form-group" style="margin-bottom:0;">
               <label for="nf-min-order">Pedido Mínimo (R$)</label>
-              <input type="number" id="nf-min-order" class="form-control" min="0" step="1" placeholder="0 para sem mínimo" value="0">
-              <small style="color:var(--text-muted);font-size:0.72rem;display:block;margin-top:3px;">0 = Sem mínimo</small>
+              <input type="number" id="nf-min-order" class="form-control" min="0" step="1"
+                placeholder="0 para sem mínimo" value="0">
+              <small style="color:var(--text-muted);font-size:0.72rem;display:block;margin-top:3px;">0 = Sem
+                mínimo</small>
             </div>
             <div class="form-group" style="margin-bottom:0;">
               <label for="nf-free-above">Frete Grátis Acima de (R$)</label>
-              <input type="number" id="nf-free-above" class="form-control" min="0" step="1" placeholder="0 = não configurado" value="0">
-              <small style="color:var(--text-muted);font-size:0.72rem;display:block;margin-top:3px;">0 = Não configurado</small>
+              <input type="number" id="nf-free-above" class="form-control" min="0" step="1"
+                placeholder="0 = não configurado" value="0">
+              <small style="color:var(--text-muted);font-size:0.72rem;display:block;margin-top:3px;">0 = Não
+                configurado</small>
             </div>
           </div>
 
@@ -1259,7 +1356,8 @@
 
           <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
             <button type="button" class="btn btn-secondary" id="btn-cancel-neighborhood">Cancelar</button>
-            <button type="submit" class="btn btn-primary" id="btn-save-neighborhood" style="background:#7c3aed;border-color:#7c3aed;">
+            <button type="submit" class="btn btn-primary" id="btn-save-neighborhood"
+              style="background:#7c3aed;border-color:#7c3aed;">
               <i data-lucide="save"></i>
               <span>Salvar Bairro</span>
             </button>
@@ -1301,7 +1399,8 @@
   </div>
 
   <!-- ===== ORDER DETAIL MODAL ===== -->
-  <div class="modal-overlay" id="order-detail-modal" role="dialog" aria-modal="true" aria-labelledby="order-detail-title">
+  <div class="modal-overlay" id="order-detail-modal" role="dialog" aria-modal="true"
+    aria-labelledby="order-detail-title">
     <div class="modal" style="max-width:640px;">
       <div class="modal-header">
         <h3 id="order-detail-title">Detalhes do Pedido</h3>
@@ -1346,4 +1445,5 @@
     });
   </script>
 </body>
+
 </html>

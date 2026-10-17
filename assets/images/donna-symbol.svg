@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none" width="36" height="36" aria-label="Donna Fitness PE">
+  <defs>
+    <linearGradient id="donnaGrad" x1="7.5" y1="8" x2="12" y2="28" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  <!-- Base Background Squircle -->
+  <rect width="36" height="36" rx="9" fill="#0F172A"/>
+  
+  <!-- Left Vertical Stem (Emerald) -->
+  <path d="M 8.5 9 C 8.5 8.4477 8.9477 8 9.5 8 H 11.5 C 12.0523 8 12.5 8.4477 12.5 9 V 27 C 12.5 27.5523 12.0523 28 11.5 28 H 9.5 C 8.9477 28 8.5 27.5523 8.5 27 Z" fill="url(#donnaGrad)"/>
+  
+  <!-- Geometric Dynamic "D" Arc (Pure White) -->
+  <path d="M 14.5 8 H 20 C 25.5228 8 30 12.4772 30 18 C 30 23.5228 25.5228 28 20 28 H 14.5 V 23.8 H 19.8 C 23.0033 23.8 25.6 21.2033 25.6 18 C 25.6 14.7967 23.0033 12.2 19.8 12.2 H 14.5 V 8 Z" fill="#FFFFFF"/>
+</svg>

@@ -99,8 +99,14 @@
     const settings = DataStore.getSettings();
 
     // Apply branding to sidebar
-    if ($('admin-brand-icon') && !$('admin-brand-icon').querySelector('svg')) $('admin-brand-icon').textContent = settings.storeName?.charAt(0) || 'F';
-    if ($('admin-brand-title')) $('admin-brand-title').textContent = settings.storeName || 'Fit Vibe Activewear';
+    if ($('admin-brand-icon') && !$('admin-brand-icon').querySelector('svg')) $('admin-brand-icon').textContent = settings.storeName?.charAt(0) || 'D';
+    if ($('admin-brand-title')) {
+      if (!settings.storeName || settings.storeName === 'Donna Fitness PE' || settings.storeName === 'Fit Vibe Activewear') {
+        $('admin-brand-title').textContent = 'DONNA';
+      } else {
+        $('admin-brand-title').textContent = settings.storeName;
+      }
+    }
 
     // Mobile sidebar toggle & backdrop
     const mobileToggle = $('admin-mobile-toggle');

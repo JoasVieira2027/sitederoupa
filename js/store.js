@@ -1,5 +1,5 @@
 /**
- * store.js - Fit Vibe Activewear
+ * store.js - Donna Fitness PE
  * E-commerce moderno de alta performance para moda fitness feminina.
  * Sem emojis, com Lucide Icons / SVG, navegação por categorias, compra por cor,
  * monte seu look, carrinho lateral e checkout via WhatsApp.
@@ -266,12 +266,24 @@
   function applyBranding() {
     if (!settings) return;
 
-    const brandTitle = `${settings.storeName || 'Fit Vibe Activewear'} | ${settings.storeTagline || 'Roupas Fitness de Alta Performance'}`;
+    const brandTitle = `${settings.storeName || 'Donna Fitness PE'} | ${settings.storeTagline || 'Moda Fitness Feminina & Alta Performance'}`;
     document.title = brandTitle;
     if (siteTitle) siteTitle.textContent = brandTitle;
 
-    if (navbarBrandName) navbarBrandName.textContent = settings.storeName ? settings.storeName.toUpperCase() : 'FIT VIBE';
-    if (navbarBrandTagline) navbarBrandTagline.textContent = settings.storeTagline ? settings.storeTagline.toUpperCase() : 'ACTIVEWEAR';
+    if (navbarBrandName) {
+      if (!settings.storeName || settings.storeName === 'Donna Fitness PE' || settings.storeName === 'Fit Vibe Activewear') {
+        navbarBrandName.textContent = 'DONNA';
+      } else {
+        navbarBrandName.textContent = settings.storeName.toUpperCase();
+      }
+    }
+    if (navbarBrandTagline) {
+      if (!settings.storeTagline || settings.storeName === 'Donna Fitness PE' || settings.storeName === 'Fit Vibe Activewear') {
+        navbarBrandTagline.textContent = 'FITNESS PE';
+      } else {
+        navbarBrandTagline.textContent = settings.storeTagline.toUpperCase();
+      }
+    }
 
     // Theme color override
     if (settings.themeColor) {
@@ -311,7 +323,7 @@
     }
 
     // WhatsApp links
-    const wa = settings.whatsappNumber ? `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent('Olá! Gostaria de tirar dúvidas sobre as peças da Fit Vibe.')}` : '#';
+    const wa = settings.whatsappNumber ? `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent('Olá! Gostaria de tirar dúvidas sobre as peças da Donna Fitness PE.')}` : '#';
     if (heroWhatsappBtn) heroWhatsappBtn.href = wa;
     if (navbarWhatsappBtn) navbarWhatsappBtn.href = wa;
     if (drawerWhatsappBtn) drawerWhatsappBtn.href = wa;
@@ -370,7 +382,7 @@
     const copyrightEl = $('footer-copyright');
     if (copyrightEl) {
       const year = new Date().getFullYear();
-      copyrightEl.textContent = `© ${year} ${settings.storeName || 'Fit Vibe Activewear'}. Todos os direitos reservados.`;
+      copyrightEl.textContent = `© ${year} ${settings.storeName || 'Donna Fitness PE'}. Todos os direitos reservados.`;
     }
 
     // Phone / Contact
@@ -611,7 +623,7 @@
     try {
       const el = $('schema-structured-data');
       if (!el || !Array.isArray(products) || !products.length) return;
-      const storeName = (settings && settings.storeName) || 'Fit Vibe Activewear';
+      const storeName = (settings && settings.storeName) || 'Donna Fitness PE';
       const items = products.slice(0, 30).map((p, idx) => ({
         "@type": "ListItem",
         "position": idx + 1,
@@ -1481,8 +1493,8 @@
       instagramGrid.innerHTML = posts.map(post => {
         const href = post.postUrl || profileUrl;
         return `
-          <a href="${Utils.sanitize(href)}" target="_blank" rel="noopener noreferrer" class="instagram-post-card" title="${Utils.sanitize(post.caption || 'Fit Vibe Activewear')}">
-            <img src="${Utils.sanitize(post.image)}" alt="${Utils.sanitize(post.caption || 'Foto Fit Vibe')}" loading="lazy">
+          <a href="${Utils.sanitize(href)}" target="_blank" rel="noopener noreferrer" class="instagram-post-card" title="${Utils.sanitize(post.caption || 'Donna Fitness PE')}">
+            <img src="${Utils.sanitize(post.image)}" alt="${Utils.sanitize(post.caption || 'Foto Donna Fitness PE')}" loading="lazy">
             <div class="instagram-post-overlay">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="ig-card-icon">
                 <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
@@ -1501,9 +1513,9 @@
     if (footerTagline) footerTagline.textContent = settings.storeTagline || 'Roupas fitness femininas de alta performance.';
     if (footerAddress) footerAddress.textContent = settings.address || 'São Paulo - SP';
     if (footerPhone) footerPhone.textContent = settings.contactPhone || '(11) 99999-9999';
-    if (footerCopyright) footerCopyright.textContent = settings.footerCopyright || '© 2026 Fit Vibe Activewear. Todos os direitos reservados.';
+    if (footerCopyright) footerCopyright.textContent = settings.footerCopyright || '© 2026 Donna Fitness PE. Todos os direitos reservados.';
 
-    const wa = `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent('Olá! Gostaria de falar com o atendimento da Fit Vibe.')}`;
+    const wa = `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent('Olá! Gostaria de falar com o atendimento da Donna Fitness PE.')}`;
     if (footerWhatsapp) footerWhatsapp.href = wa;
 
     if (settings.instagram && footerInstagram) {

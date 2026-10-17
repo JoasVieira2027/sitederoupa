@@ -103,8 +103,8 @@ const DEFAULT_CATEGORIES = [
 
 // ===== DEFAULT SETTINGS (FITNESS) =====
 const DEFAULT_SETTINGS = {
-  storeName: 'Fit Vibe Activewear',
-  storeTagline: 'Roupas Fitness de Alta Performance',
+  storeName: 'Donna Fitness PE',
+  storeTagline: 'Moda Fitness Feminina & Alta Performance',
   storeLogoEmoji: '',
   storeLogoImage: '',
   themeColor: '#059669',
@@ -131,7 +131,7 @@ const DEFAULT_SETTINGS = {
     active: true,
     title: 'Tecnologia, Conforto & Performance',
     subtitle: 'Criado para mover o seu melhor',
-    text: 'A Fit Vibe desenvolve peças esportivas com tecidos nobres e tecnologia têxtil de ponta. Modelagens exclusivas que valorizam a silhueta, oferecem sustentação máxima e acompanham cada movimento do seu dia com total segurança.',
+    text: 'A Donna Fitness PE desenvolve peças esportivas com tecidos nobres e tecnologia têxtil de ponta. Modelagens exclusivas que valorizam a silhueta, oferecem sustentação máxima e acompanham cada movimento do seu dia com total segurança.',
     features: [
       { icon: 'shield-check', title: 'Zero Transparência', desc: 'Gramatura reforçada para agachamentos com total segurança' },
       { icon: 'wind', title: 'Tecnologia Dry-Fit', desc: 'Respirabilidade máxima que evapora o suor rapidamente' },
@@ -214,7 +214,7 @@ const DEFAULT_SETTINGS = {
   contactPhone: '(11) 99999-9999',
   instagram: '@fitvibe.activewear',
   address: 'Rua do Fitness, 120 - São Paulo, SP',
-  footerCopyright: '© 2026 Fit Vibe Activewear. Todos os direitos reservados.',
+  footerCopyright: '© 2026 Donna Fitness PE. Todos os direitos reservados.',
   paymentMethods: [
     { id: 'pix', name: 'Pix (Aprovação Imediata)', icon: 'qr-code', active: true },
     { id: 'credito', name: 'Cartão de Crédito', icon: 'credit-card', active: true },
@@ -227,7 +227,7 @@ const DEFAULT_SETTINGS = {
     minInstallmentValue: 0,
     interestFree: true
   },
-  pixDetails: { key: '', keyType: 'Celular', receiverName: 'Fit Vibe Moda Fitness', instructions: 'Faça o Pix e envie o comprovante pelo WhatsApp para envio imediato!' },
+  pixDetails: { key: '', keyType: 'Celular', receiverName: 'Donna Fitness PE', instructions: 'Faça o Pix e envie o comprovante pelo WhatsApp para envio imediato!' },
   storeOpen: true,
   closedCustomMessage: 'Estamos fora do horário de atendimento. Deixe sua mensagem no WhatsApp que responderemos rapidinho!',
   operatingHours: {

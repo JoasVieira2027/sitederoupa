@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" width="32" height="32">
+  <defs>
+    <linearGradient id="favDonnaGrad" x1="7" y1="7" x2="11" y2="25" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7.5" fill="#0F172A"/>
+  <!-- Stem -->
+  <path d="M 7.5 7.5 C 7.5 7.22386 7.72386 7 8 7 H 10 C 10.2761 7 10.5 7.22386 10.5 7.5 V 24.5 C 10.5 24.7761 10.2761 25 10 25 H 8 C 7.72386 25 7.5 24.7761 7.5 24.5 Z" fill="url(#favDonnaGrad)"/>
+  <!-- Arc -->
+  <path d="M 12.5 7 H 17.5 C 22.4706 7 26.5 11.0294 26.5 16 C 26.5 20.9706 22.4706 25 17.5 25 H 12.5 V 21.2 H 17.2 C 20.0719 21.2 22.4 18.8719 22.4 16 C 22.4 13.1281 20.0719 10.8 17.2 10.8 H 12.5 V 7 Z" fill="#FFFFFF"/>
+</svg>

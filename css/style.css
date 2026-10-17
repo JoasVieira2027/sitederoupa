@@ -1,5 +1,5 @@
 /* ============================================================
-   FIT VIBE ACTIVEWEAR - MAIN STYLESHEET
+   DONNA FITNESS PE - MAIN STYLESHEET
    Design: Roupas Fitness Femininas | Alta Performance & Estilo
    Paleta: Preto Carbono, Grafite, Branco, Cinza Claro e Verde Esmeralda
    Zero Emojis | Lucide Icons & SVG | 100% Responsivo
@@ -15,7 +15,7 @@
 }
 
 :root {
-  /* Brand Accent: Esmeralda Fit Vibe */
+  /* Brand Accent: Esmeralda Donna Fitness */
   --primary: #059669;
   --primary-light: #10B981;
   --primary-dark: #064E3B;
@@ -380,11 +380,11 @@ img, picture, video, canvas, svg {
 
 .brand-name {
   font-family: var(--font-display);
-  font-size: 1.18rem;
+  font-size: 1.25rem;
   font-weight: 800;
-  letter-spacing: 0.5px;
+  letter-spacing: 2px;
   color: var(--carbon);
-  line-height: 1.1;
+  line-height: 1.05;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -393,14 +393,21 @@ img, picture, video, canvas, svg {
 .brand-tagline {
   font-family: var(--font-body);
   font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 1.2px;
+  font-weight: 700;
+  letter-spacing: 2.2px;
   color: var(--primary);
   text-transform: uppercase;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+}
+
+.logo-img {
+  max-height: 36px;
+  width: auto;
+  object-fit: contain;
+  display: block;
 }
 
 /* Desktop Navigation */
