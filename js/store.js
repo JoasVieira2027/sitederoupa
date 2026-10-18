@@ -172,6 +172,11 @@
   let deliveryType = 'delivery'; // 'delivery' | 'pickup'
   let selectedPayment = null;
   let selectedNeighborhoodId = null;
+  let currentCustomer = null;
+  let currentProfile = null;
+  let heroSliderInterval = null;
+  let currentHeroSlideIndex = 0;
+  let isStoreFollowed = false;
 
   // Icon mapping for clean Lucide icons per category
   const CATEGORY_ICON_MAP = {
@@ -201,17 +206,24 @@
     applyStoreStatus();
     renderAnnouncementBar();
     renderBenefitsBar();
+    renderHeroBanners();
     renderCategories();
+    renderVisualCategories();
     renderFeaturedCollection();
     renderProducts();
     renderAbout();
     renderInstagramFeed();
     renderFooter();
     bindEvents();
+    initMobileBottomNav();
+    initInstantSearch();
     initHeroParallax();
     loadCart();
     updateCartUI();
     refreshIcons();
+
+    // Iniciar sessão de autenticação do cliente (Supabase Auth)
+    initCustomerAuth();
 
     // 2. Sincronização em Segundo Plano (Supabase / Servidor)
     try {
@@ -221,7 +233,9 @@
       applyStoreStatus();
       renderAnnouncementBar();
       renderBenefitsBar();
+      renderHeroBanners();
       renderCategories();
+      renderVisualCategories();
       renderFeaturedCollection();
       renderProducts();
       renderAbout();
@@ -240,6 +254,7 @@
       applyStoreStatus();
       renderAnnouncementBar();
       renderBenefitsBar();
+      renderHeroBanners();
       renderFeaturedCollection();
       renderAbout();
       renderInstagramFeed();
@@ -251,6 +266,7 @@
 
     document.addEventListener('categories-updated', () => {
       renderCategories();
+      renderVisualCategories();
       refreshIcons();
     });
 
@@ -258,6 +274,7 @@
       renderFeaturedCollection();
       renderProducts();
       renderCategories();
+      renderVisualCategories();
       refreshIcons();
     });
   }
@@ -831,7 +848,7 @@
   }
 
   // ===== PRODUCT CARD TEMPLATE (SEM EMOJIS) =====
-  function renderProductCard(p, index) {
+  function renderProductCard(p, index, isRanking = false) {
     const finalPrice = Utils.calcDiscountedPrice(p.price, p.promotion);
     const hasPromo = p.promotion && p.promotion.active && p.promotion.discountPercent > 0;
     const totalStock = DataStore.getProductTotalStock(p.id);
@@ -851,6 +868,11 @@
     let badgeHtml = '';
     if (isOut) {
       badgeHtml = `<span class="product-badge badge-esgotado">Esgotado</span>`;
+    } else if (isRanking && index < 3) {
+      badgeHtml = `<span class="ranking-badge">★ TOP ${index + 1}</span>`;
+      if (hasPromo) {
+        badgeHtml += `<span class="product-badge badge-promo" style="left:auto;right:10px;">-${p.promotion.discountPercent}%</span>`;
+      }
     } else if (hasPromo) {
       badgeHtml = `<span class="product-badge badge-promo">-${p.promotion.discountPercent}% OFF</span>`;
     } else if (p.badge) {
@@ -954,7 +976,7 @@
     if (featuredTitle && fc.title) featuredTitle.textContent = fc.title;
     if (featuredSubtitle && fc.subtitle) featuredSubtitle.textContent = fc.subtitle;
 
-    featuredGrid.innerHTML = featuredProducts.map((p, i) => renderProductCard(p, i)).join('');
+    featuredGrid.innerHTML = featuredProducts.map((p, i) => renderProductCard(p, i, true)).join('');
     refreshIcons();
 
     // Bind card clicks in featured grid
@@ -1632,6 +1654,16 @@
       }
     }
 
+    const mobileNavCartBadge = $('bottom-cart-badge') || $('mobile-nav-cart-badge');
+    if (mobileNavCartBadge) {
+      if (count > 0) {
+        mobileNavCartBadge.textContent = count;
+        mobileNavCartBadge.style.display = 'flex';
+      } else {
+        mobileNavCartBadge.style.display = 'none';
+      }
+    }
+
     if (cartTotalEl) cartTotalEl.textContent = Utils.formatCurrency(total);
     if (cartFooter) cartFooter.style.display = count > 0 ? 'block' : 'none';
     if (cartEmpty) cartEmpty.style.display = count === 0 ? 'flex' : 'none';
@@ -1801,6 +1833,30 @@
     closeCart();
     if (checkoutModal) checkoutModal.classList.add('active');
     document.body.style.overflow = 'hidden';
+
+    // Auto-preenchimento seguro de dados se o cliente estiver logado
+    if (currentCustomer) {
+      const cName = $('customer-name');
+      const cPhone = $('customer-phone');
+      const cAddress = $('customer-address');
+      const cNeighborhood = $('customer-neighborhood');
+
+      const profileName = currentProfile?.name || currentCustomer.user_metadata?.full_name || currentCustomer.user_metadata?.name || '';
+      const profilePhone = currentProfile?.phone || '';
+      const profileAddress = currentProfile?.address || '';
+      const profileNeighborhood = currentProfile?.neighborhood || '';
+
+      if (cName && !cName.value && profileName) cName.value = profileName;
+      if (cPhone && !cPhone.value && profilePhone) cPhone.value = profilePhone;
+      if (cAddress && !cAddress.value && profileAddress) cAddress.value = profileAddress;
+
+      if (profileNeighborhood) {
+        const s = DataStore.getSettings();
+        const activeNeighs = (s.delivery?.neighborhoods || []).filter(n => n.active !== false);
+        const match = activeNeighs.find(n => n.name.toLowerCase() === profileNeighborhood.toLowerCase());
+        if (match) selectedNeighborhoodId = match.id;
+      }
+    }
 
     renderDeliveryTabs();
     populateNeighborhoodSelect();
@@ -2332,7 +2388,20 @@
 
     const s = DataStore.getSettings();
     const d = s.delivery || {};
-    const subtotal = getCartTotal();
+
+    // Integridade de Preço: Não confiar no frontend. O catálogo é a autoridade de preço.
+    let verifiedSubtotal = 0;
+    for (const item of cart) {
+      const liveProd = DataStore.getProductById(item.id);
+      if (!liveProd) {
+        Utils.showToast(`O produto "${item.name}" não está mais disponível no catálogo!`, 'error');
+        return;
+      }
+      const verifiedUnitPrice = Utils.calcDiscountedPrice(liveProd.price, liveProd.promotion);
+      item.price = verifiedUnitPrice; // Assegura o preço oficial
+      verifiedSubtotal += verifiedUnitPrice * item.qty;
+    }
+    const subtotal = verifiedSubtotal;
 
     let finalAddress = rawAddress;
     let neighborhoodName = '';
@@ -2408,11 +2477,12 @@
       }
     }
 
-    // Save order
+    // Save order com associação segura do usuário autenticado (se logado)
     try {
       await DataStore.saveOrder({
         id: `ord_${orderNumber}_${Date.now()}`,
         orderNumber,
+        userId: currentCustomer ? currentCustomer.id : null,
         customer: { name, phone, address: finalAddress, neighborhood: neighborhoodName, obs, installment: installmentText },
         deliveryType,
         deliveryFee: fee,
@@ -2778,6 +2848,78 @@
       }
     }
 
+    // Customer Auth & Account triggers
+    const btnCustAccount = $('btn-customer-account');
+    if (btnCustAccount) {
+      btnCustAccount.addEventListener('click', () => {
+        if (currentCustomer) openCustomerAccountModal();
+        else openCustomerAuthModal('login');
+      });
+    }
+
+    const btnCloseAuth = $('btn-close-auth-modal');
+    if (btnCloseAuth) btnCloseAuth.addEventListener('click', closeCustomerAuthModal);
+    const authModal = $('customer-auth-modal');
+    if (authModal) {
+      authModal.addEventListener('click', e => {
+        if (e.target === authModal) closeCustomerAuthModal();
+      });
+    }
+
+    const btnCloseAccount = $('btn-close-account-modal');
+    if (btnCloseAccount) btnCloseAccount.addEventListener('click', closeCustomerAccountModal);
+    const accountModal = $('customer-account-modal');
+    if (accountModal) {
+      accountModal.addEventListener('click', e => {
+        if (e.target === accountModal) closeCustomerAccountModal();
+      });
+    }
+
+    const btnCloseOrderDet = $('btn-close-order-details');
+    if (btnCloseOrderDet) btnCloseOrderDet.addEventListener('click', closeOrderDetailsModal);
+    const btnCloseOrderDetFooter = $('btn-close-order-details-footer');
+    if (btnCloseOrderDetFooter) btnCloseOrderDetFooter.addEventListener('click', closeOrderDetailsModal);
+    const orderDetModal = $('order-details-modal');
+    if (orderDetModal) {
+      orderDetModal.addEventListener('click', e => {
+        if (e.target === orderDetModal) closeOrderDetailsModal();
+      });
+    }
+
+    const btnCloseAbout = $('btn-close-about-modal');
+    if (btnCloseAbout) btnCloseAbout.addEventListener('click', closeStoreAboutModal);
+    const btnCloseAboutFooter = $('btn-close-about-footer');
+    if (btnCloseAboutFooter) btnCloseAboutFooter.addEventListener('click', closeStoreAboutModal);
+    const aboutModal = $('store-about-modal');
+    if (aboutModal) {
+      aboutModal.addEventListener('click', e => {
+        if (e.target === aboutModal) closeStoreAboutModal();
+      });
+    }
+
+    const btnCloseSearch = $('btn-close-search-modal');
+    if (btnCloseSearch) btnCloseSearch.addEventListener('click', closeSearchModal);
+    const searchModal = $('instant-search-modal');
+    if (searchModal) {
+      searchModal.addEventListener('click', e => {
+        if (e.target === searchModal) closeSearchModal();
+      });
+    }
+
+    const btnOpenSearch = $('btn-open-search-modal');
+    if (btnOpenSearch) btnOpenSearch.addEventListener('click', openSearchModal);
+
+    // ESC key closes customer modals
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        closeCustomerAuthModal();
+        closeCustomerAccountModal();
+        closeOrderDetailsModal();
+        closeStoreAboutModal();
+        closeSearchModal();
+      }
+    });
+
     // Secret Admin Triggers (apenas para o lojista)
     bindSecretAdminAccess();
   }
@@ -2820,11 +2962,902 @@
     }
   }
 
+  // ===== 1. HERO SLIDER (BANNERS ADMINISTRÁVEIS) =====
+  function renderHeroBanners() {
+    const container = $('hero-banners-container');
+    const dotsContainer = $('hero-slider-dots');
+    if (!container) return;
+
+    const s = DataStore.getSettings();
+    let banners = (s.banners || []).filter(b => b && b.active !== false);
+
+    // Fallback gracioso se nenhum banner estiver cadastrado ainda
+    if (!banners.length) {
+      const heroBgImg = (s.hero && s.hero.image) || 'assets/images/hero_fitness.jpg';
+      const heroT = (s.hero && s.hero.title) || 'MODA FITNESS CHIC';
+      const heroSub = (s.hero && s.hero.subtitle) || 'Leve, confortável e cheia de estilo. Modelagem anatômica e zero transparência para todos os seus momentos.';
+      const heroC = (s.hero && s.hero.ctaText) || 'Ver Coleção';
+      banners = [{
+        id: 'default_banner_1',
+        title: heroT,
+        subtitle: heroSub,
+        ctaText: heroC,
+        ctaLink: '#products',
+        imageDesktop: heroBgImg,
+        imageMobile: heroBgImg
+      }];
+    }
+
+    container.innerHTML = banners.map((b, idx) => {
+      const isMobile = window.innerWidth <= 640;
+      const bgImg = (isMobile && b.imageMobile) ? b.imageMobile : (b.imageDesktop || 'assets/images/hero_fitness.jpg');
+      const ctaLink = b.ctaLink || '#products';
+      const ctaText = b.ctaText || 'Ver Coleção';
+      const badge = b.badge || 'Coleção 2026';
+
+      return `
+        <div class="hero-slide ${idx === 0 ? 'active' : ''}" data-index="${idx}" style="background-image: url('${Utils.sanitize(bgImg)}');">
+          <div class="hero-slide-bg" style="background-image: url('${Utils.sanitize(bgImg)}');"></div>
+          <div class="hero-slide-overlay"></div>
+          <div class="hero-slide-content container">
+            <span class="hero-badge-pill"><i data-lucide="sparkles"></i> ${Utils.sanitize(badge)}</span>
+            <h1 class="hero-slide-title">${Utils.sanitize(b.title || 'MODA FITNESS')}</h1>
+            <p class="hero-slide-subtitle">${Utils.sanitize(b.subtitle || '')}</p>
+            <a href="${Utils.sanitize(ctaLink)}" class="hero-slide-btn" onclick="if('${ctaLink}'==='#products') window.StoreApp?.selectCategory('all');">
+              <span>${Utils.sanitize(ctaText)}</span>
+              <i data-lucide="arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    if (dotsContainer) {
+      if (banners.length > 1) {
+        dotsContainer.innerHTML = banners.map((_, idx) => `
+          <button type="button" class="hero-slider-dot ${idx === 0 ? 'active' : ''}" data-index="${idx}" aria-label="Ir para banner ${idx + 1}"></button>
+        `).join('');
+        dotsContainer.querySelectorAll('.hero-slider-dot').forEach(dot => {
+          dot.addEventListener('click', () => {
+            goToHeroSlide(parseInt(dot.dataset.index, 10));
+          });
+        });
+      } else {
+        dotsContainer.innerHTML = '';
+      }
+    }
+
+    currentHeroSlideIndex = 0;
+    initHeroSliderControls(banners.length);
+    refreshIcons();
+  }
+
+  function initHeroSliderControls(totalSlides) {
+    if (heroSliderInterval) clearInterval(heroSliderInterval);
+    if (totalSlides <= 1) return;
+
+    heroSliderInterval = setInterval(() => {
+      goToHeroSlide((currentHeroSlideIndex + 1) % totalSlides);
+    }, 5500);
+
+    const sliderSec = $('hero-slider');
+    if (sliderSec) {
+      sliderSec.addEventListener('mouseenter', () => {
+        if (heroSliderInterval) clearInterval(heroSliderInterval);
+      });
+      sliderSec.addEventListener('mouseleave', () => {
+        if (heroSliderInterval) clearInterval(heroSliderInterval);
+        heroSliderInterval = setInterval(() => {
+          goToHeroSlide((currentHeroSlideIndex + 1) % totalSlides);
+        }, 5500);
+      });
+    }
+
+    const btnPrev = $('btn-hero-prev');
+    const btnNext = $('btn-hero-next');
+    if (btnPrev) {
+      btnPrev.onclick = () => {
+        goToHeroSlide((currentHeroSlideIndex - 1 + totalSlides) % totalSlides);
+      };
+    }
+    if (btnNext) {
+      btnNext.onclick = () => {
+        goToHeroSlide((currentHeroSlideIndex + 1) % totalSlides);
+      };
+    }
+  }
+
+  function goToHeroSlide(index) {
+    const container = $('hero-banners-container');
+    const dotsContainer = $('hero-slider-dots');
+    if (!container) return;
+
+    const slides = container.querySelectorAll('.hero-slide');
+    if (!slides.length) return;
+
+    currentHeroSlideIndex = index;
+    slides.forEach((sl, idx) => {
+      if (idx === index) sl.classList.add('active');
+      else sl.classList.remove('active');
+    });
+
+    if (dotsContainer) {
+      dotsContainer.querySelectorAll('.hero-slider-dot').forEach((d, idx) => {
+        if (idx === index) d.classList.add('active');
+        else d.classList.remove('active');
+      });
+    }
+  }
+
+  // ===== 2. SEÇÃO VISUAL DE CATEGORIAS (HORIZONTAL SCROLLING) =====
+  function renderVisualCategories() {
+    const track = $('chic-categories-track');
+    if (!track) return;
+
+    const categories = DataStore.getCategories();
+    const allProducts = DataStore.getProducts({ includeInactive: false });
+
+    // Fallback category images
+    const defaultImages = {
+      'todos': 'assets/images/hero_fitness.jpg',
+      'vestido': 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=500&auto=format&fit=crop&q=80',
+      'conjunto': 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=500&auto=format&fit=crop&q=80',
+      'legging': 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=500&auto=format&fit=crop&q=80',
+      'top': 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=500&auto=format&fit=crop&q=80',
+      'short': 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=500&auto=format&fit=crop&q=80',
+      'macacao': 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=500&auto=format&fit=crop&q=80'
+    };
+
+    const isAllActive = currentCategory === 'all' || !currentCategory;
+
+    let html = `
+      <div class="chic-cat-card ${isAllActive ? 'active' : ''}" data-cat="all">
+        <img src="${defaultImages['todos']}" alt="Todas as Peças" loading="lazy">
+        <div class="chic-cat-overlay"></div>
+        <div class="chic-cat-info">
+          <span class="chic-cat-name">Todos</span>
+          <span class="chic-cat-count">Tudo da loja</span>
+        </div>
+      </div>
+    `;
+
+    categories.forEach(cat => {
+      const catNorm = Utils.normalizeCategory(cat.name);
+      const isSel = Utils.normalizeCategory(currentCategory) === catNorm;
+
+      const count = allProducts.filter(p => {
+        if (!p.category) return false;
+        const pNorm = Utils.normalizeCategory(p.category);
+        return pNorm === catNorm || pNorm.includes(catNorm) || catNorm.includes(pNorm);
+      }).length;
+
+      let catImg = cat.image || '';
+      if (!catImg) {
+        for (const key of Object.keys(defaultImages)) {
+          if (catNorm.includes(key)) {
+            catImg = defaultImages[key];
+            break;
+          }
+        }
+      }
+      if (!catImg) catImg = 'assets/images/hero_fitness.jpg';
+
+      const displayName = Utils.decodeHtml(cat.name);
+
+      html += `
+        <div class="chic-cat-card ${isSel ? 'active' : ''}" data-cat="${Utils.sanitize(cat.name)}">
+          <img src="${Utils.sanitize(catImg)}" alt="${Utils.sanitize(displayName)}" loading="lazy">
+          <div class="chic-cat-overlay"></div>
+          <div class="chic-cat-info">
+            <span class="chic-cat-name">${Utils.sanitize(displayName)}</span>
+            <span class="chic-cat-count">${count} ${count === 1 ? 'peça' : 'peças'}</span>
+          </div>
+        </div>
+      `;
+    });
+
+    track.innerHTML = html;
+
+    track.querySelectorAll('.chic-cat-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const cat = card.dataset.cat || 'all';
+        selectCategory(cat);
+        track.querySelectorAll('.chic-cat-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+      });
+    });
+  }
+
+  // ===== 3. BOUTIQUE SOCIAL PROOF ACTIONS =====
+  function toggleFollowStore() {
+    isStoreFollowed = !isStoreFollowed;
+    const btnLabel = $('btn-follow-label');
+    const followersEl = $('boutique-followers-val');
+
+    if (isStoreFollowed) {
+      if (btnLabel) btnLabel.textContent = '✓ Seguindo loja';
+      if (followersEl) followersEl.textContent = '4.9k';
+      Utils.showToast('Agora você está seguindo a Donna Fitness PE!', 'success');
+    } else {
+      if (btnLabel) btnLabel.textContent = '+ Seguir loja';
+      if (followersEl) followersEl.textContent = '4.8k';
+      Utils.showToast('Você deixou de seguir a loja.', 'info');
+    }
+  }
+
+  function doCheckin() {
+    Utils.showToast('Check-in realizado! Aproveite nossos fretes promocionais na sacola.', 'success');
+  }
+
+  function openStoreAboutModal() {
+    const modal = $('store-about-modal');
+    if (modal) {
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      const s = DataStore.getSettings();
+      const waBtn = $('modal-about-wa-btn');
+      if (waBtn && s.whatsappNumber) {
+        waBtn.href = `https://wa.me/${s.whatsappNumber}?text=${encodeURIComponent('Olá! Gostaria de mais informações sobre a Donna Fitness PE.')}`;
+      }
+      refreshIcons();
+    }
+  }
+
+  function closeStoreAboutModal() {
+    const modal = $('store-about-modal');
+    if (modal) {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  }
+
+  // ===== 4. CLIENTE & AUTENTICAÇÃO (SUPABASE AUTH OFICIAL) =====
+  async function initCustomerAuth() {
+    try {
+      if (typeof SupabaseService === 'undefined') return;
+
+      // Ouvir mudanças de sessão
+      SupabaseService.onAuthStateChange(async (event, session) => {
+        const user = session?.user || null;
+        currentCustomer = user;
+
+        if (user) {
+          try {
+            currentProfile = await SupabaseService.getProfile(user.id);
+          } catch (e) {
+            currentProfile = { name: user.user_metadata?.full_name || user.user_metadata?.name || (user.email ? user.email.split('@')[0] : 'Cliente') };
+          }
+        } else {
+          currentProfile = null;
+        }
+
+        updateCustomerAuthUI(currentCustomer);
+      });
+
+      // Checar sessão ativa
+      const session = await SupabaseService.getSession();
+      currentCustomer = session?.user || null;
+      if (currentCustomer) {
+        try {
+          currentProfile = await SupabaseService.getProfile(currentCustomer.id);
+        } catch (e) {
+          currentProfile = { name: currentCustomer.user_metadata?.full_name || currentCustomer.user_metadata?.name || (currentCustomer.email ? currentCustomer.email.split('@')[0] : 'Cliente') };
+        }
+      }
+      updateCustomerAuthUI(currentCustomer);
+    } catch (err) {
+      console.warn('[Store] Auth initialization notice:', err);
+    }
+  }
+
+  function updateCustomerAuthUI(user) {
+    const btnAccount = $('btn-customer-account');
+    const mobileNavAccountText = $('bottom-account-label') || $('mobile-nav-account-text');
+
+    if (user) {
+      const displayName = currentProfile?.name || user.user_metadata?.full_name || user.user_metadata?.name || (user.email ? user.email.split('@')[0] : 'Cliente');
+      const firstName = (displayName || 'Cliente').split(' ')[0];
+
+      if (btnAccount) {
+        btnAccount.innerHTML = `
+          <i data-lucide="user-check"></i>
+          <span>Olá, ${Utils.sanitize(firstName)}</span>
+        `;
+        btnAccount.setAttribute('aria-label', `Conta de ${Utils.sanitize(firstName)}`);
+      }
+
+      if (mobileNavAccountText) {
+        mobileNavAccountText.textContent = firstName.length > 8 ? firstName.substring(0, 8) + '...' : firstName;
+      }
+
+      const nameEl = $('account-user-name');
+      const emailEl = $('account-user-email');
+      const avatarEl = $('account-user-avatar');
+
+      if (nameEl) nameEl.textContent = displayName;
+      if (emailEl) emailEl.textContent = user.email || '';
+      if (avatarEl) avatarEl.textContent = (firstName[0] || 'C').toUpperCase();
+
+      const pName = $('profile-name');
+      const pPhone = $('profile-phone');
+      const pAddress = $('profile-address');
+      const pNeigh = $('profile-neighborhood');
+
+      if (pName) pName.value = displayName;
+      if (pPhone && currentProfile?.phone) pPhone.value = currentProfile.phone;
+      if (pAddress && currentProfile?.address) pAddress.value = currentProfile.address;
+      if (pNeigh && currentProfile?.neighborhood) pNeigh.value = currentProfile.neighborhood;
+
+    } else {
+      if (btnAccount) {
+        btnAccount.innerHTML = `
+          <i data-lucide="user"></i>
+          <span>Entrar</span>
+        `;
+        btnAccount.setAttribute('aria-label', 'Entrar na conta de cliente');
+      }
+
+      if (mobileNavAccountText) {
+        mobileNavAccountText.textContent = 'Entrar';
+      }
+    }
+
+    refreshIcons();
+  }
+
+  // Modais de Auth
+  function openCustomerAuthModal(initialTab = 'login') {
+    const modal = $('customer-auth-modal');
+    if (modal) {
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      switchAuthTab(initialTab);
+      refreshIcons();
+    }
+  }
+
+  function closeCustomerAuthModal() {
+    const modal = $('customer-auth-modal');
+    if (modal) {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  }
+
+  function switchAuthTab(tab) {
+    const tabLogin = $('tab-auth-login');
+    const tabRegister = $('tab-auth-register');
+    const formLogin = $('customer-login-form');
+    const formRegister = $('customer-register-form');
+    const formForgot = $('customer-forgot-form');
+
+    if (!tabLogin || !tabRegister || !formLogin || !formRegister || !formForgot) return;
+
+    if (tab === 'login') {
+      tabLogin.classList.add('active');
+      tabRegister.classList.remove('active');
+      formLogin.style.display = 'block';
+      formRegister.style.display = 'none';
+      formForgot.style.display = 'none';
+    } else if (tab === 'register') {
+      tabRegister.classList.add('active');
+      tabLogin.classList.remove('active');
+      formRegister.style.display = 'block';
+      formLogin.style.display = 'none';
+      formForgot.style.display = 'none';
+    } else if (tab === 'forgot') {
+      tabLogin.classList.remove('active');
+      tabRegister.classList.remove('active');
+      formForgot.style.display = 'block';
+      formLogin.style.display = 'none';
+      formRegister.style.display = 'none';
+    }
+  }
+
+  // Ações de formulário de Auth
+  async function handleCustomerLogin(e) {
+    e.preventDefault();
+    const email = $('auth-login-email')?.value.trim();
+    const password = $('auth-login-password')?.value;
+    const btn = $('btn-submit-login');
+
+    if (!email || !password) {
+      Utils.showToast('Informe seu e-mail e senha!', 'warning');
+      return;
+    }
+
+    try {
+      if (btn) { btn.disabled = true; btn.innerText = 'Entrando...'; }
+      const res = await SupabaseService.signIn(email, password);
+      if (res && res.user) {
+        currentCustomer = res.user;
+        currentProfile = await SupabaseService.getProfile(res.user.id);
+        updateCustomerAuthUI(currentCustomer);
+        closeCustomerAuthModal();
+        Utils.showToast('Login realizado com sucesso! Bem-vindo(a).', 'success');
+      }
+    } catch (err) {
+      const msg = err.message || '';
+      if (msg.includes('Invalid login credentials')) {
+        Utils.showToast('E-mail ou senha incorretos!', 'error');
+      } else {
+        Utils.showToast(`Erro ao entrar: ${msg}`, 'error');
+      }
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = '<span>Entrar na Minha Conta</span><i data-lucide="arrow-right"></i>'; refreshIcons(); }
+    }
+  }
+
+  async function handleCustomerRegister(e) {
+    e.preventDefault();
+    const name = $('auth-reg-name')?.value.trim();
+    const email = $('auth-reg-email')?.value.trim();
+    const password = $('auth-reg-password')?.value;
+    const confirmPassword = $('auth-reg-confirm')?.value;
+    const btn = $('btn-submit-register');
+
+    if (!name || !email || !password) {
+      Utils.showToast('Preencha todos os campos obrigatórios!', 'warning');
+      return;
+    }
+
+    if (password.length < 6) {
+      Utils.showToast('A senha deve ter no mínimo 6 caracteres!', 'error');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Utils.showToast('As senhas digitadas não coincidem!', 'error');
+      return;
+    }
+
+    try {
+      if (btn) { btn.disabled = true; btn.innerText = 'Criando conta...'; }
+      const res = await SupabaseService.signUp(name, email, password);
+      closeCustomerAuthModal();
+
+      if (res?.session) {
+        Utils.showToast('Conta criada com sucesso! Você já está logado.', 'success');
+      } else {
+        Utils.showToast('Cadastro realizado! Verifique seu e-mail para confirmação se necessário.', 'success');
+      }
+    } catch (err) {
+      Utils.showToast(`Erro ao cadastrar: ${err.message}`, 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = '<span>Criar Minha Conta</span><i data-lucide="check"></i>'; refreshIcons(); }
+    }
+  }
+
+  async function handleCustomerForgotPassword(e) {
+    e.preventDefault();
+    const email = $('auth-forgot-email')?.value.trim();
+    const btn = $('btn-submit-forgot');
+
+    if (!email) {
+      Utils.showToast('Informe seu e-mail para receber o link!', 'warning');
+      return;
+    }
+
+    try {
+      if (btn) { btn.disabled = true; btn.innerText = 'Enviando...'; }
+      await SupabaseService.resetPassword(email);
+      Utils.showToast('Link de recuperação enviado para o seu e-mail!', 'success');
+      switchAuthTab('login');
+    } catch (err) {
+      Utils.showToast(`Erro ao solicitar recuperação: ${err.message}`, 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = '<span>Enviar Link de Recuperação</span><i data-lucide="mail"></i>'; refreshIcons(); }
+    }
+  }
+
+  async function loginWithGoogle() {
+    try {
+      await SupabaseService.signInWithGoogle();
+    } catch (err) {
+      Utils.showToast(`Google Login indisponível: ${err.message}`, 'error');
+    }
+  }
+
+  // Área "Minha Conta"
+  function openCustomerAccountModal() {
+    if (!currentCustomer) {
+      openCustomerAuthModal('login');
+      return;
+    }
+
+    const modal = $('customer-account-modal');
+    if (modal) {
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      switchAccountSection('orders');
+      refreshIcons();
+    }
+  }
+
+  function closeCustomerAccountModal() {
+    const modal = $('customer-account-modal');
+    if (modal) {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  }
+
+  function switchAccountSection(section) {
+    const tabs = ['orders', 'profile', 'security'];
+    tabs.forEach(t => {
+      const tabBtn = $(`tab-nav-${t}`);
+      const pane = $(`account-section-${t}`);
+      if (tabBtn) {
+        if (t === section) tabBtn.classList.add('active');
+        else tabBtn.classList.remove('active');
+      }
+      if (pane) {
+        pane.style.display = t === section ? 'block' : 'none';
+      }
+    });
+
+    if (section === 'orders') {
+      renderCustomerOrders();
+    }
+    refreshIcons();
+  }
+
+  // Meus Pedidos do Cliente
+  async function renderCustomerOrders() {
+    const loadingEl = $('account-orders-loading');
+    const emptyEl = $('account-orders-empty');
+    const listEl = $('account-orders-list');
+
+    if (!currentCustomer) return;
+
+    if (loadingEl) loadingEl.style.display = 'block';
+    if (emptyEl) emptyEl.style.display = 'none';
+    if (listEl) listEl.innerHTML = '';
+
+    try {
+      const orders = await DataStore.getCustomerOrders(currentCustomer.id);
+
+      if (loadingEl) loadingEl.style.display = 'none';
+
+      if (!orders || !orders.length) {
+        if (emptyEl) emptyEl.style.display = 'block';
+        return;
+      }
+
+      listEl.innerHTML = orders.map(ord => {
+        const orderNum = ord.orderNumber || (ord.id ? ord.id.substring(0, 10) : 'Pedido');
+        const dateStr = ord.createdAt ? new Date(ord.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Data recente';
+        const totalStr = Utils.formatCurrency(ord.total || 0);
+        const status = ord.status || 'novo';
+
+        const statusLabels = {
+          'novo': 'Recebido',
+          'preparando': 'Preparando',
+          'enviado': 'Enviado',
+          'entregue': 'Entregue',
+          'cancelado': 'Cancelado'
+        };
+
+        const statusLabel = statusLabels[status] || status;
+        const itemCount = (ord.items || []).reduce((acc, it) => acc + (it.qty || 1), 0);
+
+        return `
+          <div class="account-order-card">
+            <div class="account-order-header">
+              <div>
+                <span class="account-order-number">#${Utils.sanitize(orderNum)}</span>
+                <span class="account-order-date">${Utils.sanitize(dateStr)} &middot; ${itemCount} ${itemCount === 1 ? 'peça' : 'peças'}</span>
+              </div>
+              <span class="order-status-badge status-${Utils.sanitize(status)}">${Utils.sanitize(statusLabel)}</span>
+            </div>
+            <div class="account-order-footer">
+              <span class="account-order-total">${totalStr}</span>
+              <button type="button" class="btn-order-details" onclick="window.StoreApp?.openOrderDetailsModal('${ord.id}')">
+                <span>Ver Detalhes</span>
+                <i data-lucide="chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      refreshIcons();
+
+    } catch (err) {
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (listEl) listEl.innerHTML = `<p style="color:#DC2626;padding:12px;font-size:0.85rem;">Erro ao carregar pedidos: ${err.message}</p>`;
+    }
+  }
+
+  // Detalhes do Pedido Modal
+  async function openOrderDetailsModal(orderId) {
+    const modal = $('order-details-modal');
+    if (!modal) return;
+
+    try {
+      const orders = await DataStore.getCustomerOrders(currentCustomer?.id);
+      const order = (orders || []).find(o => o.id === orderId);
+
+      if (!order) {
+        Utils.showToast('Pedido não encontrado ou sem autorização.', 'error');
+        return;
+      }
+
+      const titleEl = $('order-details-title');
+      const dateEl = $('order-details-date');
+      const statusEl = $('order-details-status');
+      const itemsEl = $('order-details-items');
+      const addrEl = $('order-details-address');
+      const subtotalEl = $('order-details-subtotal');
+      const freightEl = $('order-details-freight');
+      const totalEl = $('order-details-total');
+
+      if (titleEl) titleEl.textContent = `Pedido #${order.orderNumber || order.id}`;
+      if (dateEl) {
+        const d = order.createdAt ? new Date(order.createdAt).toLocaleString('pt-BR') : 'Data recente';
+        dateEl.textContent = `Realizado em ${d}`;
+      }
+
+      const statusLabels = {
+        'novo': 'Recebido',
+        'preparando': 'Preparando',
+        'enviado': 'Enviado',
+        'entregue': 'Entregue',
+        'cancelado': 'Cancelado'
+      };
+      if (statusEl) {
+        const s = order.status || 'novo';
+        statusEl.className = `order-status-badge status-${s}`;
+        statusEl.textContent = statusLabels[s] || s;
+      }
+
+      if (itemsEl) {
+        itemsEl.innerHTML = (order.items || []).map(it => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #F1F5F9;font-size:0.84rem;">
+            <div>
+              <strong>${it.qty}x ${Utils.sanitize(it.name)}</strong>
+              ${it.color ? `<span style="color:#64748B;display:block;font-size:0.75rem;">${Utils.sanitize(it.color)} / ${Utils.sanitize(it.size || '')}</span>` : ''}
+            </div>
+            <span style="font-weight:700;color:#0F172A;">${Utils.formatCurrency((it.price || 0) * (it.qty || 1))}</span>
+          </div>
+        `).join('');
+      }
+
+      if (addrEl) {
+        const c = order.customer || {};
+        addrEl.textContent = c.address ? `${c.address}${c.neighborhood ? ` - ${c.neighborhood}` : ''}` : 'Retirada no local / Não informado';
+      }
+
+      if (subtotalEl) subtotalEl.textContent = Utils.formatCurrency(order.subtotal || 0);
+      if (freightEl) freightEl.textContent = order.deliveryFee === 0 ? 'Grátis' : Utils.formatCurrency(order.deliveryFee || 0);
+      if (totalEl) totalEl.textContent = Utils.formatCurrency(order.total || 0);
+
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      refreshIcons();
+
+    } catch (err) {
+      Utils.showToast(`Erro ao abrir detalhes: ${err.message}`, 'error');
+    }
+  }
+
+  function closeOrderDetailsModal() {
+    const modal = $('order-details-modal');
+    if (modal) {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  }
+
+  // Salvar Perfil do Cliente (Sem CPF)
+  async function handleSaveProfile(e) {
+    e.preventDefault();
+    if (!currentCustomer) return;
+
+    const name = $('profile-name')?.value.trim();
+    const phone = $('profile-phone')?.value.trim();
+    const address = $('profile-address')?.value.trim();
+    const neighborhood = $('profile-neighborhood')?.value.trim();
+    const btn = $('btn-save-profile');
+
+    if (!name) {
+      Utils.showToast('Informe seu nome completo!', 'warning');
+      return;
+    }
+
+    try {
+      if (btn) { btn.disabled = true; btn.innerText = 'Salvando...'; }
+      const updated = await SupabaseService.saveProfile(currentCustomer.id, {
+        name,
+        phone,
+        address,
+        neighborhood
+      });
+      currentProfile = updated;
+      updateCustomerAuthUI(currentCustomer);
+      Utils.showToast('Seus dados foram atualizados com sucesso!', 'success');
+    } catch (err) {
+      Utils.showToast(`Erro ao salvar dados: ${err.message}`, 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="check"></i><span>Salvar Alterações</span>'; refreshIcons(); }
+    }
+  }
+
+  // Atualizar Senha do Cliente
+  async function handleUpdatePassword(e) {
+    e.preventDefault();
+    const newPass = $('sec-new-password')?.value;
+    const confirmPass = $('sec-confirm-password')?.value;
+    const btn = $('btn-save-new-password');
+
+    if (!newPass || newPass.length < 6) {
+      Utils.showToast('A nova senha deve ter no mínimo 6 caracteres!', 'error');
+      return;
+    }
+
+    if (newPass !== confirmPass) {
+      Utils.showToast('A confirmação de senha não confere!', 'error');
+      return;
+    }
+
+    try {
+      if (btn) { btn.disabled = true; btn.innerText = 'Atualizando senha...'; }
+      await SupabaseService.updatePassword(newPass);
+      Utils.showToast('Senha atualizada com sucesso!', 'success');
+      $('customer-password-form')?.reset();
+    } catch (err) {
+      Utils.showToast(`Erro ao atualizar senha: ${err.message}`, 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="lock"></i><span>Atualizar Senha</span>'; refreshIcons(); }
+    }
+  }
+
+  // Logout do Cliente
+  async function handleCustomerLogout() {
+    try {
+      await SupabaseService.signOut();
+      currentCustomer = null;
+      currentProfile = null;
+      updateCustomerAuthUI(null);
+      closeCustomerAccountModal();
+      Utils.showToast('Você saiu da sua conta com segurança.', 'info');
+    } catch (err) {
+      Utils.showToast(`Erro ao sair: ${err.message}`, 'error');
+    }
+  }
+
+  // ===== 5. BUSCA RÁPIDA (PESQUISA INSTANTÂNEA) =====
+  function initInstantSearch() {
+    const input = $('modal-search-input');
+    if (!input) return;
+
+    input.addEventListener('input', Utils.debounce(e => {
+      handleModalSearch(e.target.value);
+    }, 200));
+  }
+
+  function openSearchModal() {
+    const modal = $('instant-search-modal');
+    if (modal) {
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      const input = $('modal-search-input');
+      if (input) {
+        input.value = '';
+        input.focus();
+        handleModalSearch('');
+      }
+      refreshIcons();
+    }
+  }
+
+  function closeSearchModal() {
+    const modal = $('instant-search-modal');
+    if (modal) {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  }
+
+  function handleModalSearch(query) {
+    const resultsContainer = $('modal-search-results');
+    if (!resultsContainer) return;
+
+    const q = (query || '').toLowerCase().trim();
+    const products = DataStore.getProducts({ includeInactive: false });
+
+    if (!q) {
+      resultsContainer.innerHTML = '<p style="color:#94A3B8;font-size:0.85rem;text-align:center;padding:24px 0;">Digite o nome da peça, categoria ou cor para buscar...</p>';
+      return;
+    }
+
+    const filtered = products.filter(p => {
+      const matchName = (p.name || '').toLowerCase().includes(q);
+      const matchCat = (p.category || '').toLowerCase().includes(q);
+      const matchDesc = (p.description || '').toLowerCase().includes(q);
+      const matchColor = (p.variants || []).some(v => (v.color || '').toLowerCase().includes(q));
+      return matchName || matchCat || matchDesc || matchColor;
+    });
+
+    if (!filtered.length) {
+      resultsContainer.innerHTML = `
+        <div style="text-align:center;padding:32px 16px;color:#64748B;">
+          <i data-lucide="search-x" style="width:36px;height:36px;margin:0 auto 10px;opacity:0.4;"></i>
+          <p>Nenhuma peça encontrada para "<strong>${Utils.sanitize(query)}</strong>"</p>
+        </div>
+      `;
+      refreshIcons();
+      return;
+    }
+
+    resultsContainer.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));gap:12px;">
+        ${filtered.slice(0, 12).map(p => {
+          const finalPrice = Utils.calcDiscountedPrice(p.price, p.promotion);
+          return `
+            <div class="search-product-thumb" style="cursor:pointer;border:1px solid #E2E8F0;border-radius:8px;padding:8px;text-align:center;background:#FFFFFF;" onclick="window.StoreApp?.closeSearchModal(); window.StoreApp?.openProductModal('${p.id}');">
+              <img src="${p.image || 'assets/images/hero_fitness.jpg'}" alt="${Utils.sanitize(p.name)}" style="width:100%;height:100px;object-fit:cover;border-radius:6px;margin-bottom:6px;">
+              <h5 style="font-size:0.78rem;font-weight:700;color:#0F172A;line-height:1.2;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${Utils.sanitize(p.name)}</h5>
+              <span style="font-size:0.82rem;font-weight:800;color:#059669;">${Utils.formatCurrency(finalPrice)}</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+    refreshIcons();
+  }
+
+  // ===== 6. BARRA DE NAVEGAÇÃO INFERIOR MOBILE =====
+  function initMobileBottomNav() {
+    const navHome = $('btn-bottom-home') || $('mobile-nav-home');
+    const navCats = $('btn-bottom-categories') || $('mobile-nav-cats');
+    const navSearch = $('btn-bottom-search') || $('mobile-nav-search');
+    const navCart = $('btn-bottom-cart') || $('mobile-nav-cart');
+    const navAccount = $('btn-bottom-account') || $('mobile-nav-account');
+
+    if (navHome) {
+      navHome.onclick = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+    }
+
+    if (navCats) {
+      navCats.onclick = () => {
+        const catSec = $('visual-categories') || $('categories-scroll-wrapper') || $('products');
+        if (catSec) catSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+    }
+
+    if (navSearch) {
+      navSearch.onclick = () => {
+        openSearchModal();
+      };
+    }
+
+    if (navCart) {
+      navCart.onclick = () => {
+        openCart(true);
+      };
+    }
+
+    if (navAccount) {
+      navAccount.onclick = () => {
+        if (currentCustomer) openCustomerAccountModal();
+        else openCustomerAuthModal('login');
+      };
+    }
+  }
+
   // Ref close product modal button selector
   const btnCloseProductModal = $('btn-close-product-modal');
 
   // ===== EXPOSE STORE API =====
   window.StoreApp = {
+    goToHome: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
+    scrollToCategories: () => {
+      const catSec = $('visual-categories') || $('categories-scroll-wrapper') || $('products');
+      if (catSec) catSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
     selectCategory,
     filterByColor,
     clearColorFilter,
@@ -2837,6 +3870,28 @@
     closeNeighborhoodModal,
     selectNeighborhoodFromModal,
     onSelectNeighborhood,
+    toggleFollowStore,
+    doCheckin,
+    openStoreAboutModal,
+    closeStoreAboutModal,
+    openCustomerAuthModal,
+    closeCustomerAuthModal,
+    switchAuthTab,
+    handleCustomerLogin,
+    handleCustomerRegister,
+    handleCustomerForgotPassword,
+    loginWithGoogle,
+    openCustomerAccountModal,
+    closeCustomerAccountModal,
+    switchAccountSection,
+    renderCustomerOrders,
+    openOrderDetailsModal,
+    closeOrderDetailsModal,
+    handleSaveProfile,
+    handleUpdatePassword,
+    handleCustomerLogout,
+    openSearchModal,
+    closeSearchModal,
     closeMobileMenu: () => {
       if (mobileDrawer) mobileDrawer.classList.remove('active');
       if (mobileDrawerOverlay) mobileDrawerOverlay.classList.remove('active');

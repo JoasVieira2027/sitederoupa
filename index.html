@@ -114,7 +114,12 @@
           </svg>
         </span>
         <div class="brand-text">
-          <span class="brand-name" id="navbar-brand-name">DONNA</span>
+          <div style="display:flex;align-items:center;">
+            <span class="brand-name" id="navbar-brand-name">DONNA</span>
+            <span class="brand-verified-badge" title="Loja Oficial Verificada" aria-label="Loja Oficial Verificada">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+          </div>
           <span class="brand-tagline" id="navbar-brand-tagline">FITNESS PE</span>
         </div>
       </a>
@@ -156,6 +161,18 @@
           <i data-lucide="message-circle" class="icon-inline"></i>
           <span class="wa-label">WhatsApp</span>
         </a>
+
+        <!-- Loyalty Points Button -->
+        <button type="button" class="btn-header-loyalty" id="btn-header-loyalty" onclick="window.StoreApp?.openLoyaltyModal()" title="Ver meus pontos e recompensas">
+          <span class="loyalty-coin-icon">🪙</span>
+          <span class="loyalty-header-pts" id="header-loyalty-pts">0 pts</span>
+        </button>
+
+        <!-- Customer Account Button -->
+        <button type="button" class="btn-header-account" id="btn-customer-account" aria-label="Área do cliente / Minha Conta">
+          <i data-lucide="user" class="account-icon"></i>
+          <span class="account-label" id="header-account-label">Entrar</span>
+        </button>
 
         <!-- Cart Button -->
         <button type="button" class="btn-cart" id="btn-open-cart" aria-label="Abrir carrinho de compras">
@@ -289,126 +306,121 @@
     </nav>
   </aside>
 
-  <!-- Hero Section (Editorial de Moda Fitness Premium) -->
-  <section class="hero" id="hero" aria-label="Apresentação da coleção principal">
-    <div class="hero-bg" id="hero-bg" style="background-image: url('assets/images/hero_fitness.jpg');"></div>
-    <div class="hero-overlay"></div>
-    
-    <div class="hero-content container">
-      <div class="hero-text-block">
-        <h1 id="hero-title">Performance que veste você.</h1>
-        <p id="hero-subtitle">Modelagem anatômica, alta compressão e tecnologia zero transparência para seu treino.</p>
-        
-        <div class="hero-actions">
-          <a href="#products" class="btn-hero-primary" id="hero-cta" onclick="window.StoreApp?.selectCategory('all')">
-            <span>Ver coleção</span>
-            <i data-lucide="arrow-right" class="btn-icon"></i>
+  <!-- 1. Hero Banner Slider (Administrável pelo Painel) -->
+  <section class="hero-slider-section" id="hero-slider" aria-label="Banners de destaque">
+    <div class="hero-slider-container" id="hero-banners-container">
+      <!-- Populated dynamically by store.js -->
+      <div class="hero-slide active" style="background-image: url('assets/images/hero_fitness.jpg');">
+        <div class="hero-slide-bg" style="background-image: url('assets/images/hero_fitness.jpg');"></div>
+        <div class="hero-slide-overlay"></div>
+        <div class="hero-slide-content container">
+          <span class="hero-badge-pill"><i data-lucide="sparkles"></i> Nova Coleção 2026</span>
+          <h1 class="hero-slide-title" id="hero-title">MODA FITNESS CHIC</h1>
+          <p class="hero-slide-subtitle" id="hero-subtitle">Leve, confortável e cheia de estilo. Modelagem anatômica e zero transparência para todos os seus momentos.</p>
+          <a href="#products" class="hero-slide-btn" id="hero-cta" onclick="window.StoreApp?.selectCategory('all')">
+            <span>Ver Coleção</span>
+            <i data-lucide="arrow-right"></i>
           </a>
         </div>
       </div>
     </div>
+
+    <!-- Controles do Slider -->
+    <button type="button" class="hero-slider-arrow hero-slider-prev" id="btn-hero-prev" aria-label="Banner anterior">
+      <i data-lucide="chevron-left"></i>
+    </button>
+    <button type="button" class="hero-slider-arrow hero-slider-next" id="btn-hero-next" aria-label="Próximo banner">
+      <i data-lucide="chevron-right"></i>
+    </button>
+    <div class="hero-slider-dots" id="hero-slider-dots"></div>
   </section>
 
-  <!-- Visual Category Navigation -->
-  <section class="visual-categories-section container" id="visual-categories" aria-label="Navegação visual por categoria">
-    <div class="section-header">
-      <span class="section-label">Categorias</span>
-      <h2>Encontre Seu Estilo de Treino</h2>
-      <p>Peças pensadas para performance máxima, durabilidade e elegância esportiva</p>
-    </div>
-
-    <div class="visual-categories-grid">
-      
-      <!-- Card: Conjuntos -->
-      <div class="visual-category-card" onclick="window.StoreApp?.selectCategory('Conjuntos')">
-        <div class="cat-card-media">
-          <img src="assets/images/conjunto_fitness.jpg" alt="Conjuntos Fitness Donna Fitness PE" loading="lazy">
-          <div class="cat-card-overlay"></div>
-        </div>
-        <div class="cat-card-info">
-          <span class="cat-card-badge">Coleção Completa</span>
-          <h3 class="cat-card-title">Conjuntos</h3>
-          <p class="cat-card-desc">Top + Short ou Top + Legging em harmonia perfeita</p>
-          <span class="cat-card-cta">
-            <span>Ver Peças</span>
-            <i data-lucide="arrow-right"></i>
-          </span>
-        </div>
+  <!-- 2. Barra de Benefícios Elegante (Conceito JoyModa) -->
+  <section class="chic-benefits-bar" aria-label="Garantias e benefícios da loja">
+    <div class="chic-benefits-inner" id="chic-benefits-list">
+      <div class="chic-benefit-pill">
+        <i data-lucide="shield-check"></i>
+        <span>Compra segura</span>
       </div>
-
-      <!-- Card: Leggings -->
-      <div class="visual-category-card" onclick="window.StoreApp?.selectCategory('Leggings')">
-        <div class="cat-card-media">
-          <img src="assets/images/legging_fitness.jpg" alt="Leggings sem costura Donna Fitness PE" loading="lazy">
-          <div class="cat-card-overlay"></div>
-        </div>
-        <div class="cat-card-info">
-          <span class="cat-card-badge">Zero Transparência</span>
-          <h3 class="cat-card-title">Leggings</h3>
-          <p class="cat-card-desc">Cós anatômico duplo e compressão modeladora</p>
-          <span class="cat-card-cta">
-            <span>Ver Peças</span>
-            <i data-lucide="arrow-right"></i>
-          </span>
-        </div>
+      <div class="chic-benefit-pill">
+        <i data-lucide="truck"></i>
+        <span>Motoboy p/ região metropolitana</span>
       </div>
-
-      <!-- Card: Tops & Croppeds -->
-      <div class="visual-category-card" onclick="window.StoreApp?.selectCategory('Tops & Croppeds')">
-        <div class="cat-card-media">
-          <img src="assets/images/top_fitness.jpg" alt="Tops de alta sustentação Donna Fitness PE" loading="lazy">
-          <div class="cat-card-overlay"></div>
-        </div>
-        <div class="cat-card-info">
-          <span class="cat-card-badge">Alta Sustentação</span>
-          <h3 class="cat-card-title">Tops & Croppeds</h3>
-          <p class="cat-card-desc">Alças cruzadas com suporte firme para qualquer impacto</p>
-          <span class="cat-card-cta">
-            <span>Ver Peças</span>
-            <i data-lucide="arrow-right"></i>
-          </span>
-        </div>
+      <div class="chic-benefit-pill">
+        <i data-lucide="package-check"></i>
+        <span>Frete grátis acima de R$ 199</span>
       </div>
-
-      <!-- Card: Shorts & Bermudas -->
-      <div class="visual-category-card" onclick="window.StoreApp?.selectCategory('Shorts & Bermudas')">
-        <div class="cat-card-media">
-          <img src="assets/images/short_fitness.jpg" alt="Shorts ciclista com bolso lateral Donna Fitness PE" loading="lazy">
-          <div class="cat-card-overlay"></div>
-        </div>
-        <div class="cat-card-info">
-          <span class="cat-card-badge">Com Bolso Lateral</span>
-          <h3 class="cat-card-title">Shorts & Bermudas</h3>
-          <p class="cat-card-desc">Comprimento seguro que não sobe ao correr ou agachar</p>
-          <span class="cat-card-cta">
-            <span>Ver Peças</span>
-            <i data-lucide="arrow-right"></i>
-          </span>
-        </div>
+      <div class="chic-benefit-pill">
+        <i data-lucide="message-circle"></i>
+        <span>Atendimento exclusivo pelo WhatsApp</span>
       </div>
-
+      <div class="chic-benefit-pill">
+        <i data-lucide="refresh-cw"></i>
+        <span>1ª Troca grátis sem burocracia</span>
+      </div>
     </div>
   </section>
 
-  <!-- Featured / Nova Coleção Showcase -->
-  <section class="featured-section container" id="featured-section" aria-label="Novidades e destaques">
-    <div class="featured-header">
-      <div class="featured-header-text">
-        <span class="featured-badge-highlight">
-          <i data-lucide="sparkles" class="icon-inline"></i> Lançamentos & Destaques
-        </span>
-        <h2 id="featured-title">Nova Coleção</h2>
-        <p id="featured-subtitle">Peças exclusivas com tecnologia seamless e alta compressão anatômica</p>
+  <!-- 3. Boutique Social Proof Strip (Referência Visual: Rating, Seguidores e Ações) -->
+  <section class="boutique-bio-strip" aria-label="Informações da loja">
+    <div class="boutique-bio-inner container">
+      <div class="boutique-stats-row">
+        <div class="boutique-stat-item">
+          <div class="boutique-stat-main">
+            <span class="star-icon">★</span>
+            <span id="boutique-rating-val">5.0</span>
+          </div>
+          <span class="boutique-stat-sub">128 avaliações</span>
+        </div>
+        <div style="width:1px;height:24px;background:#E2E8F0;"></div>
+        <div class="boutique-stat-item">
+          <div class="boutique-stat-main" id="boutique-followers-val">4.8k</div>
+          <span class="boutique-stat-sub">seguidores</span>
+        </div>
       </div>
-      <div class="featured-header-actions">
-        <a href="#products" class="btn-link-viewall" onclick="window.StoreApp?.selectCategory('all')">
-          <span>Ver todas as novidades</span>
-          <i data-lucide="arrow-right"></i>
-        </a>
+      <div class="boutique-actions-row">
+        <button type="button" class="btn-follow-store" id="btn-follow-store" onclick="window.StoreApp?.toggleFollowStore()">
+          <i data-lucide="user-plus"></i>
+          <span id="btn-follow-label">+ Seguir loja</span>
+        </button>
+        <button type="button" class="btn-bio-action" id="btn-checkin" onclick="window.StoreApp?.doCheckin()">
+          <i data-lucide="flame"></i>
+          <span>Check-in</span>
+        </button>
+        <button type="button" class="btn-bio-action" id="btn-open-about" onclick="window.StoreApp?.openStoreAboutModal()">
+          <i data-lucide="info"></i>
+          <span>Sobre a Loja</span>
+        </button>
       </div>
+    </div>
+  </section>
+
+  <!-- 4. Seção Visual de Categorias (Scroll Horizontal Suave no Mobile) -->
+  <section class="chic-categories-section container" id="visual-categories" aria-label="Navegação por categorias">
+    <span class="section-label-chic">Categorias</span>
+    <div class="chic-categories-scroll-wrap">
+      <div class="chic-categories-track" id="chic-categories-track">
+        <!-- Rendered dynamically by store.js based on Supabase / DataStore categories -->
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Seção de Destaques: Últimas Peças (Conceito da Referência com Badges TOP 1, TOP 2, -40%) -->
+  <section class="featured-section container" id="featured-section" aria-label="Destaques e últimas peças">
+    <div class="chic-section-header">
+      <div>
+        <div class="chic-badge-pill">
+          <i data-lucide="flame" style="width:13px;height:13px;color:#E11D48;"></i> Destaques
+        </div>
+        <h2 class="chic-section-title" id="featured-title">Últimas Peças</h2>
+      </div>
+      <a href="#products" class="btn-link-viewall" onclick="window.StoreApp?.selectCategory('all')">
+        <span>Ver todas as peças</span>
+        <i data-lucide="arrow-right"></i>
+      </a>
     </div>
     <div class="featured-grid products-grid" id="featured-grid">
-      <!-- Populated dynamically by store.js -->
+      <!-- Populated dynamically by store.js with TOP badges -->
     </div>
   </section>
 
@@ -927,6 +939,20 @@
             </div>
             <div class="checkout-summary" id="checkout-summary">
               <div id="checkout-items"></div>
+
+              <!-- Cupom de Desconto / Recompensa Fidelidade -->
+              <div class="checkout-coupon-section" id="checkout-coupon-section">
+                <label for="checkout-coupon-input" class="checkout-coupon-label">
+                  <i data-lucide="ticket" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>
+                  Cupom de Desconto ou Recompensa
+                </label>
+                <div class="checkout-coupon-input-group">
+                  <input type="text" id="checkout-coupon-input" class="form-control" placeholder="Ex: LOY-8K3F92" autocomplete="off" style="text-transform:uppercase;">
+                  <button type="button" class="btn-apply-coupon" id="btn-apply-coupon" onclick="window.StoreApp?.applyCheckoutCoupon()">Aplicar</button>
+                </div>
+                <div id="checkout-coupon-feedback" class="coupon-feedback hidden"></div>
+              </div>
+
               <div class="checkout-breakdown">
                 <div class="checkout-row">
                   <span>Subtotal:</span>
@@ -935,6 +961,10 @@
                 <div class="checkout-row" id="checkout-delivery-row">
                   <span>Frete:</span>
                   <span id="checkout-delivery-fee">R$ 0,00</span>
+                </div>
+                <div class="checkout-row discount-row hidden" id="checkout-discount-row">
+                  <span id="checkout-discount-label">Desconto Recompensa:</span>
+                  <span id="checkout-discount-val" style="color:#059669;font-weight:700;">- R$ 0,00</span>
                 </div>
                 <div class="checkout-total-row">
                   <span>TOTAL A PAGAR:</span>
@@ -1197,6 +1227,20 @@
             </details>
           </div>
 
+          <!-- Product Reviews Section (Avaliações dos Clientes) -->
+          <div class="product-reviews-section" id="product-reviews-section">
+            <div class="product-reviews-header">
+              <h4>Avaliações de Clientes</h4>
+              <button type="button" class="btn-open-review-modal" id="btn-open-review-modal" onclick="window.StoreApp?.openReviewModal()">
+                <i data-lucide="star"></i>
+                <span>Avaliar Peça (+30 pts)</span>
+              </button>
+            </div>
+            <div id="product-reviews-list" class="product-reviews-list">
+              <p style="color:#94A3B8;font-size:0.82rem;">Carregando avaliações...</p>
+            </div>
+          </div>
+
         </div>
 
       </div>
@@ -1337,6 +1381,617 @@
       </div>
     </div>
   </footer>
+
+  <!-- ============================================================
+       MOBILE BOTTOM NAVIGATION BAR (CONCEITO REFERÊNCIA JOYMODA)
+       ============================================================ -->
+  <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Navegação rápida móvel">
+    <button type="button" class="bottom-nav-btn active" id="btn-bottom-home" onclick="window.StoreApp?.goToHome()">
+      <i data-lucide="store"></i>
+      <span>Loja</span>
+    </button>
+    <button type="button" class="bottom-nav-btn" id="btn-bottom-categories" onclick="window.StoreApp?.scrollToCategories()">
+      <i data-lucide="grid"></i>
+      <span>Categorias</span>
+    </button>
+    <button type="button" class="bottom-nav-btn" id="btn-bottom-search" onclick="window.StoreApp?.openSearchModal()">
+      <i data-lucide="search"></i>
+      <span>Buscar</span>
+    </button>
+    <button type="button" class="bottom-nav-btn" id="btn-bottom-cart" onclick="window.StoreApp?.openCart(true)">
+      <div style="position:relative;display:inline-flex;">
+        <i data-lucide="shopping-bag"></i>
+        <span class="bottom-nav-badge" id="bottom-cart-badge" style="display:none;">0</span>
+      </div>
+      <span>Carrinho</span>
+    </button>
+    <button type="button" class="bottom-nav-btn" id="btn-bottom-account" onclick="window.StoreApp?.openCustomerAccountModal()">
+      <i data-lucide="user"></i>
+      <span id="bottom-account-label">Entrar</span>
+    </button>
+  </nav>
+
+  <!-- ============================================================
+       MODAL 1: AUTENTICAÇÃO DO CLIENTE (LOGIN / CADASTRO / GOOGLE)
+       ============================================================ -->
+  <div class="modal-overlay" id="customer-auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+    <div class="modal modal-auth-card">
+      <div class="modal-header">
+        <h3 id="auth-modal-title" style="font-size:1.15rem;font-weight:800;color:#0F172A;">Acesse sua Conta</h3>
+        <button type="button" class="btn-close-modal" id="btn-close-auth-modal" aria-label="Fechar janela">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="modal-body" style="padding:20px;">
+        <!-- Segmented Tabs: Entrar / Criar Conta -->
+        <div class="auth-tabs" role="tablist">
+          <button type="button" class="auth-tab-btn active" id="tab-auth-login" onclick="window.StoreApp?.switchAuthTab('login')">Entrar</button>
+          <button type="button" class="auth-tab-btn" id="tab-auth-register" onclick="window.StoreApp?.switchAuthTab('register')">Criar Conta</button>
+        </div>
+
+        <!-- Google OAuth Button -->
+        <button type="button" class="btn-google-oauth" id="btn-google-login" onclick="window.StoreApp?.loginWithGoogle()">
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span>Continuar com Google</span>
+        </button>
+
+        <div class="auth-divider-wrap">
+          <span>ou com seu e-mail</span>
+        </div>
+
+        <!-- Form: Entrar (Login) -->
+        <form id="customer-login-form" onsubmit="window.StoreApp?.handleCustomerLogin(event)">
+          <div class="form-group" style="margin-bottom:12px;">
+            <label for="auth-login-email" style="font-size:0.85rem;font-weight:600;">E-mail <span class="required">*</span></label>
+            <input type="email" id="auth-login-email" class="form-control" placeholder="seu@email.com" required autocomplete="email">
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <label for="auth-login-password" style="font-size:0.85rem;font-weight:600;">Senha <span class="required">*</span></label>
+              <button type="button" onclick="window.StoreApp?.switchAuthTab('forgot')" style="background:none;border:none;color:#059669;font-size:0.78rem;font-weight:600;cursor:pointer;padding:0;">Esqueceu a senha?</button>
+            </div>
+            <input type="password" id="auth-login-password" class="form-control" placeholder="Sua senha de acesso" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn-submit-auth" id="btn-submit-login">
+            <span>Entrar na Minha Conta</span>
+            <i data-lucide="arrow-right"></i>
+          </button>
+        </form>
+
+        <!-- Form: Criar Conta (Sign Up - Sem CPF!) -->
+        <form id="customer-register-form" style="display:none;" onsubmit="window.StoreApp?.handleCustomerRegister(event)">
+          <div class="form-group" style="margin-bottom:12px;">
+            <label for="auth-reg-name" style="font-size:0.85rem;font-weight:600;">Nome Completo <span class="required">*</span></label>
+            <input type="text" id="auth-reg-name" class="form-control" placeholder="Ex: Maria Silva" required autocomplete="name">
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label for="auth-reg-email" style="font-size:0.85rem;font-weight:600;">E-mail <span class="required">*</span></label>
+            <input type="email" id="auth-reg-email" class="form-control" placeholder="seu@email.com" required autocomplete="email">
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label for="auth-reg-password" style="font-size:0.85rem;font-weight:600;">Criar Senha <span class="required">*</span></label>
+            <input type="password" id="auth-reg-password" class="form-control" placeholder="Mínimo de 6 caracteres" minlength="6" required autocomplete="new-password">
+          </div>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label for="auth-reg-password-confirm" style="font-size:0.85rem;font-weight:600;">Confirmar Senha <span class="required">*</span></label>
+            <input type="password" id="auth-reg-password-confirm" class="form-control" placeholder="Repita a senha" minlength="6" required autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn-submit-auth" id="btn-submit-register">
+            <span>Criar Minha Conta</span>
+            <i data-lucide="user-check"></i>
+          </button>
+        </form>
+
+        <!-- Form: Esqueci Minha Senha -->
+        <form id="customer-forgot-form" style="display:none;" onsubmit="window.StoreApp?.handleCustomerForgotPassword(event)">
+          <p style="font-size:0.85rem;color:#64748B;margin-bottom:14px;">
+            Informe seu e-mail cadastrado para receber o link seguro de redefinição de senha.
+          </p>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label for="auth-forgot-email" style="font-size:0.85rem;font-weight:600;">Seu E-mail <span class="required">*</span></label>
+            <input type="email" id="auth-forgot-email" class="form-control" placeholder="seu@email.com" required autocomplete="email">
+          </div>
+          <button type="submit" class="btn-submit-auth" id="btn-submit-forgot">
+            <span>Enviar Link de Recuperação</span>
+            <i data-lucide="mail"></i>
+          </button>
+          <button type="button" onclick="window.StoreApp?.switchAuthTab('login')" style="width:100%;background:none;border:none;color:#64748B;font-size:0.85rem;font-weight:600;cursor:pointer;padding:12px 0 0;text-align:center;">
+            Voltar para o login
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL 2: ÁREA "MINHA CONTA" (DASHBOARD DO CLIENTE)
+       ============================================================ -->
+  <div class="modal-overlay" id="customer-account-modal" role="dialog" aria-modal="true" aria-labelledby="account-modal-title">
+    <div class="modal modal-account-card">
+      <div class="modal-header">
+        <h3 id="account-modal-title" style="font-size:1.15rem;font-weight:800;color:#0F172A;">Minha Conta</h3>
+        <button type="button" class="btn-close-modal" id="btn-close-account-modal" aria-label="Fechar janela">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="modal-body" style="padding:20px;">
+        <!-- Banner de Boas-Vindas do Usuário -->
+        <div class="account-user-banner">
+          <div class="account-avatar" id="account-user-avatar">M</div>
+          <div class="account-user-meta">
+            <h4 id="account-user-name">Olá, Cliente!</h4>
+            <p id="account-user-email">cliente@email.com</p>
+          </div>
+        </div>
+
+        <!-- Banner Rápido de Fidelidade -->
+        <div class="account-loyalty-quick-card" style="background:linear-gradient(135deg, #1C1917, #0C0A09);border:1px solid rgba(245, 158, 11, 0.35);border-radius:14px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;color:#FFFFFF;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 30% 30%, #FDE68A, #F59E0B);display:flex;align-items:center;justify-content:center;color:#78350F;font-size:1.1rem;font-weight:900;">🪙</div>
+            <div>
+              <div style="font-size:0.75rem;color:#FBBF24;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Donna Fidelidade</div>
+              <div style="font-size:1.25rem;font-weight:900;color:#FFFFFF;" id="account-loyalty-pts-display">0 pontos</div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm" onclick="window.StoreApp?.openLoyaltyModal()" style="background:rgba(255,255,255,0.14);color:#FFFFFF;border:1px solid rgba(255,255,255,0.2);border-radius:9999px;font-size:0.78rem;font-weight:700;padding:6px 14px;cursor:pointer;">
+            Ver Benefícios &gt;
+          </button>
+        </div>
+
+        <!-- Abas da Conta -->
+        <div class="account-nav-tabs" role="tablist">
+          <button type="button" class="account-nav-tab active" id="tab-nav-orders" onclick="window.StoreApp?.switchAccountSection('orders')">
+            <i data-lucide="package"></i>
+            <span>Meus Pedidos</span>
+          </button>
+          <button type="button" class="account-nav-tab" id="tab-nav-loyalty" onclick="window.StoreApp?.openLoyaltyModal()">
+            <i data-lucide="award"></i>
+            <span>Fidelidade</span>
+          </button>
+          <button type="button" class="account-nav-tab" id="tab-nav-profile" onclick="window.StoreApp?.switchAccountSection('profile')">
+            <i data-lucide="user"></i>
+            <span>Dados Pessoais</span>
+          </button>
+          <button type="button" class="account-nav-tab" id="tab-nav-security" onclick="window.StoreApp?.switchAccountSection('security')">
+            <i data-lucide="lock"></i>
+            <span>Segurança</span>
+          </button>
+          <button type="button" class="account-nav-tab" id="tab-nav-logout" onclick="window.StoreApp?.handleCustomerLogout()" style="color:#DC2626;">
+            <i data-lucide="log-out"></i>
+            <span>Sair</span>
+          </button>
+        </div>
+
+        <!-- Seção: Meus Pedidos -->
+        <div id="account-section-orders" class="account-content-pane">
+          <div id="account-orders-loading" style="text-align:center;padding:24px;color:#64748B;">
+            <p>Carregando seus pedidos...</p>
+          </div>
+          <div id="account-orders-empty" style="display:none;text-align:center;padding:32px 16px;">
+            <div style="width:52px;height:52px;border-radius:50%;background:#F1F5F9;color:#94A3B8;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;">
+              <i data-lucide="shopping-bag" style="width:24px;height:24px;"></i>
+            </div>
+            <h4 style="font-size:1.05rem;font-weight:700;color:#0F172A;margin-bottom:4px;">Você ainda não possui pedidos</h4>
+            <p style="font-size:0.85rem;color:#64748B;margin-bottom:16px;">Explore nossa coleção e faça seu primeiro pedido hoje mesmo!</p>
+            <button type="button" class="btn btn-primary btn-sm" onclick="window.StoreApp?.closeCustomerAccountModal(); document.getElementById('products')?.scrollIntoView({behavior:'smooth'});">
+              Ver Coleção Fitness
+            </button>
+          </div>
+          <div id="account-orders-list" class="account-orders-list"></div>
+        </div>
+
+        <!-- Seção: Dados Pessoais & Endereço Padrão -->
+        <div id="account-section-profile" class="account-content-pane" style="display:none;">
+          <form id="customer-profile-form" onsubmit="window.StoreApp?.handleSaveProfile(event)">
+            <div class="form-group" style="margin-bottom:12px;">
+              <label for="profile-name" style="font-size:0.85rem;font-weight:600;">Nome Completo <span class="required">*</span></label>
+              <input type="text" id="profile-name" class="form-control" required autocomplete="name">
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label for="profile-phone" style="font-size:0.85rem;font-weight:600;">Telefone / WhatsApp</label>
+              <input type="tel" id="profile-phone" class="form-control" placeholder="(11) 99999-9999" autocomplete="tel">
+              <small style="font-size:0.75rem;color:#64748B;">Usado para confirmar detalhes do seu pedido.</small>
+            </div>
+
+            <div style="margin-top:18px;margin-bottom:12px;border-top:1px solid #E2E8F0;padding-top:14px;">
+              <strong style="font-size:0.9rem;color:#0F172A;display:block;margin-bottom:4px;">Endereço de Entrega Preferencial (Opcional)</strong>
+              <small style="font-size:0.78rem;color:#64748B;display:block;margin-bottom:10px;">Facilita o preenchimento no checkout.</small>
+
+              <div class="form-group" style="margin-bottom:10px;">
+                <label for="profile-neighborhood" style="font-size:0.82rem;font-weight:600;">Bairro</label>
+                <input type="text" id="profile-neighborhood" class="form-control" placeholder="Ex: Casa Caiada">
+              </div>
+              <div class="form-group" style="margin-bottom:12px;">
+                <label for="profile-address" style="font-size:0.82rem;font-weight:600;">Rua, Número e Complemento</label>
+                <input type="text" id="profile-address" class="form-control" placeholder="Ex: Rua das Flores, 120, Apto 302">
+              </div>
+            </div>
+
+            <button type="submit" class="btn-submit-auth" id="btn-save-profile">
+              <i data-lucide="check"></i>
+              <span>Salvar Alterações</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Seção: Segurança (Alterar Senha) -->
+        <div id="account-section-security" class="account-content-pane" style="display:none;">
+          <form id="customer-password-form" onsubmit="window.StoreApp?.handleUpdatePassword(event)">
+            <p style="font-size:0.85rem;color:#64748B;margin-bottom:14px;">
+              Atualize sua senha de acesso ao site. A nova senha deve conter no mínimo 6 caracteres.
+            </p>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label for="sec-new-password" style="font-size:0.85rem;font-weight:600;">Nova Senha <span class="required">*</span></label>
+              <input type="password" id="sec-new-password" class="form-control" placeholder="Mínimo 6 caracteres" minlength="6" required autocomplete="new-password">
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+              <label for="sec-confirm-password" style="font-size:0.85rem;font-weight:600;">Confirmar Nova Senha <span class="required">*</span></label>
+              <input type="password" id="sec-confirm-password" class="form-control" placeholder="Repita a nova senha" minlength="6" required autocomplete="new-password">
+            </div>
+            <button type="submit" class="btn-submit-auth" id="btn-save-new-password">
+              <i data-lucide="lock"></i>
+              <span>Atualizar Senha</span>
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL 3: DETALHES DO PEDIDO DO CLIENTE
+       ============================================================ -->
+  <div class="modal-overlay" id="order-details-modal" role="dialog" aria-modal="true" aria-labelledby="order-details-title">
+    <div class="modal" style="max-width:560px;width:100%;">
+      <div class="modal-header">
+        <div>
+          <h3 id="order-details-title" style="font-size:1.15rem;font-weight:800;color:#0F172A;">Pedido #FV-0000</h3>
+          <span id="order-details-date" style="font-size:0.78rem;color:#64748B;">Data do pedido</span>
+        </div>
+        <button type="button" class="btn-close-modal" id="btn-close-order-details" aria-label="Fechar janela">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body" style="padding:20px;">
+        <!-- Status visual -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;margin-bottom:16px;">
+          <span style="font-size:0.85rem;font-weight:600;color:#475569;">Status do Pedido:</span>
+          <span id="order-details-status" class="order-status-badge status-novo">Recebido</span>
+        </div>
+
+        <!-- Itens do Pedido -->
+        <div style="font-size:0.85rem;font-weight:700;color:#0F172A;margin-bottom:8px;">Itens Comprados:</div>
+        <div id="order-details-items" style="max-height:220px;overflow-y:auto;border:1px solid #E2E8F0;border-radius:10px;padding:10px;margin-bottom:16px;"></div>
+
+        <!-- Endereço de Entrega -->
+        <div id="order-details-delivery-box" style="padding:12px;background:#F8FAFC;border-radius:10px;font-size:0.82rem;line-height:1.5;margin-bottom:16px;border:1px solid #E2E8F0;">
+          <strong>Endereço de Entrega:</strong>
+          <p id="order-details-address" style="color:#475569;margin-top:2px;">—</p>
+        </div>
+
+        <!-- Totais -->
+        <div style="border-top:1px solid #E2E8F0;padding-top:12px;">
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#64748B;margin-bottom:4px;">
+            <span>Subtotal:</span>
+            <span id="order-details-subtotal">R$ 0,00</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#64748B;margin-bottom:6px;">
+            <span>Frete:</span>
+            <span id="order-details-freight">R$ 0,00</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:1.1rem;font-weight:800;color:#0F172A;border-top:1px dashed #CBD5E1;padding-top:8px;">
+            <span>TOTAL:</span>
+            <span id="order-details-total">R$ 0,00</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:12px 20px;background:#F8FAFC;border-top:1px solid #E2E8F0;text-align:right;">
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-close-order-details-footer" onclick="window.StoreApp?.closeOrderDetailsModal()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL 4: SOBRE A LOJA (REFERÊNCIA JOYMODA)
+       ============================================================ -->
+  <div class="modal-overlay" id="store-about-modal" role="dialog" aria-modal="true" aria-labelledby="store-about-title">
+    <div class="modal" style="max-width:540px;width:100%;">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:34px;height:34px;border-radius:50%;background:#059669;color:#FFFFFF;display:flex;align-items:center;justify-content:center;">
+            <i data-lucide="shield-check" style="width:18px;height:18px;"></i>
+          </div>
+          <h3 id="store-about-title" style="font-size:1.15rem;font-weight:800;color:#0F172A;">Donna Fitness PE</h3>
+        </div>
+        <button type="button" class="btn-close-modal" id="btn-close-about-modal" aria-label="Fechar janela">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body" style="padding:20px;font-size:0.9rem;line-height:1.6;color:#334155;">
+        <p style="margin-bottom:14px;">
+          A <strong>Donna Fitness PE</strong> desenvolve activewear feminino de alta compressão, tecidos tecnológicos com secagem rápida e zero transparência garantida para o seu melhor desempenho nos treinos.
+        </p>
+        <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:14px;margin-bottom:14px;">
+          <strong style="color:#0F172A;display:block;margin-bottom:6px;">Diferenciais da Nossa Loja:</strong>
+          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px;font-size:0.85rem;">
+            <li>🛡️ <strong>Zero Transparência:</strong> Tecidos nobres com gramatura especial à prova de agachamento.</li>
+            <li>🛵 <strong>Entrega Expressa:</strong> Despacho prioritário para todo o Brasil.</li>
+            <li>🔄 <strong>1ª Troca Grátis:</strong> Sem complicação e sem burocracia em até 7 dias corridos.</li>
+            <li>💳 <strong>Pagamento Seguro:</strong> Pix com confirmação imediata e Cartão em até 3x sem juros.</li>
+          </ul>
+        </div>
+        <p style="font-size:0.82rem;color:#64748B;">
+          Dúvidas sobre modelagem, cores ou tamanhos? Fale diretamente com nossa equipe pelo WhatsApp!
+        </p>
+      </div>
+      <div class="modal-footer" style="padding:12px 20px;background:#F8FAFC;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center;">
+        <a href="#" id="modal-about-wa-btn" class="btn btn-primary btn-sm" target="_blank" rel="noopener noreferrer">
+          <i data-lucide="message-circle"></i>
+          <span>WhatsApp Oficial</span>
+        </a>
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-close-about-footer" onclick="window.StoreApp?.closeStoreAboutModal()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL 5: BUSCA RÁPIDA (PESQUISA INSTANTÂNEA)
+       ============================================================ -->
+  <div class="modal-overlay" id="instant-search-modal" role="dialog" aria-modal="true" aria-label="Busca de produtos">
+    <div class="modal" style="max-width:600px;width:100%;max-height:85vh;display:flex;flex-direction:column;">
+      <div class="modal-header" style="border-bottom:1px solid #E2E8F0;padding:16px;">
+        <div style="display:flex;align-items:center;gap:10px;flex:1;">
+          <i data-lucide="search" style="width:20px;height:20px;color:#64748B;"></i>
+          <input type="search" id="modal-search-input" class="form-control" style="border:none;box-shadow:none;font-size:1.05rem;padding:6px 0;" placeholder="O que você está procurando?" autocomplete="off">
+        </div>
+        <button type="button" class="btn-close-modal" id="btn-close-search-modal" aria-label="Fechar busca">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body" style="padding:16px;flex:1;overflow-y:auto;" id="modal-search-results">
+        <p style="color:#94A3B8;font-size:0.85rem;text-align:center;padding:24px 0;">Digite o nome da peça, categoria ou cor para buscar...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL 6: MINHA FIDELIDADE (SISTEMA DE PONTOS, CHECK-IN & MISSÕES)
+       ============================================================ -->
+  <div class="modal-overlay" id="loyalty-modal" role="dialog" aria-modal="true" aria-labelledby="loyalty-modal-title">
+    <div class="modal modal-loyalty-container">
+      <div class="modal-loyalty-header">
+        <h3 id="loyalty-modal-title">
+          <span style="color:#F59E0B;">★</span>
+          <span>Donna Fidelidade & Recompensas</span>
+        </h3>
+        <button type="button" class="btn-close-modal" id="btn-close-loyalty-modal" aria-label="Fechar janela" style="background:rgba(255,255,255,0.1);color:#FFFFFF;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="modal-loyalty-body">
+        
+        <!-- 1. Hero Card de Pontos -->
+        <div class="loyalty-hero-card">
+          <div class="loyalty-hero-meta">
+            <span class="loyalty-hero-label">
+              <i data-lucide="sparkles" style="width:14px;height:14px;color:#FBBF24;"></i>
+              Seus pontos Donna Fitness PE
+            </span>
+            <div class="loyalty-balance-wrap">
+              <div class="loyalty-gold-coin">🪙</div>
+              <div class="loyalty-balance-number" id="loyalty-modal-balance">0</div>
+            </div>
+            <div class="loyalty-expiry-note" id="loyalty-modal-expiry">
+              <i data-lucide="clock" style="width:12px;height:12px;"></i>
+              <span id="loyalty-expiry-text">Pontos ativos e sem expiração imediata</span>
+            </div>
+          </div>
+          <button type="button" class="btn-loyalty-history" id="btn-open-loyalty-history" onclick="window.StoreApp?.openLoyaltyHistoryModal()">
+            <span>Histórico</span>
+            <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+          </button>
+        </div>
+
+        <!-- 2. Grid de Conteúdo: Esquerda (Check-in + Missões) | Direita (Recompensas + Cupons) -->
+        <div class="loyalty-main-grid">
+          
+          <!-- Coluna Esquerda -->
+          <div style="display:flex;flex-direction:column;gap:18px;">
+            
+            <!-- Card: Check-in Diário -->
+            <div class="loyalty-card">
+              <div class="loyalty-card-header">
+                <div class="loyalty-card-title-wrap">
+                  <h4>
+                    <i data-lucide="flame" style="width:18px;height:18px;color:#EF4444;"></i>
+                    Check-in diário
+                  </h4>
+                  <p>Volte a cada 24h e ganhe pontos progressivos. Não quebre a sequência!</p>
+                </div>
+                <div class="checkin-streak-pill" id="loyalty-streak-pill">
+                  <span id="loyalty-streak-count">0</span> dias 🔥
+                </div>
+              </div>
+
+              <!-- Trilha dos 7 Dias -->
+              <div class="checkin-days-track" id="checkin-days-track">
+                <!-- Preenchido dinamicamente via JS -->
+              </div>
+
+              <!-- Botão de Check-in -->
+              <button type="button" class="btn-checkin-action ready" id="btn-do-checkin-modal" onclick="window.StoreApp?.claimDailyCheckin()">
+                <i data-lucide="sparkles"></i>
+                <span id="btn-checkin-label">Fazer Check-in (+10 pts)</span>
+              </button>
+            </div>
+
+            <!-- Card: Seguir a Loja -->
+            <div class="loyalty-follow-banner" id="loyalty-follow-banner">
+              <div class="loyalty-follow-info">
+                <div class="loyalty-follow-icon">
+                  <i data-lucide="user-plus" style="width:20px;height:20px;"></i>
+                </div>
+                <div class="loyalty-follow-text">
+                  <strong>Siga a Loja e ganhe +50 pontos</strong>
+                  <small>Válido para a primeira vez que você seguir nosso perfil oficial.</small>
+                </div>
+              </div>
+              <button type="button" class="btn-loyalty-follow" id="btn-follow-store-loyalty" onclick="window.StoreApp?.followStoreFromLoyalty()">
+                + Seguir Loja
+              </button>
+            </div>
+
+            <!-- Card: Missões -->
+            <div class="loyalty-card">
+              <div class="loyalty-card-header">
+                <div class="loyalty-card-title-wrap">
+                  <h4>
+                    <i data-lucide="target" style="width:18px;height:18px;color:#38BDF8;"></i>
+                    Missões & Conquistas
+                  </h4>
+                  <p>Complete as tarefas na loja para desbloquear recompensas exclusivas.</p>
+                </div>
+                <span style="font-size:0.75rem;font-weight:700;color:#94A3B8;" id="missions-completed-count">0/2 concluídas</span>
+              </div>
+
+              <div class="missions-list" id="loyalty-missions-list">
+                <!-- Preenchido dinamicamente via JS -->
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Coluna Direita -->
+          <div style="display:flex;flex-direction:column;gap:18px;">
+            
+            <!-- Card: Catálogo de Recompensas -->
+            <div class="loyalty-card">
+              <div class="loyalty-card-header">
+                <div class="loyalty-card-title-wrap">
+                  <h4>
+                    <i data-lucide="ticket" style="width:18px;height:18px;color:#FBBF24;"></i>
+                    Resgatar cupons
+                  </h4>
+                  <p>Troque seus pontos por descontos reais no checkout.</p>
+                </div>
+              </div>
+
+              <div class="rewards-grid-list" id="loyalty-rewards-list">
+                <!-- Preenchido dinamicamente via JS -->
+              </div>
+            </div>
+
+            <!-- Card: Meus Cupons Ativos -->
+            <div class="loyalty-card" id="loyalty-user-coupons-card">
+              <div class="loyalty-card-header">
+                <div class="loyalty-card-title-wrap">
+                  <h4>
+                    <i data-lucide="gift" style="width:18px;height:18px;color:#10B981;"></i>
+                    Meus Cupons Resgatados
+                  </h4>
+                  <p>Copie e use no checkout para abater do seu pedido.</p>
+                </div>
+              </div>
+
+              <div class="user-coupons-wrap" id="loyalty-user-coupons-list">
+                <p style="color:#64748B;font-size:0.78rem;text-align:center;padding:12px 0;">Você ainda não possui cupons resgatados.</p>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL 7: EXTRATO COMPLETO DE PONTOS (HISTÓRICO AUDITÁVEL)
+       ============================================================ -->
+  <div class="modal-overlay" id="loyalty-history-modal" role="dialog" aria-modal="true" aria-labelledby="history-modal-title">
+    <div class="modal" style="max-width:540px;width:95%;background:#141416;color:#FFFFFF;border-radius:18px;border:1px solid rgba(255,255,255,0.08);box-shadow:0 24px 60px rgba(0,0,0,0.6);">
+      <div class="modal-header" style="background:#18181B;border-bottom:1px solid rgba(255,255,255,0.08);padding:16px 20px;">
+        <h3 id="history-modal-title" style="font-size:1.1rem;font-weight:800;color:#FFFFFF;display:flex;align-items:center;gap:8px;">
+          <i data-lucide="file-text" style="width:18px;height:18px;color:#F59E0B;"></i>
+          Extrato Auditável de Pontos
+        </h3>
+        <button type="button" class="btn-close-modal" id="btn-close-loyalty-history" aria-label="Fechar extrato" style="background:rgba(255,255,255,0.1);color:#FFFFFF;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body" style="padding:18px 20px;">
+        <div class="loyalty-history-list" id="loyalty-history-records">
+          <p style="color:#64748B;font-size:0.82rem;text-align:center;padding:24px 0;">Nenhuma movimentação registrada até o momento.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL 8: AVALIAR PRODUTO (+30 PTS / +50 PTS COM FOTO)
+       ============================================================ -->
+  <div class="modal-overlay" id="product-review-modal" role="dialog" aria-modal="true" aria-labelledby="review-modal-title">
+    <div class="modal" style="max-width:500px;width:95%;">
+      <div class="modal-header">
+        <div>
+          <h3 id="review-modal-title" style="font-size:1.1rem;font-weight:800;color:#0F172A;">Avaliar Peça</h3>
+          <span style="font-size:0.75rem;color:#059669;font-weight:700;">Ganhe +30 pontos (+20 pts bônus com foto!)</span>
+        </div>
+        <button type="button" class="btn-close-modal" id="btn-close-review-modal" aria-label="Fechar avaliação">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body" style="padding:20px;">
+        <form id="product-review-form" onsubmit="window.StoreApp?.handleSubmitReview(event)">
+          <input type="hidden" id="review-product-id">
+          
+          <!-- Seletor de Estrelas -->
+          <div class="form-group" style="margin-bottom:16px;text-align:center;">
+            <label style="font-size:0.85rem;font-weight:700;display:block;margin-bottom:8px;">Sua Nota para esta peça:</label>
+            <div class="interactive-stars" id="review-stars-selector">
+              <span class="interactive-star" data-val="1">★</span>
+              <span class="interactive-star" data-val="2">★</span>
+              <span class="interactive-star" data-val="3">★</span>
+              <span class="interactive-star" data-val="4">★</span>
+              <span class="interactive-star selected" data-val="5">★</span>
+            </div>
+            <input type="hidden" id="review-rating-val" value="5">
+          </div>
+
+          <!-- Comentário -->
+          <div class="form-group" style="margin-bottom:14px;">
+            <label for="review-comment-input" style="font-size:0.85rem;font-weight:600;">O que você achou do tecido, caimento e conforto? <span class="required">*</span></label>
+            <textarea id="review-comment-input" class="form-control" rows="3" placeholder="Ex: Tecido maravilhoso, zero transparência no agachamento e cós alto que não enrola!" required></textarea>
+          </div>
+
+          <!-- Upload de Foto (Bônus de +20 pts) -->
+          <div class="form-group" style="margin-bottom:16px;">
+            <label for="review-photo-input" style="font-size:0.85rem;font-weight:600;">
+              Adicionar Foto Usando a Peça
+              <span class="photo-bonus-tag">+20 pts BÔNUS</span>
+            </label>
+            <input type="file" id="review-photo-input" class="form-control" accept="image/*">
+            <small style="font-size:0.75rem;color:#64748B;display:block;margin-top:4px;">Fotos reais de clientes ajudam outras mulheres a escolherem o tamanho ideal.</small>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="btn-submit-review" style="width:100%;padding:12px;font-weight:800;">
+            <i data-lucide="check"></i>
+            <span>Publicar Avaliação & Ganhar Pontos</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <!-- Supabase SDK & App Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

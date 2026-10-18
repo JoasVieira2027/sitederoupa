@@ -9,7 +9,14 @@ const DB_KEYS = {
   ORDERS: 'fashion_orders',
   SETTINGS: 'fashion_settings',
   CATEGORIES: 'fashion_categories',
-  CACHE_META: 'fashion_cache_meta'
+  CACHE_META: 'fashion_cache_meta',
+  LOYALTY_ACCOUNTS: 'fashion_loyalty_accounts',
+  LOYALTY_TRANSACTIONS: 'fashion_loyalty_transactions',
+  LOYALTY_REWARDS: 'fashion_loyalty_rewards',
+  LOYALTY_COUPONS: 'fashion_loyalty_coupons',
+  LOYALTY_MISSIONS: 'fashion_loyalty_missions',
+  PRODUCT_REVIEWS: 'fashion_product_reviews',
+  STORE_FOLLOWS: 'fashion_store_follows'
 };
 
 // Cache TTL de 10 minutos para visitantes públicos
@@ -91,14 +98,23 @@ const DEFAULT_PRODUCTS = [
   }
 ];
 
-// ===== DEFAULT CATEGORIES (FITNESS) =====
+// ===== DEFAULT CATEGORIES & IMAGES (FITNESS) =====
+const DEFAULT_CATEGORY_IMAGES = {
+  'Leggings': 'assets/images/legging_fitness.jpg',
+  'Tops & Croppeds': 'assets/images/top_fitness.jpg',
+  'Conjuntos': 'assets/images/conjunto_fitness.jpg',
+  'Shorts & Bermudas': 'assets/images/short_fitness.jpg',
+  'Macacões': 'assets/images/hero_fitness.jpg',
+  'Acessórios': 'assets/images/conjunto_fitness.jpg'
+};
+
 const DEFAULT_CATEGORIES = [
-  { id: 'cat_leggings', name: 'Leggings', icon: 'layers' },
-  { id: 'cat_tops', name: 'Tops & Croppeds', icon: 'shield' },
-  { id: 'cat_conjuntos', name: 'Conjuntos', icon: 'sparkles' },
-  { id: 'cat_shorts', name: 'Shorts & Bermudas', icon: 'activity' },
-  { id: 'cat_macacoes', name: 'Macacões', icon: 'zap' },
-  { id: 'cat_acessorios', name: 'Acessórios', icon: 'package' }
+  { id: 'cat_leggings', name: 'Leggings', icon: 'layers', image: 'assets/images/legging_fitness.jpg' },
+  { id: 'cat_tops', name: 'Tops & Croppeds', icon: 'shield', image: 'assets/images/top_fitness.jpg' },
+  { id: 'cat_conjuntos', name: 'Conjuntos', icon: 'sparkles', image: 'assets/images/conjunto_fitness.jpg' },
+  { id: 'cat_shorts', name: 'Shorts & Bermudas', icon: 'activity', image: 'assets/images/short_fitness.jpg' },
+  { id: 'cat_macacoes', name: 'Macacões', icon: 'zap', image: 'assets/images/hero_fitness.jpg' },
+  { id: 'cat_acessorios', name: 'Acessórios', icon: 'package', image: 'assets/images/conjunto_fitness.jpg' }
 ];
 
 // ===== DEFAULT SETTINGS (FITNESS) =====
@@ -115,10 +131,36 @@ const DEFAULT_SETTINGS = {
     subtitle: 'Lançamentos e peças exclusivas com tecnologia seamless e alta compressão'
   },
   benefitsBar: [
-    { id: 'b_shipping', icon: 'truck', title: 'Frete Grátis', desc: 'Acima de R$ 199 para todo o Brasil' },
-    { id: 'b_security', icon: 'shield-check', title: 'Pagamento Seguro', desc: 'PIX e cartão com proteção SSL' },
-    { id: 'b_exchange', icon: 'refresh-cw', title: 'Troca Facilitada', desc: 'Primeira troca sem burocracia' },
-    { id: 'b_fast', icon: 'zap', title: 'Envio Rápido', desc: 'Despacho com rastreamento' }
+    { id: 'b_security', icon: 'shield-check', title: 'Compra segura', desc: 'Ambiente criptografado com proteção SSL' },
+    { id: 'b_motoboy', icon: 'truck', title: 'Motoboy p/ região metropolitana', desc: 'Entrega expressa ou frete grátis acima de R$ 199' },
+    { id: 'b_exchange', icon: 'refresh-cw', title: 'Troca facilitada', desc: '1ª troca sem burocracia em até 7 dias' },
+    { id: 'b_wa', icon: 'message-circle', title: 'Atendimento humanizado', desc: 'Suporte exclusivo no WhatsApp' }
+  ],
+  banners: [
+    {
+      id: 'banner_1',
+      title: 'MODA FITNESS CHIC',
+      subtitle: 'Leve, confortável e cheia de estilo para todos os seus momentos.',
+      badge: 'NOVA COLEÇÃO',
+      image: 'assets/images/hero_fitness.jpg',
+      mobileImage: 'assets/images/hero_fitness.jpg',
+      ctaText: 'Ver Coleção',
+      ctaLink: '#products',
+      active: true,
+      order: 1
+    },
+    {
+      id: 'banner_2',
+      title: 'ZERO TRANSPARÊNCIA',
+      subtitle: 'Activewear premium com modelagem anatômica e sustentação máxima.',
+      badge: 'DESTAQUES',
+      image: 'assets/images/legging_fitness.jpg',
+      mobileImage: 'assets/images/legging_fitness.jpg',
+      ctaText: 'Ver Leggings',
+      ctaLink: '#products',
+      active: true,
+      order: 2
+    }
   ],
   hero: {
     emoji: '',
@@ -241,9 +283,87 @@ const DEFAULT_SETTINGS = {
   },
   closures: [],
   availableSizes: ['PP', 'P', 'M', 'G', 'GG'],
+  loyalty: {
+    enabled: true,
+    pointsPerReal: 1,
+    pointsPerReview: 30,
+    pointsPerReviewWithPhoto: 50,
+    pointsForFollowStore: 50,
+    checkinStreakPoints: [10, 15, 20, 25, 30, 35, 40],
+    expirationEnabled: false,
+    expirationDays: 365
+  },
   adminPassword: 'admin123',
   adminAccessKey: 'fitvibe@2026'
 };
+
+// ===== DEFAULT LOYALTY REWARDS & MISSIONS =====
+const DEFAULT_LOYALTY_REWARDS = [
+  { id: 'rew_5_pct', title: '5% OFF', description: 'Em qualquer pedido da loja', reward_type: 'percent', discount_value: 5, points_cost: 300, min_order_value: 0, max_discount: 50, validity_days: 30, active: true, order_num: 1 },
+  { id: 'rew_5_brl', title: 'R$ 5 OFF', description: 'Desconto direto no checkout', reward_type: 'fixed', discount_value: 5, points_cost: 300, min_order_value: 40, max_discount: 5, validity_days: 30, active: true, order_num: 2 },
+  { id: 'rew_10_pct', title: '10% OFF', description: 'Válido em qualquer pedido', reward_type: 'percent', discount_value: 10, points_cost: 700, min_order_value: 60, max_discount: 100, validity_days: 30, active: true, order_num: 3 },
+  { id: 'rew_10_brl', title: 'R$ 10 OFF', description: 'Desconto direto no checkout', reward_type: 'fixed', discount_value: 10, points_cost: 700, min_order_value: 80, max_discount: 10, validity_days: 30, active: true, order_num: 4 },
+  { id: 'rew_free_shipping', title: 'Frete Grátis', description: 'Frete grátis em 1 pedido', reward_type: 'free_shipping', discount_value: 0, points_cost: 1000, min_order_value: 50, max_discount: 35, validity_days: 30, active: true, order_num: 5 },
+  { id: 'rew_20_brl', title: 'R$ 20 OFF', description: 'Em compras acima de R$ 120', reward_type: 'fixed', discount_value: 20, points_cost: 1400, min_order_value: 120, max_discount: 20, validity_days: 30, active: true, order_num: 6 }
+];
+
+const DEFAULT_LOYALTY_MISSIONS = [
+  {
+    id: 'mission_unlock_bonus',
+    title: 'Desbloqueie seu bônus',
+    description: 'Complete as 3 ações: check-in, avaliar compra e comprar novamente',
+    reward_points: 300,
+    mission_type: 'composite',
+    target_count: 3,
+    steps: [
+      { id: 'step_checkin', label: 'Faça check-in' },
+      { id: 'step_review', label: 'Avalie uma compra' },
+      { id: 'step_purchase', label: 'Compre novamente' }
+    ],
+    active: true,
+    order_num: 1
+  },
+  {
+    id: 'mission_loyal_buyer',
+    title: 'Comprador fiel',
+    description: 'Compre 3 vezes na loja e ganhe 500 pontos',
+    reward_points: 500,
+    mission_type: 'purchase_count',
+    target_count: 3,
+    steps: [
+      { id: 'step_buy_1', label: 'Primeira compra' },
+      { id: 'step_buy_2', label: 'Mais 2 compras' }
+    ],
+    active: true,
+    order_num: 2
+  },
+  {
+    id: 'mission_first_purchase',
+    title: 'Primeira Compra',
+    description: 'Faça seu primeiro pedido e ganhe 100 pontos',
+    reward_points: 100,
+    mission_type: 'purchase_count',
+    target_count: 1,
+    steps: [
+      { id: 'step_first_order', label: 'Faça 1 pedido' }
+    ],
+    active: true,
+    order_num: 3
+  },
+  {
+    id: 'mission_reviewer',
+    title: 'Avaliador Oficial',
+    description: 'Envie avaliações de 3 peças e ganhe 150 pontos',
+    reward_points: 150,
+    mission_type: 'review_count',
+    target_count: 3,
+    steps: [
+      { id: 'step_rev_3', label: 'Envie 3 avaliações' }
+    ],
+    active: true,
+    order_num: 4
+  }
+];
 
 // ============================================================
 //  DataStore — Singleton
@@ -417,11 +537,23 @@ const DataStore = (function () {
         return DEFAULT_SETTINGS.installmentsConfig;
       })(),
       pixDetails: parseJsonField(row.pix_details, DEFAULT_SETTINGS.pixDetails),
+      banners: (function () {
+        const parsedHero = parseJsonField(row.hero, {});
+        if (parsedHero && Array.isArray(parsedHero._banners) && parsedHero._banners.length > 0) {
+          return parsedHero._banners;
+        }
+        if (row.banners !== undefined) {
+          const b = parseJsonField(row.banners, null);
+          if (Array.isArray(b) && b.length > 0) return b;
+        }
+        return DEFAULT_SETTINGS.banners;
+      })(),
       storeOpen: row.store_open !== false,
       closedCustomMessage: row.closed_custom_message || DEFAULT_SETTINGS.closedCustomMessage,
       operatingHours: parseJsonField(row.operating_hours, DEFAULT_SETTINGS.operatingHours),
       closures: parseJsonField(row.closures, []),
       availableSizes: parseJsonField(row.available_sizes, DEFAULT_SETTINGS.availableSizes),
+      loyalty: parseJsonField(row.loyalty, DEFAULT_SETTINGS.loyalty),
       adminPassword: DEFAULT_SETTINGS.adminPassword
     };
   }
@@ -429,6 +561,7 @@ const DataStore = (function () {
   function _mapOrder(row) {
     return {
       id: row.id,
+      userId: row.user_id || (row.customer && row.customer.userId) || null,
       customer: row.customer || {},
       deliveryType: row.delivery_type || 'delivery',
       deliveryFee: parseFloat(row.delivery_fee) || 0,
@@ -471,11 +604,21 @@ const DataStore = (function () {
   }
 
   // ===== LOAD FUNCTIONS =====
+  function _mapCategory(row) {
+    if (!row) return null;
+    return {
+      id: row.id,
+      name: row.name,
+      icon: row.icon || 'sparkles',
+      image: row.image || DEFAULT_CATEGORY_IMAGES[row.name] || 'assets/images/conjunto_fitness.jpg'
+    };
+  }
+
   async function _loadCategories() {
     // 1. Initial fast local load
     const local = _loadLocal(DB_KEYS.CATEGORIES);
     if (local && local.length) {
-      _categories = local;
+      _categories = local.map(_mapCategory).filter(Boolean);
     } else {
       _categories = [...DEFAULT_CATEGORIES];
     }
@@ -485,7 +628,7 @@ const DataStore = (function () {
       try {
         const { data, error } = await _supabase.from('categories').select('*').order('name');
         if (!error && data && data.length) {
-          _categories = data;
+          _categories = data.map(_mapCategory).filter(Boolean);
           _saveLocal(DB_KEYS.CATEGORIES, _categories);
           return;
         }
@@ -766,23 +909,34 @@ const DataStore = (function () {
   async function saveCategory(cat) {
     const isNew = !cat.id;
     if (isNew) cat.id = 'cat_' + Date.now();
+    const catImage = cat.image || DEFAULT_CATEGORY_IMAGES[cat.name] || '';
 
     if (_supabase) {
-      const { error } = isNew
-        ? await _supabase.from('categories').insert([{ id: cat.id, name: cat.name, icon: cat.icon }])
-        : await _supabase.from('categories').update({ name: cat.name, icon: cat.icon }).eq('id', cat.id);
-      if (error) {
-        console.error('[DataStore] Erro ao salvar categoria no Supabase:', error);
-        throw error;
+      const row = { id: cat.id, name: cat.name, icon: cat.icon, image: catImage };
+      try {
+        const { error } = isNew
+          ? await _supabase.from('categories').insert([row])
+          : await _supabase.from('categories').update(row).eq('id', cat.id);
+        if (error) {
+          // Fallback gracioso se a coluna 'image' não existir ainda
+          const fallbackRow = { id: cat.id, name: cat.name, icon: cat.icon };
+          const { error: fErr } = isNew
+            ? await _supabase.from('categories').insert([fallbackRow])
+            : await _supabase.from('categories').update(fallbackRow).eq('id', cat.id);
+          if (fErr) console.warn('[DataStore] Erro ao salvar categoria no Supabase:', fErr);
+        }
+      } catch (err) {
+        console.warn('[DataStore] Exceção ao salvar categoria:', err);
       }
     }
 
+    const item = { ...cat, image: catImage };
     const idx = _categories.findIndex(c => c.id === cat.id);
-    if (idx >= 0) _categories[idx] = cat;
-    else _categories.push(cat);
+    if (idx >= 0) _categories[idx] = item;
+    else _categories.push(item);
     _saveLocal(DB_KEYS.CATEGORIES, _categories);
     document.dispatchEvent(new CustomEvent('categories-updated'));
-    return cat;
+    return item;
   }
 
   async function deleteCategory(id) {
@@ -808,7 +962,8 @@ const DataStore = (function () {
         _featuredCollection: _settings.featuredCollection,
         _instagramFeed: _settings.instagramFeed,
         _benefitsBar: _settings.benefitsBar,
-        _installmentsConfig: _settings.installmentsConfig
+        _installmentsConfig: _settings.installmentsConfig,
+        _banners: _settings.banners
       };
 
       const row = {
@@ -834,6 +989,7 @@ const DataStore = (function () {
         operating_hours: _settings.operatingHours,
         closures: _settings.closures || [],
         available_sizes: _settings.availableSizes || ['PP', 'P', 'M', 'G', 'GG', 'XGG'],
+        loyalty: _settings.loyalty,
         updated_at: new Date().toISOString()
       };
 
@@ -841,7 +997,9 @@ const DataStore = (function () {
         const rowWithExtras = {
           ...row,
           featured_collection: _settings.featuredCollection,
-          instagram_feed: _settings.instagramFeed
+          instagram_feed: _settings.instagramFeed,
+          banners: _settings.banners,
+          loyalty: _settings.loyalty
         };
         const { error: fErr } = await _supabase.from('settings').upsert([rowWithExtras]);
         if (fErr) {
@@ -867,10 +1025,12 @@ const DataStore = (function () {
     if (!order.id) order.id = 'ord_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
     if (!order.createdAt) order.createdAt = new Date().toISOString();
     order.status = order.status || 'novo';
+    const userId = order.userId || order.user_id || (order.customer && order.customer.userId) || null;
 
     if (_supabase) {
       const row = {
         id: order.id,
+        user_id: userId,
         customer: order.customer,
         delivery_type: order.deliveryType || 'delivery',
         delivery_fee: order.deliveryFee || 0,
@@ -881,13 +1041,68 @@ const DataStore = (function () {
         status: order.status,
         created_at: order.createdAt
       };
-      const { error } = await _supabase.from('orders').insert([row]);
-      if (error) throw error;
+
+      try {
+        const { error } = await _supabase.from('orders').insert([row]);
+        if (error) {
+          // Fallback caso a migration da coluna user_id ainda não tenha sido executada
+          if (error.message && (error.message.includes('user_id') || error.code === 'PGRST204')) {
+            const fallbackRow = { ...row };
+            delete fallbackRow.user_id;
+            const { error: fErr } = await _supabase.from('orders').insert([fallbackRow]);
+            if (fErr) console.warn('[DataStore] Erro no fallback de pedidos:', fErr.message);
+          } else {
+            console.warn('[DataStore] Erro ao registrar pedido no Supabase:', error.message);
+          }
+        }
+      } catch (dbErr) {
+        console.warn('[DataStore] Exceção ao salvar pedido:', dbErr);
+      }
     }
 
     _orders.unshift(order);
     _saveLocal(DB_KEYS.ORDERS, _orders);
+
+    // Cache local dos pedidos do usuário autenticado para consulta imediata
+    if (userId) {
+      try {
+        const userOrdersKey = `fashion_user_orders_${userId}`;
+        const userOrders = JSON.parse(localStorage.getItem(userOrdersKey) || '[]');
+        userOrders.unshift(order);
+        localStorage.setItem(userOrdersKey, JSON.stringify(userOrders));
+      } catch (e) {}
+    }
+
     return order;
+  }
+
+  async function getCustomerOrders(userId) {
+    if (!userId) return [];
+    if (_supabase) {
+      try {
+        const { data, error } = await _supabase
+          .from('orders')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+
+        if (!error && Array.isArray(data)) {
+          const mapped = data.map(_mapOrder);
+          try {
+            localStorage.setItem(`fashion_user_orders_${userId}`, JSON.stringify(mapped));
+          } catch (e) {}
+          return mapped;
+        }
+      } catch (e) {
+        console.warn('[DataStore] Erro ao carregar pedidos do usuário:', e);
+      }
+    }
+
+    try {
+      const cached = localStorage.getItem(`fashion_user_orders_${userId}`);
+      if (cached) return JSON.parse(cached);
+    } catch (e) {}
+    return [];
   }
 
   async function updateOrderStatus(id, status) {
@@ -943,6 +1158,767 @@ const DataStore = (function () {
     await Promise.all([_loadCategories(), _loadProducts(), _loadSettings(), _loadOrders()]);
   }
 
+  // ===== LOYALTY & REWARDS (Sistema de Fidelidade) =====
+
+  function _getLoyaltyAccountKey(userId) {
+    return `fashion_loyalty_account_${userId}`;
+  }
+
+  function _getLoyaltyTxKey(userId) {
+    return `fashion_loyalty_tx_${userId}`;
+  }
+
+  function _getLoyaltyCouponsKey(userId) {
+    return `fashion_loyalty_coupons_${userId}`;
+  }
+
+  function _getLoyaltyMissionsKey(userId) {
+    return `fashion_loyalty_missions_${userId}`;
+  }
+
+  async function getLoyaltyAccount(userId) {
+    if (!userId) return null;
+    if (_supabase && window.SupabaseService) {
+      try {
+        const acc = await window.SupabaseService.getLoyaltyAccount(userId);
+        if (acc) {
+          localStorage.setItem(_getLoyaltyAccountKey(userId), JSON.stringify(acc));
+          return acc;
+        }
+      } catch (e) {
+        console.warn('[DataStore] Erro ao carregar conta fidelidade do Supabase:', e);
+      }
+    }
+    // Local fallback
+    try {
+      const cached = localStorage.getItem(_getLoyaltyAccountKey(userId));
+      if (cached) return JSON.parse(cached);
+    } catch (e) {}
+
+    const defaultAcc = {
+      id: 'acc_' + userId.substring(0, 8),
+      user_id: userId,
+      points_balance: 0,
+      lifetime_points: 0,
+      checkin_streak: 0,
+      last_checkin_date: null,
+      created_at: new Date().toISOString()
+    };
+    localStorage.setItem(_getLoyaltyAccountKey(userId), JSON.stringify(defaultAcc));
+    return defaultAcc;
+  }
+
+  async function getLoyaltyTransactions(userId) {
+    if (!userId) return [];
+    if (_supabase && window.SupabaseService) {
+      try {
+        const txs = await window.SupabaseService.getLoyaltyTransactions(userId);
+        if (Array.isArray(txs)) {
+          localStorage.setItem(_getLoyaltyTxKey(userId), JSON.stringify(txs));
+          return txs;
+        }
+      } catch (e) {
+        console.warn('[DataStore] Erro ao carregar extrato de pontos do Supabase:', e);
+      }
+    }
+    try {
+      const cached = localStorage.getItem(_getLoyaltyTxKey(userId));
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async function getLoyaltyRewards() {
+    if (_supabase && window.SupabaseService) {
+      try {
+        const rews = await window.SupabaseService.getLoyaltyRewards();
+        if (Array.isArray(rews) && rews.length > 0) {
+          _saveLocal(DB_KEYS.LOYALTY_REWARDS, rews);
+          return rews;
+        }
+      } catch (e) {
+        console.warn('[DataStore] Erro ao carregar catálogo de recompensas:', e);
+      }
+    }
+    const local = _loadLocal(DB_KEYS.LOYALTY_REWARDS);
+    if (Array.isArray(local) && local.length > 0) return local;
+    _saveLocal(DB_KEYS.LOYALTY_REWARDS, DEFAULT_LOYALTY_REWARDS);
+    return DEFAULT_LOYALTY_REWARDS;
+  }
+
+  async function getLoyaltyCoupons(userId) {
+    if (!userId) return [];
+    if (_supabase && window.SupabaseService) {
+      try {
+        const coupons = await window.SupabaseService.getLoyaltyCoupons(userId);
+        if (Array.isArray(coupons)) {
+          localStorage.setItem(_getLoyaltyCouponsKey(userId), JSON.stringify(coupons));
+          return coupons;
+        }
+      } catch (e) {
+        console.warn('[DataStore] Erro ao carregar cupons do Supabase:', e);
+      }
+    }
+    try {
+      const cached = localStorage.getItem(_getLoyaltyCouponsKey(userId));
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async function getLoyaltyMissions(userId) {
+    if (_supabase && window.SupabaseService) {
+      try {
+        const data = await window.SupabaseService.getLoyaltyMissions(userId);
+        if (data && data.missions && data.missions.length > 0) {
+          return data;
+        }
+      } catch (e) {
+        console.warn('[DataStore] Erro ao buscar missões do Supabase:', e);
+      }
+    }
+
+    let userMissions = [];
+    if (userId) {
+      try {
+        const cached = localStorage.getItem(_getLoyaltyMissionsKey(userId));
+        userMissions = cached ? JSON.parse(cached) : [];
+      } catch (e) {}
+    }
+    return {
+      missions: DEFAULT_LOYALTY_MISSIONS,
+      userMissions: userMissions
+    };
+  }
+
+  async function isUserFollowingStore(userId) {
+    if (!userId) return false;
+    if (_supabase) {
+      try {
+        const { data, error } = await _supabase.from('store_follows').select('id').eq('user_id', userId).maybeSingle();
+        if (!error && data) return true;
+      } catch (e) {}
+    }
+    try {
+      const follows = JSON.parse(localStorage.getItem(DB_KEYS.STORE_FOLLOWS) || '[]');
+      return follows.some(f => f.user_id === userId);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function _checkAndUpdateMissionStep(userId, stepId) {
+    try {
+      const userMissionsKey = _getLoyaltyMissionsKey(userId);
+      let userMissions = JSON.parse(localStorage.getItem(userMissionsKey) || '[]');
+
+      let unlockMission = userMissions.find(m => m.mission_id === 'mission_unlock_bonus');
+      if (!unlockMission) {
+        unlockMission = {
+          id: 'um_' + Date.now(),
+          mission_id: 'mission_unlock_bonus',
+          user_id: userId,
+          progress: 0,
+          completed_steps: [],
+          status: 'in_progress'
+        };
+        userMissions.push(unlockMission);
+      }
+
+      if (!unlockMission.completed_steps) unlockMission.completed_steps = [];
+      if (!unlockMission.completed_steps.includes(stepId)) {
+        unlockMission.completed_steps.push(stepId);
+        unlockMission.progress = unlockMission.completed_steps.length;
+
+        if (unlockMission.progress >= 3 && unlockMission.status !== 'completed') {
+          unlockMission.status = 'completed';
+          unlockMission.completed_at = new Date().toISOString();
+          // Conceder recompensa da missão
+          const accKey = _getLoyaltyAccountKey(userId);
+          const acc = JSON.parse(localStorage.getItem(accKey) || '{}');
+          acc.points_balance = (acc.points_balance || 0) + 300;
+          acc.lifetime_points = (acc.lifetime_points || 0) + 300;
+          localStorage.setItem(accKey, JSON.stringify(acc));
+
+          const txsKey = _getLoyaltyTxKey(userId);
+          const txs = JSON.parse(localStorage.getItem(txsKey) || '[]');
+          txs.unshift({
+            id: 'tx_mis_' + Date.now(),
+            user_id: userId,
+            type: 'mission',
+            points: 300,
+            reference_type: 'mission',
+            reference_id: 'mission_unlock_bonus',
+            description: 'Missão concluída: Desbloqueie seu bônus',
+            created_at: new Date().toISOString()
+          });
+          localStorage.setItem(txsKey, JSON.stringify(txs));
+        }
+      }
+
+      localStorage.setItem(userMissionsKey, JSON.stringify(userMissions));
+    } catch (e) {
+      console.warn('[DataStore] Erro ao atualizar passo de missão:', e);
+    }
+  }
+
+  async function claimDailyCheckin(userId) {
+    if (!userId) return { success: false, message: 'Usuário não autenticado.' };
+    if (_supabase && window.SupabaseService) {
+      try {
+        const res = await window.SupabaseService.claimDailyCheckin();
+        if (res) return res;
+      } catch (err) {
+        if (err.message && !err.message.includes('function') && !err.message.includes('404')) {
+          return { success: false, message: err.message };
+        }
+      }
+    }
+
+    // Local simulation fallback
+    const acc = await getLoyaltyAccount(userId);
+    const today = new Date().toISOString().slice(0, 10);
+    if (acc.last_checkin_date === today) {
+      return { success: false, message: 'Check-in já realizado hoje! Volte amanhã para continuar sua sequência.' };
+    }
+
+    // Calculate streak
+    let streak = 1;
+    if (acc.last_checkin_date) {
+      const lastDate = new Date(acc.last_checkin_date + 'T00:00:00');
+      const nowDate = new Date(today + 'T00:00:00');
+      const diffDays = Math.round((nowDate - lastDate) / (1000 * 60 * 60 * 24));
+      if (diffDays === 1) {
+        streak = ((acc.checkin_streak || 0) % 7) + 1;
+      } else {
+        streak = 1;
+      }
+    }
+
+    const streakPoints = (_settings.loyalty && _settings.loyalty.checkinStreakPoints) || [10, 15, 20, 25, 30, 35, 40];
+    const pointsAwarded = streakPoints[streak - 1] || 10;
+
+    acc.points_balance = (acc.points_balance || 0) + pointsAwarded;
+    acc.lifetime_points = (acc.lifetime_points || 0) + pointsAwarded;
+    acc.checkin_streak = streak;
+    acc.last_checkin_date = today;
+    localStorage.setItem(_getLoyaltyAccountKey(userId), JSON.stringify(acc));
+
+    // Transaction
+    const tx = {
+      id: 'tx_chk_' + Date.now(),
+      user_id: userId,
+      type: 'checkin',
+      points: pointsAwarded,
+      reference_type: 'checkin',
+      reference_id: today,
+      description: `Check-in diário (Dia ${streak})`,
+      created_at: new Date().toISOString()
+    };
+    const txs = await getLoyaltyTransactions(userId);
+    txs.unshift(tx);
+    localStorage.setItem(_getLoyaltyTxKey(userId), JSON.stringify(txs));
+
+    _checkAndUpdateMissionStep(userId, 'step_checkin');
+
+    return {
+      success: true,
+      points_awarded: pointsAwarded,
+      new_balance: acc.points_balance,
+      streak: streak,
+      message: `Check-in realizado com sucesso! +${pointsAwarded} pontos creditados.`
+    };
+  }
+
+  async function followStore(userId) {
+    if (!userId) return { success: false, message: 'Usuário não autenticado.' };
+    if (_supabase && window.SupabaseService) {
+      try {
+        const res = await window.SupabaseService.followStore();
+        if (res) return res;
+      } catch (err) {
+        if (err.message && !err.message.includes('function') && !err.message.includes('404')) {
+          return { success: false, message: err.message };
+        }
+      }
+    }
+
+    // Local fallback
+    const follows = JSON.parse(localStorage.getItem(DB_KEYS.STORE_FOLLOWS) || '[]');
+    if (follows.some(f => f.user_id === userId)) {
+      return { success: false, already_following: true, message: 'Você já está seguindo a loja!' };
+    }
+
+    follows.push({ user_id: userId, created_at: new Date().toISOString() });
+    localStorage.setItem(DB_KEYS.STORE_FOLLOWS, JSON.stringify(follows));
+
+    const followPoints = (_settings.loyalty && _settings.loyalty.pointsForFollowStore) || 50;
+    const acc = await getLoyaltyAccount(userId);
+    acc.points_balance = (acc.points_balance || 0) + followPoints;
+    acc.lifetime_points = (acc.lifetime_points || 0) + followPoints;
+    localStorage.setItem(_getLoyaltyAccountKey(userId), JSON.stringify(acc));
+
+    const tx = {
+      id: 'tx_fol_' + Date.now(),
+      user_id: userId,
+      type: 'follow',
+      points: followPoints,
+      reference_type: 'follow',
+      reference_id: 'store_donna_fitness',
+      description: 'Seguir a loja no perfil',
+      created_at: new Date().toISOString()
+    };
+    const txs = await getLoyaltyTransactions(userId);
+    txs.unshift(tx);
+    localStorage.setItem(_getLoyaltyTxKey(userId), JSON.stringify(txs));
+
+    return {
+      success: true,
+      points_awarded: followPoints,
+      new_balance: acc.points_balance,
+      message: `Você agora segue a Donna Fitness PE! +${followPoints} pontos adicionados à sua conta.`
+    };
+  }
+
+  async function redeemReward(rewardId, userId) {
+    if (!userId) return { success: false, message: 'Usuário não autenticado.' };
+    if (_supabase && window.SupabaseService) {
+      try {
+        const res = await window.SupabaseService.redeemReward(rewardId);
+        if (res) return res;
+      } catch (err) {
+        if (err.message && !err.message.includes('function') && !err.message.includes('404')) {
+          return { success: false, message: err.message };
+        }
+      }
+    }
+
+    // Local fallback
+    const rewards = await getLoyaltyRewards();
+    const rew = rewards.find(r => r.id === rewardId && r.active !== false);
+    if (!rew) return { success: false, message: 'Recompensa não encontrada ou inativa.' };
+
+    const acc = await getLoyaltyAccount(userId);
+    if ((acc.points_balance || 0) < rew.points_cost) {
+      return { success: false, message: `Saldo insuficiente. Você possui ${acc.points_balance || 0} pts e esta recompensa exige ${rew.points_cost} pts.` };
+    }
+
+    // Debit points
+    acc.points_balance -= rew.points_cost;
+    localStorage.setItem(_getLoyaltyAccountKey(userId), JSON.stringify(acc));
+
+    // Generate coupon code
+    const randomChars = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const couponCode = `LOY-${randomChars}`;
+    const validDays = rew.validity_days || 30;
+    const validUntil = new Date(Date.now() + validDays * 24 * 60 * 60 * 1000).toISOString();
+
+    const coupon = {
+      id: 'coup_' + Date.now(),
+      code: couponCode,
+      reward_id: rew.id,
+      reward_title: rew.title,
+      user_id: userId,
+      discount_type: rew.reward_type,
+      discount_value: rew.discount_value,
+      min_order_value: rew.min_order_value || 0,
+      max_discount: rew.max_discount || 0,
+      status: 'active',
+      valid_until: validUntil,
+      created_at: new Date().toISOString()
+    };
+
+    const coupons = await getLoyaltyCoupons(userId);
+    coupons.unshift(coupon);
+    localStorage.setItem(_getLoyaltyCouponsKey(userId), JSON.stringify(coupons));
+
+    // Ledger transaction
+    const tx = {
+      id: 'tx_red_' + Date.now(),
+      user_id: userId,
+      type: 'redemption',
+      points: -Math.abs(rew.points_cost),
+      reference_type: 'redemption',
+      reference_id: couponCode,
+      description: `Resgate: ${rew.title} (Cupom ${couponCode})`,
+      created_at: new Date().toISOString()
+    };
+    const txs = await getLoyaltyTransactions(userId);
+    txs.unshift(tx);
+    localStorage.setItem(_getLoyaltyTxKey(userId), JSON.stringify(txs));
+
+    return {
+      success: true,
+      coupon_code: couponCode,
+      reward_title: rew.title,
+      points_spent: rew.points_cost,
+      new_balance: acc.points_balance,
+      message: `Recompensa resgatada com sucesso! Código gerado: ${couponCode}`
+    };
+  }
+
+  async function validateCoupon(code, subtotal, userId) {
+    if (!code) return { valid: false, message: 'Código de cupom não informado.' };
+    const cleanCode = code.trim().toUpperCase();
+
+    if (_supabase && window.SupabaseService) {
+      try {
+        const res = await window.SupabaseService.validateCoupon(cleanCode, subtotal);
+        if (res) return res;
+      } catch (err) {
+        if (err.message && !err.message.includes('function') && !err.message.includes('404')) {
+          return { valid: false, message: err.message };
+        }
+      }
+    }
+
+    // Local validation
+    const numSubtotal = parseFloat(subtotal) || 0;
+    let foundCoupon = null;
+
+    if (userId) {
+      const coupons = await getLoyaltyCoupons(userId);
+      foundCoupon = coupons.find(c => c.code && c.code.toUpperCase() === cleanCode);
+    }
+
+    if (!foundCoupon) {
+      const allCoupons = _loadLocal(DB_KEYS.LOYALTY_COUPONS) || [];
+      foundCoupon = allCoupons.find(c => c.code && c.code.toUpperCase() === cleanCode);
+    }
+
+    if (!foundCoupon) {
+      return { valid: false, message: 'Cupom inválido ou não encontrado.' };
+    }
+
+    if (foundCoupon.status !== 'active') {
+      return { valid: false, message: `Este cupom já foi utilizado ou está inativo (${foundCoupon.status}).` };
+    }
+
+    if (foundCoupon.valid_until && new Date(foundCoupon.valid_until) < new Date()) {
+      return { valid: false, message: 'Este cupom está expirado.' };
+    }
+
+    if (foundCoupon.min_order_value && numSubtotal < foundCoupon.min_order_value) {
+      return {
+        valid: false,
+        message: `Pedido mínimo de ${Utils.formatCurrency(foundCoupon.min_order_value)} para usar este cupom.`
+      };
+    }
+
+    let calculatedDiscount = 0;
+    let isFreeShipping = false;
+
+    if (foundCoupon.discount_type === 'percent') {
+      calculatedDiscount = (numSubtotal * foundCoupon.discount_value) / 100;
+      if (foundCoupon.max_discount && foundCoupon.max_discount > 0) {
+        calculatedDiscount = Math.min(calculatedDiscount, foundCoupon.max_discount);
+      }
+    } else if (foundCoupon.discount_type === 'fixed') {
+      calculatedDiscount = Math.min(foundCoupon.discount_value, numSubtotal);
+    } else if (foundCoupon.discount_type === 'free_shipping') {
+      isFreeShipping = true;
+      calculatedDiscount = 0;
+    }
+
+    return {
+      valid: true,
+      coupon_id: foundCoupon.id,
+      coupon_code: foundCoupon.code,
+      discount_type: foundCoupon.discount_type,
+      discount_value: foundCoupon.discount_value,
+      calculated_discount: Math.round(calculatedDiscount * 100) / 100,
+      free_shipping: isFreeShipping,
+      min_order_value: foundCoupon.min_order_value,
+      message: isFreeShipping ? 'Cupom de Frete Grátis aplicado!' : `Cupom aplicado! Economia de ${Utils.formatCurrency(calculatedDiscount)}.`
+    };
+  }
+
+  async function markCouponUsed(couponCode, orderId, userId) {
+    if (!couponCode) return;
+    const cleanCode = couponCode.trim().toUpperCase();
+
+    if (_supabase) {
+      try {
+        await _supabase
+          .from('loyalty_coupons')
+          .update({ status: 'used', used_at: new Date().toISOString(), order_id: orderId })
+          .eq('code', cleanCode);
+      } catch (e) {}
+    }
+
+    if (userId) {
+      const coupons = await getLoyaltyCoupons(userId);
+      const target = coupons.find(c => c.code && c.code.toUpperCase() === cleanCode);
+      if (target) {
+        target.status = 'used';
+        target.used_at = new Date().toISOString();
+        target.order_id = orderId;
+        localStorage.setItem(_getLoyaltyCouponsKey(userId), JSON.stringify(coupons));
+      }
+    }
+  }
+
+  async function submitProductReview(productId, rating, comment, hasPhoto = false, photoUrl = '', userId = null, userName = '') {
+    if (!productId || !rating) return { success: false, message: 'Produto e avaliação são obrigatórios.' };
+
+    if (_supabase && window.SupabaseService) {
+      try {
+        const res = await window.SupabaseService.submitProductReview(productId, rating, comment, hasPhoto, photoUrl);
+        if (res) return res;
+      } catch (err) {
+        if (err.message && !err.message.includes('function') && !err.message.includes('404')) {
+          return { success: false, message: err.message };
+        }
+      }
+    }
+
+    // Local fallback
+    const allReviews = _loadLocal(DB_KEYS.PRODUCT_REVIEWS) || [];
+    if (userId && allReviews.some(r => r.product_id === productId && r.user_id === userId)) {
+      return { success: false, message: 'Você já avaliou este produto anteriormente!' };
+    }
+
+    const basePts = (_settings.loyalty && _settings.loyalty.pointsPerReview) || 30;
+    const photoBonus = hasPhoto ? ((_settings.loyalty && _settings.loyalty.pointsPerReviewWithPhoto - basePts) || 20) : 0;
+    const totalAward = basePts + photoBonus;
+
+    const newRev = {
+      id: 'rev_' + Date.now(),
+      product_id: productId,
+      user_id: userId,
+      user_name: userName || 'Cliente Donna Fitness',
+      rating: parseInt(rating, 10),
+      comment: comment || '',
+      has_photo: Boolean(hasPhoto),
+      photo_url: photoUrl || '',
+      status: 'approved',
+      created_at: new Date().toISOString()
+    };
+    allReviews.unshift(newRev);
+    _saveLocal(DB_KEYS.PRODUCT_REVIEWS, allReviews);
+
+    if (userId) {
+      const acc = await getLoyaltyAccount(userId);
+      acc.points_balance = (acc.points_balance || 0) + totalAward;
+      acc.lifetime_points = (acc.lifetime_points || 0) + totalAward;
+      localStorage.setItem(_getLoyaltyAccountKey(userId), JSON.stringify(acc));
+
+      const tx = {
+        id: 'tx_rev_' + Date.now(),
+        user_id: userId,
+        type: 'review',
+        points: totalAward,
+        reference_type: 'review',
+        reference_id: productId,
+        description: `Avaliação de produto${hasPhoto ? ' com foto (+bônus)' : ''}`,
+        created_at: new Date().toISOString()
+      };
+      const txs = await getLoyaltyTransactions(userId);
+      txs.unshift(tx);
+      localStorage.setItem(_getLoyaltyTxKey(userId), JSON.stringify(txs));
+
+      _checkAndUpdateMissionStep(userId, 'step_review');
+    }
+
+    return {
+      success: true,
+      points_awarded: totalAward,
+      message: `Avaliação enviada com sucesso! +${totalAward} pontos adicionados à sua conta.`
+    };
+  }
+
+  async function getProductReviews(productId) {
+    if (!productId) return [];
+    if (_supabase && window.SupabaseService) {
+      try {
+        const data = await window.SupabaseService.getProductReviews(productId);
+        if (Array.isArray(data) && data.length > 0) return data;
+      } catch (e) {}
+    }
+    const all = _loadLocal(DB_KEYS.PRODUCT_REVIEWS) || [];
+    return all.filter(r => r.product_id === productId && r.status === 'approved');
+  }
+
+  async function processOrderLoyaltyPoints(order, userId) {
+    if (!order || !userId) return null;
+    if (_supabase && window.SupabaseService) {
+      try {
+        const res = await window.SupabaseService.processOrderPoints(order.id, userId, order.subtotal || order.total, order.status);
+        if (res) return res;
+      } catch (e) {}
+    }
+
+    // Local fallback
+    const eligibleAmount = parseFloat(order.subtotal || order.total) || 0;
+    const pointsPerReal = (_settings.loyalty && _settings.loyalty.pointsPerReal) || 1;
+    const pointsEarned = Math.floor(eligibleAmount * pointsPerReal);
+
+    if (pointsEarned <= 0) return null;
+
+    const txs = await getLoyaltyTransactions(userId);
+    if (txs.some(t => t.reference_type === 'order' && t.reference_id === order.id)) {
+      return null; // Idempotência: já pontuou
+    }
+
+    const acc = await getLoyaltyAccount(userId);
+    acc.points_balance = (acc.points_balance || 0) + pointsEarned;
+    acc.lifetime_points = (acc.lifetime_points || 0) + pointsEarned;
+    localStorage.setItem(_getLoyaltyAccountKey(userId), JSON.stringify(acc));
+
+    const tx = {
+      id: 'tx_ord_' + Date.now(),
+      user_id: userId,
+      type: 'purchase',
+      points: pointsEarned,
+      reference_type: 'order',
+      reference_id: order.id,
+      description: `Compra realizada #${(order.id || '').slice(-6).toUpperCase()}`,
+      created_at: new Date().toISOString()
+    };
+    txs.unshift(tx);
+    localStorage.setItem(_getLoyaltyTxKey(userId), JSON.stringify(txs));
+
+    _checkAndUpdateMissionStep(userId, 'step_purchase');
+    return { points_awarded: pointsEarned, new_balance: acc.points_balance };
+  }
+
+  async function refundOrderLoyaltyPoints(orderId, userId) {
+    if (!orderId || !userId) return;
+    const txs = await getLoyaltyTransactions(userId);
+    const purchaseTx = txs.find(t => t.reference_type === 'order' && t.reference_id === orderId && t.points > 0);
+    if (!purchaseTx) return;
+
+    const alreadyRefunded = txs.some(t => t.type === 'refund' && t.reference_id === orderId);
+    if (alreadyRefunded) return;
+
+    const pointsToDeduct = purchaseTx.points;
+    const acc = await getLoyaltyAccount(userId);
+    acc.points_balance = Math.max(0, (acc.points_balance || 0) - pointsToDeduct);
+    localStorage.setItem(_getLoyaltyAccountKey(userId), JSON.stringify(acc));
+
+    const refundTx = {
+      id: 'tx_ref_' + Date.now(),
+      user_id: userId,
+      type: 'refund',
+      points: -pointsToDeduct,
+      reference_type: 'order',
+      reference_id: orderId,
+      description: `Estorno de pontos: Pedido cancelado #${(orderId || '').slice(-6).toUpperCase()}`,
+      created_at: new Date().toISOString()
+    };
+    txs.unshift(refundTx);
+    localStorage.setItem(_getLoyaltyTxKey(userId), JSON.stringify(txs));
+  }
+
+  async function adminAdjustLoyaltyPoints(targetUserId, points, reason) {
+    if (!targetUserId || !points || !reason) {
+      throw new Error('Usuário, quantidade de pontos e motivo são obrigatórios.');
+    }
+    const numPts = parseInt(points, 10);
+    if (isNaN(numPts) || numPts === 0) throw new Error('Quantidade de pontos inválida.');
+
+    if (_supabase && window.SupabaseService) {
+      try {
+        const res = await window.SupabaseService.adminAdjustPoints(targetUserId, numPts, reason);
+        if (res) return res;
+      } catch (err) {
+        if (err.message && !err.message.includes('function') && !err.message.includes('404')) {
+          throw err;
+        }
+      }
+    }
+
+    // Local fallback
+    const acc = await getLoyaltyAccount(targetUserId);
+    acc.points_balance = Math.max(0, (acc.points_balance || 0) + numPts);
+    if (numPts > 0) acc.lifetime_points = (acc.lifetime_points || 0) + numPts;
+    localStorage.setItem(_getLoyaltyAccountKey(targetUserId), JSON.stringify(acc));
+
+    const tx = {
+      id: 'tx_adj_' + Date.now(),
+      user_id: targetUserId,
+      type: 'adjustment',
+      points: numPts,
+      reference_type: 'manual',
+      reference_id: 'admin_audit',
+      description: `Ajuste administrativo: ${reason}`,
+      created_at: new Date().toISOString()
+    };
+    const txs = await getLoyaltyTransactions(targetUserId);
+    txs.unshift(tx);
+    localStorage.setItem(_getLoyaltyTxKey(targetUserId), JSON.stringify(txs));
+
+    return { success: true, new_balance: acc.points_balance, message: 'Ajuste de pontos realizado com sucesso.' };
+  }
+
+  async function adminSaveLoyaltyReward(reward) {
+    if (!reward.id) reward.id = 'rew_' + Date.now();
+    const rewards = await getLoyaltyRewards();
+    const idx = rewards.findIndex(r => r.id === reward.id);
+    if (idx >= 0) {
+      rewards[idx] = { ...rewards[idx], ...reward };
+    } else {
+      rewards.push(reward);
+    }
+    _saveLocal(DB_KEYS.LOYALTY_REWARDS, rewards);
+
+    if (_supabase) {
+      try {
+        await _supabase.from('loyalty_rewards').upsert([{
+          id: reward.id,
+          title: reward.title,
+          description: reward.description || '',
+          reward_type: reward.reward_type,
+          discount_value: reward.discount_value,
+          points_cost: reward.points_cost,
+          min_order_value: reward.min_order_value || 0,
+          max_discount: reward.max_discount || 0,
+          validity_days: reward.validity_days || 30,
+          active: reward.active !== false,
+          order_num: reward.order_num || 99
+        }]);
+      } catch (e) {}
+    }
+    return reward;
+  }
+
+  async function adminDeleteLoyaltyReward(rewardId) {
+    const rewards = (await getLoyaltyRewards()).filter(r => r.id !== rewardId);
+    _saveLocal(DB_KEYS.LOYALTY_REWARDS, rewards);
+    if (_supabase) {
+      try {
+        await _supabase.from('loyalty_rewards').delete().eq('id', rewardId);
+      } catch (e) {}
+    }
+  }
+
+  async function adminGetReviews() {
+    if (_supabase) {
+      try {
+        const { data, error } = await _supabase.from('product_reviews').select('*').order('created_at', { ascending: false });
+        if (!error && data) return data;
+      } catch (e) {}
+    }
+    return _loadLocal(DB_KEYS.PRODUCT_REVIEWS) || [];
+  }
+
+  async function adminModerateReview(reviewId, status) {
+    if (_supabase) {
+      try {
+        await _supabase.from('product_reviews').update({ status }).eq('id', reviewId);
+      } catch (e) {}
+    }
+    const all = _loadLocal(DB_KEYS.PRODUCT_REVIEWS) || [];
+    const rev = all.find(r => r.id === reviewId);
+    if (rev) {
+      rev.status = status;
+      _saveLocal(DB_KEYS.PRODUCT_REVIEWS, all);
+    }
+    return true;
+  }
+
   // ===== EXPORT =====
   return {
     init,
@@ -951,6 +1927,7 @@ const DataStore = (function () {
     getCategories,
     getSettings,
     getOrders,
+    getCustomerOrders,
     getProductTotalStock,
     getVariantStock,
     getAvailableSizesForColor,
@@ -968,7 +1945,28 @@ const DataStore = (function () {
     updateOrderStatus,
     deleteOrder,
     isStoreOpen,
-    forceRefresh
+    forceRefresh,
+    // Loyalty methods
+    getLoyaltyAccount,
+    getLoyaltyTransactions,
+    getLoyaltyRewards,
+    getLoyaltyCoupons,
+    getLoyaltyMissions,
+    isUserFollowingStore,
+    claimDailyCheckin,
+    followStore,
+    redeemReward,
+    validateCoupon,
+    markCouponUsed,
+    submitProductReview,
+    getProductReviews,
+    processOrderLoyaltyPoints,
+    refundOrderLoyaltyPoints,
+    adminAdjustLoyaltyPoints,
+    adminSaveLoyaltyReward,
+    adminDeleteLoyaltyReward,
+    adminGetReviews,
+    adminModerateReview
   };
 })();
 

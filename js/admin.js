@@ -28,6 +28,7 @@
   let confirmCallback = null;
   let variantList = []; // [{color, colorHex, sizes: {PP:0, P:0, ...}}]
   let igPostsList = []; // Manual Instagram posts manager
+  let bannersList = []; // Hero Slider / Banners manager
 
   // ===== 1. LOGIN =====
   async function initLogin() {
@@ -209,6 +210,7 @@
       schedule: renderSchedule,
       visual: renderVisual,
       sizes: renderSizes,
+      loyalty: renderLoyalty,
       security: renderSecurity
     };
     if (renderers[section]) renderers[section]();
@@ -2023,6 +2025,159 @@
     if ($('v-featured-title')) $('v-featured-title').value = f.title || 'Nova Coleção 2026';
     if ($('v-featured-subtitle')) $('v-featured-subtitle').value = f.subtitle || '';
 
+    // Banners Manager
+    bannersList = [...(s.banners || [])];
+    if (bannersList.length === 0 && s.hero && s.hero.title) {
+      bannersList.push({
+        id: 'banner_1',
+        title: s.hero.title || 'MODA FITNESS CHIC',
+        subtitle: s.hero.subtitle || 'Activewear de alta compressão e zero transparência.',
+        badge: 'NOVA COLEÇÃO',
+        image: s.hero.image || 'assets/images/hero_fitness.jpg',
+        mobileImage: s.hero.image || 'assets/images/hero_fitness.jpg',
+        ctaText: s.hero.ctaText || 'Ver Coleção',
+        ctaLink: '#products',
+        active: true,
+        order: 1
+      });
+    }
+
+    window.AdminPanel.renderBannersManager = function() {
+      const container = $('banners-manager-list');
+      if (!container) return;
+      if (bannersList.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;">Nenhum banner cadastrado. Clique em "+ Novo Banner".</p>';
+        return;
+      }
+      container.innerHTML = bannersList.map((banner, idx) => `
+        <div class="banner-manager-card" style="display:flex;gap:14px;padding:14px;border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:14px;background:var(--bg-body);align-items:flex-start;">
+          <div style="width:120px;height:80px;background:var(--border);border-radius:6px;overflow:hidden;flex-shrink:0;position:relative;">
+            ${banner.image ? `<img src="${Utils.sanitize(banner.image)}" style="width:100%;height:100%;object-fit:cover;">` : '<div style="display:flex;height:100%;align-items:center;justify-content:center;color:var(--text-muted);font-size:0.75rem;">Sem imagem</div>'}
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div>
+                <label style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:2px;">Título</label>
+                <input type="text" class="form-control" style="padding:4px 8px;font-size:0.85rem;" placeholder="Título do banner" value="${Utils.sanitize(banner.title || '')}" onchange="AdminPanel.updateBanner(${idx}, 'title', this.value)">
+              </div>
+              <div>
+                <label style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:2px;">Badge / Selo (opcional)</label>
+                <input type="text" class="form-control" style="padding:4px 8px;font-size:0.85rem;" placeholder="Ex: NOVIDADES, TOP 1" value="${Utils.sanitize(banner.badge || '')}" onchange="AdminPanel.updateBanner(${idx}, 'badge', this.value)">
+              </div>
+            </div>
+            <div>
+              <label style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:2px;">Subtítulo / Descrição</label>
+              <input type="text" class="form-control" style="padding:4px 8px;font-size:0.85rem;" placeholder="Descrição do banner" value="${Utils.sanitize(banner.subtitle || '')}" onchange="AdminPanel.updateBanner(${idx}, 'subtitle', this.value)">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div>
+                <label style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:2px;">Texto do Botão</label>
+                <input type="text" class="form-control" style="padding:4px 8px;font-size:0.85rem;" placeholder="Ex: Ver Coleção" value="${Utils.sanitize(banner.ctaText || '')}" onchange="AdminPanel.updateBanner(${idx}, 'ctaText', this.value)">
+              </div>
+              <div>
+                <label style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:2px;">Link de Destino</label>
+                <input type="text" class="form-control" style="padding:4px 8px;font-size:0.85rem;" placeholder="Ex: #products ou #cat-Leggings" value="${Utils.sanitize(banner.ctaLink || '')}" onchange="AdminPanel.updateBanner(${idx}, 'ctaLink', this.value)">
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div>
+                <label style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:2px;">Imagem Desktop</label>
+                <div style="display:flex;gap:4px;">
+                  <input type="text" class="form-control" style="padding:4px 8px;font-size:0.8rem;flex:1;" placeholder="URL ou upload" value="${Utils.sanitize(banner.image || '')}" onchange="AdminPanel.updateBanner(${idx}, 'image', this.value)">
+                  <label class="btn btn-secondary btn-sm" style="cursor:pointer;padding:4px 8px;font-size:0.75rem;">
+                    Upload
+                    <input type="file" accept="image/*" style="display:none;" onchange="AdminPanel.uploadBannerImage(${idx}, 'image', this)">
+                  </label>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:2px;">Imagem Mobile (opcional)</label>
+                <div style="display:flex;gap:4px;">
+                  <input type="text" class="form-control" style="padding:4px 8px;font-size:0.8rem;flex:1;" placeholder="URL ou upload mobile" value="${Utils.sanitize(banner.mobileImage || '')}" onchange="AdminPanel.updateBanner(${idx}, 'mobileImage', this.value)">
+                  <label class="btn btn-secondary btn-sm" style="cursor:pointer;padding:4px 8px;font-size:0.75rem;">
+                    Upload
+                    <input type="file" accept="image/*" style="display:none;" onchange="AdminPanel.uploadBannerImage(${idx}, 'mobileImage', this)">
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+              <label style="font-size:0.82rem;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                <input type="checkbox" ${banner.active !== false ? 'checked' : ''} onchange="AdminPanel.updateBanner(${idx}, 'active', this.checked)">
+                <span>Banner Ativo na Home</span>
+              </label>
+              <div style="display:flex;gap:6px;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="AdminPanel.moveBanner(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Mover para cima"><i data-lucide="chevron-up" style="width:13px;height:13px;"></i></button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="AdminPanel.moveBanner(${idx}, 1)" ${idx === bannersList.length - 1 ? 'disabled' : ''} title="Mover para baixo"><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="AdminPanel.removeBanner(${idx})" title="Remover"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      refreshIcons();
+    };
+
+    window.AdminPanel.updateBanner = function(idx, field, val) {
+      if (!bannersList[idx]) return;
+      bannersList[idx][field] = val;
+      if (field === 'image' || field === 'mobileImage') AdminPanel.renderBannersManager();
+    };
+
+    window.AdminPanel.removeBanner = function(idx) {
+      bannersList.splice(idx, 1);
+      AdminPanel.renderBannersManager();
+    };
+
+    window.AdminPanel.moveBanner = function(idx, dir) {
+      const newIdx = idx + dir;
+      if (newIdx < 0 || newIdx >= bannersList.length) return;
+      const temp = bannersList[idx];
+      bannersList[idx] = bannersList[newIdx];
+      bannersList[newIdx] = temp;
+      bannersList.forEach((b, i) => b.order = i + 1);
+      AdminPanel.renderBannersManager();
+    };
+
+    window.AdminPanel.uploadBannerImage = async function(idx, field, inputEl) {
+      if (!bannersList[idx] || !inputEl.files || !inputEl.files[0]) return;
+      const file = inputEl.files[0];
+      if (file.size > 5 * 1024 * 1024) { Utils.showToast('Máx. 5MB.', 'error'); return; }
+      try {
+        Utils.showToast('Enviando banner...', 'info');
+        if (window.SupabaseService && window.SupabaseService.isConfigured()) {
+          const url = await window.SupabaseService.uploadImage(file, 'products');
+          bannersList[idx][field] = url;
+          AdminPanel.renderBannersManager();
+          Utils.showToast('Imagem do banner enviada!', 'success');
+        } else {
+          const reader = new FileReader();
+          reader.onload = e => { bannersList[idx][field] = e.target.result; AdminPanel.renderBannersManager(); };
+          reader.readAsDataURL(file);
+        }
+      } catch (err) { Utils.showToast('Erro: ' + (err.message || ''), 'error'); }
+    };
+
+    const btnAddBanner = $('btn-add-banner');
+    if (btnAddBanner) {
+      btnAddBanner.onclick = () => {
+        bannersList.push({
+          id: 'banner_' + Date.now(),
+          title: 'NOVO DESTAQUE',
+          subtitle: 'Descrição do banner de lançamento da coleção.',
+          badge: 'NOVIDADE',
+          image: 'assets/images/hero_fitness.jpg',
+          mobileImage: 'assets/images/hero_fitness.jpg',
+          ctaText: 'Ver Peças',
+          ctaLink: '#products',
+          active: true,
+          order: bannersList.length + 1
+        });
+        AdminPanel.renderBannersManager();
+      };
+    }
+    AdminPanel.renderBannersManager();
+
     // Instagram Feed settings
     const ig = s.instagramFeed || {};
     if ($('v-ig-active')) $('v-ig-active').checked = ig.active !== false;
@@ -2195,6 +2350,7 @@
             title: $('v-featured-title') ? $('v-featured-title').value.trim() : 'Nova Coleção',
             subtitle: $('v-featured-subtitle') ? $('v-featured-subtitle').value.trim() : ''
           },
+          banners: bannersList,
           instagramFeed: {
             active: $('v-ig-active') ? $('v-ig-active').checked : true,
             handle: $('v-ig-handle') ? $('v-ig-handle').value.trim() : '',
@@ -2439,6 +2595,265 @@
       }
     });
   }
+
+  // ===== 11. FIDELIDADE & RECOMPENSAS =====
+  let currentEditingRewardId = null;
+
+  async function renderLoyalty() {
+    const s = DataStore.getSettings();
+    const l = s.loyalty || {
+      enabled: true,
+      pointsPerReal: 1,
+      pointsPerReview: 30,
+      pointsPerReviewWithPhoto: 50,
+      pointsForFollowStore: 50,
+      checkinStreakPoints: [10, 15, 20, 25, 30, 35, 40]
+    };
+
+    if ($('loyalty-enabled')) $('loyalty-enabled').checked = l.enabled !== false;
+    if ($('loyalty-pts-real')) $('loyalty-pts-real').value = l.pointsPerReal !== undefined ? l.pointsPerReal : 1;
+    if ($('loyalty-pts-review')) $('loyalty-pts-review').value = l.pointsPerReview !== undefined ? l.pointsPerReview : 30;
+    if ($('loyalty-pts-review-photo')) $('loyalty-pts-review-photo').value = l.pointsPerReviewWithPhoto !== undefined ? l.pointsPerReviewWithPhoto : 50;
+    if ($('loyalty-pts-follow')) $('loyalty-pts-follow').value = l.pointsForFollowStore !== undefined ? l.pointsForFollowStore : 50;
+    if ($('loyalty-streak-input')) $('loyalty-streak-input').value = Array.isArray(l.checkinStreakPoints) ? l.checkinStreakPoints.join(', ') : '10, 15, 20, 25, 30, 35, 40';
+
+    await renderLoyaltyRewards();
+    await renderAdminReviews();
+  }
+
+  async function saveLoyaltyRules(e) {
+    if (e) e.preventDefault();
+    const streakStr = $('loyalty-streak-input') ? $('loyalty-streak-input').value : '10, 15, 20, 25, 30, 35, 40';
+    const streakArr = streakStr.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
+
+    const loyaltyConfig = {
+      enabled: $('loyalty-enabled') ? $('loyalty-enabled').checked : true,
+      pointsPerReal: parseFloat($('loyalty-pts-real').value) || 1,
+      pointsPerReview: parseInt($('loyalty-pts-review').value, 10) || 30,
+      pointsPerReviewWithPhoto: parseInt($('loyalty-pts-review-photo').value, 10) || 50,
+      pointsForFollowStore: parseInt($('loyalty-pts-follow').value, 10) || 50,
+      checkinStreakPoints: streakArr.length === 7 ? streakArr : [10, 15, 20, 25, 30, 35, 40],
+      expirationEnabled: false,
+      expirationDays: 365
+    };
+
+    await DataStore.updateSetting('loyalty', loyaltyConfig);
+    Utils.showToast('Regras de fidelidade salvas com sucesso!', 'success');
+  }
+
+  async function renderLoyaltyRewards() {
+    const tbody = $('loyalty-rewards-tbody');
+    if (!tbody) return;
+
+    const rewards = await DataStore.getLoyaltyRewards();
+    if (!rewards || rewards.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">Nenhuma recompensa cadastrada.</td></tr>`;
+      return;
+    }
+
+    const typeLabels = {
+      percent: '% OFF',
+      fixed: 'R$ OFF',
+      free_shipping: 'Frete Grátis'
+    };
+
+    tbody.innerHTML = rewards.map(r => {
+      const typeLabel = typeLabels[r.reward_type] || r.reward_type;
+      const valLabel = r.reward_type === 'percent' ? `${r.discount_value}%` : (r.reward_type === 'fixed' ? Utils.formatCurrency(r.discount_value) : 'Isenção');
+      const minOrderLabel = r.min_order_value > 0 ? Utils.formatCurrency(r.min_order_value) : 'Sem mín.';
+      const statusBadge = r.active !== false
+        ? `<span class="status-badge active">Ativo</span>`
+        : `<span class="status-badge inactive">Inativo</span>`;
+
+      return `
+        <tr>
+          <td><strong>${Utils.sanitize(r.title)}</strong><div style="font-size:0.75rem;color:var(--text-muted);">${Utils.sanitize(r.description || '')}</div></td>
+          <td><span style="background:#F1F5F9;padding:3px 8px;border-radius:6px;font-size:0.78rem;font-weight:700;">${typeLabel}</span></td>
+          <td><strong>${valLabel}</strong></td>
+          <td><span style="color:#D97706;font-weight:800;">🪙 ${r.points_cost} pts</span></td>
+          <td>${minOrderLabel}</td>
+          <td>${r.validity_days || 30} dias</td>
+          <td>${statusBadge}</td>
+          <td style="text-align:right;">
+            <div style="display:inline-flex;gap:6px;">
+              <button type="button" class="btn btn-sm btn-secondary" onclick="window.AdminApp?.openRewardModal('${r.id}')" title="Editar">
+                <i data-lucide="edit-2"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-danger" onclick="window.AdminApp?.deleteReward('${r.id}')" title="Excluir">
+                <i data-lucide="trash-2"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    refreshIcons();
+  }
+
+  async function openRewardModal(rewardId = null) {
+    currentEditingRewardId = rewardId;
+    const modal = $('reward-form-modal');
+    if (!modal) return;
+
+    if (rewardId) {
+      $('reward-form-title').textContent = 'Editar Recompensa';
+      const rewards = await DataStore.getLoyaltyRewards();
+      const r = rewards.find(item => item.id === rewardId);
+      if (r) {
+        $('rf-id').value = r.id;
+        $('rf-title').value = r.title;
+        $('rf-description').value = r.description || '';
+        $('rf-type').value = r.reward_type;
+        $('rf-value').value = r.discount_value;
+        $('rf-cost').value = r.points_cost;
+        $('rf-min-order').value = r.min_order_value || 0;
+        $('rf-max-discount').value = r.max_discount || 0;
+        $('rf-validity').value = r.validity_days || 30;
+      }
+    } else {
+      $('reward-form-title').textContent = 'Cadastrar Recompensa';
+      $('rf-id').value = '';
+      $('rf-title').value = '';
+      $('rf-description').value = '';
+      $('rf-type').value = 'percent';
+      $('rf-value').value = 10;
+      $('rf-cost').value = 700;
+      $('rf-min-order').value = 0;
+      $('rf-max-discount').value = 0;
+      $('rf-validity').value = 30;
+    }
+
+    modal.classList.add('active');
+    refreshIcons();
+  }
+
+  function closeRewardModal() {
+    const modal = $('reward-form-modal');
+    if (modal) modal.classList.remove('active');
+  }
+
+  async function saveReward(e) {
+    if (e) e.preventDefault();
+    const id = $('rf-id').value || null;
+    const title = $('rf-title').value.trim();
+    if (!title) {
+      Utils.showToast('Informe o título da recompensa.', 'error');
+      return;
+    }
+
+    const rewardObj = {
+      id: id || ('rew_' + Date.now()),
+      title: title,
+      description: $('rf-description').value.trim(),
+      reward_type: $('rf-type').value,
+      discount_value: parseFloat($('rf-value').value) || 0,
+      points_cost: parseInt($('rf-cost').value, 10) || 100,
+      min_order_value: parseFloat($('rf-min-order').value) || 0,
+      max_discount: parseFloat($('rf-max-discount').value) || 0,
+      validity_days: parseInt($('rf-validity').value, 10) || 30,
+      active: true
+    };
+
+    await DataStore.adminSaveLoyaltyReward(rewardObj);
+    closeRewardModal();
+    await renderLoyaltyRewards();
+    Utils.showToast('Recompensa salva com sucesso!', 'success');
+  }
+
+  function deleteReward(rewardId) {
+    showConfirm('Tem certeza que deseja excluir esta recompensa?', async () => {
+      await DataStore.adminDeleteLoyaltyReward(rewardId);
+      await renderLoyaltyRewards();
+      Utils.showToast('Recompensa removida.', 'info');
+    });
+  }
+
+  async function handleAdjustPoints(e) {
+    if (e) e.preventDefault();
+    const userId = $('adjust-user-id').value.trim();
+    const points = parseInt($('adjust-points-amount').value, 10);
+    const reason = $('adjust-reason').value.trim();
+
+    if (!userId || !points || !reason) {
+      Utils.showToast('Preencha todos os campos obrigatórios com o motivo da auditoria.', 'error');
+      return;
+    }
+
+    try {
+      await DataStore.adminAdjustLoyaltyPoints(userId, points, reason);
+      Utils.showToast(`Ajuste de ${points > 0 ? '+' : ''}${points} pontos efetuado com sucesso!`, 'success');
+      $('adjust-user-id').value = '';
+      $('adjust-points-amount').value = '';
+      $('adjust-reason').value = '';
+    } catch (err) {
+      Utils.showToast(`Erro ao ajustar pontos: ${err.message}`, 'error');
+    }
+  }
+
+  async function renderAdminReviews() {
+    const tbody = $('admin-reviews-tbody');
+    if (!tbody) return;
+
+    const reviews = await DataStore.adminGetReviews();
+    if (!reviews || reviews.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">Nenhuma avaliação encontrada.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = reviews.map(rev => {
+      const p = DataStore.getProductById(rev.product_id);
+      const prodName = p ? p.name : (rev.product_id || 'Produto');
+      const stars = '★'.repeat(rev.rating || 5);
+      const photoHtml = rev.photo_url
+        ? `<a href="${rev.photo_url}" target="_blank"><img src="${rev.photo_url}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;"></a>`
+        : '—';
+      const statusBadge = rev.status === 'approved'
+        ? `<span class="status-badge active">Aprovada</span>`
+        : (rev.status === 'rejected' ? `<span class="status-badge inactive">Rejeitada</span>` : `<span class="status-badge pending">Pendente</span>`);
+
+      return `
+        <tr>
+          <td style="font-size:0.78rem;color:var(--text-muted);">${Utils.formatDate(rev.created_at)}</td>
+          <td><strong>${Utils.sanitize(prodName)}</strong></td>
+          <td>${Utils.sanitize(rev.user_name || 'Cliente')}</td>
+          <td><span style="color:#F59E0B;font-size:0.95rem;">${stars}</span></td>
+          <td style="max-width:220px;font-size:0.8rem;">${Utils.sanitize(rev.comment || '')}</td>
+          <td>${photoHtml}</td>
+          <td>${statusBadge}</td>
+          <td style="text-align:right;">
+            <div style="display:inline-flex;gap:6px;">
+              ${rev.status !== 'approved' ? `<button type="button" class="btn btn-sm btn-primary" onclick="window.AdminApp?.moderateReview('${rev.id}', 'approved')" title="Aprovar">Aprovar</button>` : ''}
+              ${rev.status !== 'rejected' ? `<button type="button" class="btn btn-sm btn-danger" onclick="window.AdminApp?.moderateReview('${rev.id}', 'rejected')" title="Rejeitar">Rejeitar</button>` : ''}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    refreshIcons();
+  }
+
+  async function moderateReview(reviewId, status) {
+    await DataStore.adminModerateReview(reviewId, status);
+    await renderAdminReviews();
+    Utils.showToast(`Avaliação ${status === 'approved' ? 'aprovada' : 'rejeitada'} com sucesso!`, 'info');
+  }
+
+  // Bind reward modal buttons
+  if ($('btn-new-reward')) $('btn-new-reward').onclick = () => openRewardModal();
+  if ($('btn-cancel-reward')) $('btn-cancel-reward').onclick = closeRewardModal;
+  if ($('btn-close-reward-form')) $('btn-close-reward-form').onclick = closeRewardModal;
+
+  // Expose AdminApp for Loyalty and Reviews
+  window.AdminApp = window.AdminApp || {};
+  window.AdminApp.saveLoyaltyRules = saveLoyaltyRules;
+  window.AdminApp.openRewardModal = openRewardModal;
+  window.AdminApp.closeRewardModal = closeRewardModal;
+  window.AdminApp.saveReward = saveReward;
+  window.AdminApp.deleteReward = deleteReward;
+  window.AdminApp.handleAdjustPoints = handleAdjustPoints;
+  window.AdminApp.moderateReview = moderateReview;
 
   // Expose AdminPanel extras
   window.AdminPanel = window.AdminPanel || {};

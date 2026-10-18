@@ -167,7 +167,7 @@
     },
 
     /**
-     * Authentication helpers
+     * Customer & Admin Authentication helpers
      */
     async signIn(email, password) {
       const client = await this.init();
@@ -180,6 +180,94 @@
       });
     },
 
+    async signUp(name, email, password) {
+      const client = await this.init();
+      if (!client) {
+        return { error: { message: 'Supabase não está conectado.' } };
+      }
+      const cleanName = (name || '').trim();
+      const res = await client.auth.signUp({
+        email: email.trim(),
+        password: password.trim(),
+        options: {
+          data: {
+            name: cleanName,
+            full_name: cleanName
+          }
+        }
+      });
+
+      // Se o usuário foi criado imediatamente (sem confirmação de e-mail obrigatória)
+      if (res.data && res.data.user && !res.error) {
+        try {
+          await this.saveProfile(res.data.user.id, { name: cleanName });
+        } catch (e) {
+          console.warn('[Supabase] Perfil será sincronizado no primeiro login:', e);
+        }
+      }
+
+      return res;
+    },
+
+    /**
+     * Login oficial com Google via Supabase OAuth
+     */
+    async signInWithGoogle() {
+      const client = await this.init();
+      if (!client) {
+        return { error: { message: 'Supabase não está conectado.' } };
+      }
+      const redirectUrl = window.location.origin + window.location.pathname;
+      return client.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl
+        }
+      });
+    },
+
+    /**
+     * Recuperação de senha por e-mail oficial
+     */
+    async resetPassword(email) {
+      const client = await this.init();
+      if (!client) {
+        return { error: { message: 'Supabase não está conectado.' } };
+      }
+      const redirectUrl = window.location.origin + window.location.pathname;
+      return client.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: redirectUrl
+      });
+    },
+
+    /**
+     * Atualização de senha pelo usuário logado
+     */
+    async updatePassword(newPassword) {
+      const client = await this.init();
+      if (!client) {
+        return { error: { message: 'Supabase não está conectado.' } };
+      }
+      return client.auth.updateUser({
+        password: newPassword.trim()
+      });
+    },
+
+    /**
+     * Escuta alterações de estado de autenticação (LOGIN, LOGOUT, RECOVERY, etc.)
+     */
+    onAuthStateChange(callback) {
+      if (!clientInstance) {
+        this.init().then(client => {
+          if (client && client.auth) {
+            client.auth.onAuthStateChange(callback);
+          }
+        });
+        return;
+      }
+      return clientInstance.auth.onAuthStateChange(callback);
+    },
+
     async signOut() {
       if (clientInstance) {
         try {
@@ -187,6 +275,9 @@
         } catch (e) {}
       }
       sessionStorage.removeItem('fashion_admin_logged');
+      try {
+        localStorage.removeItem('fashion_customer_profile_cache');
+      } catch (e) {}
     },
 
     async getSession() {
@@ -208,6 +299,372 @@
     async getCurrentUser() {
       const session = await this.getSession();
       return session ? session.user : null;
+    },
+
+    /**
+     * Customer Profile Management
+     */
+    async getProfile(userId) {
+      const client = await this.init();
+      if (!client || !userId) return null;
+      try {
+        const { data, error } = await client
+          .from('profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (error) {
+          // Fallback gracioso se a tabela ainda não tiver sido criada no Supabase
+          console.warn('[Supabase] Consulta ao perfil:', error.message);
+          return null;
+        }
+        return data;
+      } catch (err) {
+        console.warn('[Supabase] Erro ao carregar perfil:', err);
+        return null;
+      }
+    },
+
+    async saveProfile(userId, profileData) {
+      const client = await this.init();
+      if (!client || !userId) return null;
+      try {
+        const payload = {
+          user_id: userId,
+          name: (profileData.name || '').trim(),
+          phone: (profileData.phone || '').trim(),
+          default_address: profileData.default_address || {},
+          updated_at: new Date().toISOString()
+        };
+
+        const { data, error } = await client
+          .from('profiles')
+          .upsert(payload, { onConflict: 'user_id' })
+          .select()
+          .maybeSingle();
+
+        if (error) {
+          console.warn('[Supabase] Falha ao persistir perfil na tabela profiles:', error.message);
+          return null;
+        }
+        return data;
+      } catch (err) {
+        console.warn('[Supabase] Erro ao salvar perfil:', err);
+        return null;
+      }
+    },
+
+    /**
+     * Buscar pedidos exclusivos do cliente autenticado
+     */
+    async getCustomerOrders(userId) {
+      const client = await this.init();
+      if (!client || !userId) return [];
+      try {
+        const { data, error } = await client
+          .from('orders')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.warn('[Supabase] Erro ao buscar pedidos do cliente:', error.message);
+          return [];
+        }
+        return data || [];
+      } catch (err) {
+        console.warn('[Supabase] Exceção ao carregar pedidos do cliente:', err);
+        return [];
+      }
+    },
+
+    /**
+     * ============================================================
+     * PROGRAMA DE FIDELIDADE (SUPABASE AUTH & RPC ATÔMICOS)
+     * ============================================================
+     */
+
+    /**
+     * Buscar conta de fidelidade do cliente autenticado
+     */
+    async getLoyaltyAccount(userId) {
+      const client = await this.init();
+      if (!client || !userId) return null;
+      try {
+        const { data, error } = await client
+          .from('loyalty_accounts')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (error) {
+          console.warn('[Supabase Loyalty] Consulta à conta:', error.message);
+          return null;
+        }
+        return data;
+      } catch (err) {
+        console.warn('[Supabase Loyalty] Erro ao carregar conta:', err);
+        return null;
+      }
+    },
+
+    /**
+     * Buscar histórico de transações de pontos do cliente
+     */
+    async getLoyaltyTransactions(userId) {
+      const client = await this.init();
+      if (!client || !userId) return [];
+      try {
+        const { data, error } = await client
+          .from('loyalty_transactions')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.warn('[Supabase Loyalty] Erro ao buscar extrato:', error.message);
+          return [];
+        }
+        return data || [];
+      } catch (err) {
+        console.warn('[Supabase Loyalty] Erro no extrato:', err);
+        return [];
+      }
+    },
+
+    /**
+     * Buscar catálogo de recompensas disponíveis
+     */
+    async getLoyaltyRewards() {
+      const client = await this.init();
+      if (!client) return [];
+      try {
+        const { data, error } = await client
+          .from('loyalty_rewards')
+          .select('*')
+          .eq('active', true)
+          .order('order_num', { ascending: true });
+
+        if (error) {
+          console.warn('[Supabase Loyalty] Erro ao listar recompensas:', error.message);
+          return [];
+        }
+        return data || [];
+      } catch (err) {
+        console.warn('[Supabase Loyalty] Erro ao buscar recompensas:', err);
+        return [];
+      }
+    },
+
+    /**
+     * Buscar cupons ativos do cliente autenticado
+     */
+    async getLoyaltyCoupons(userId) {
+      const client = await this.init();
+      if (!client || !userId) return [];
+      try {
+        const { data, error } = await client
+          .from('loyalty_coupons')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.warn('[Supabase Loyalty] Erro ao listar cupons:', error.message);
+          return [];
+        }
+        return data || [];
+      } catch (err) {
+        console.warn('[Supabase Loyalty] Erro ao carregar cupons:', err);
+        return [];
+      }
+    },
+
+    /**
+     * Buscar missões ativas e progresso do cliente
+     */
+    async getLoyaltyMissions(userId) {
+      const client = await this.init();
+      if (!client) return { missions: [], userMissions: [] };
+      try {
+        const { data: missions, error: mErr } = await client
+          .from('loyalty_missions')
+          .select('*')
+          .eq('active', true)
+          .order('order_num', { ascending: true });
+
+        if (mErr) throw mErr;
+
+        let userMissions = [];
+        if (userId) {
+          const { data: uMissions } = await client
+            .from('loyalty_user_missions')
+            .select('*')
+            .eq('user_id', userId);
+          userMissions = uMissions || [];
+        }
+
+        return { missions: missions || [], userMissions };
+      } catch (err) {
+        console.warn('[Supabase Loyalty] Erro ao buscar missões:', err);
+        return { missions: [], userMissions: [] };
+      }
+    },
+
+    /**
+     * Realizar Check-in diário no servidor via RPC atômica
+     */
+    async claimDailyCheckin() {
+      const client = await this.init();
+      if (!client) throw new Error('Supabase não conectado.');
+      try {
+        const { data, error } = await client.rpc('loyalty_claim_daily_checkin');
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.warn('[Supabase Loyalty] RPC claimDailyCheckin falhou:', err.message);
+        throw err;
+      }
+    },
+
+    /**
+     * Seguir a loja no servidor via RPC atômica
+     */
+    async followStore() {
+      const client = await this.init();
+      if (!client) throw new Error('Supabase não conectado.');
+      try {
+        const { data, error } = await client.rpc('loyalty_follow_store');
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.warn('[Supabase Loyalty] RPC followStore falhou:', err.message);
+        throw err;
+      }
+    },
+
+    /**
+     * Resgatar recompensa gerando cupom atômico no servidor
+     */
+    async redeemReward(rewardId) {
+      const client = await this.init();
+      if (!client) throw new Error('Supabase não conectado.');
+      try {
+        const { data, error } = await client.rpc('loyalty_redeem_reward', { p_reward_id: rewardId });
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.warn('[Supabase Loyalty] RPC redeemReward falhou:', err.message);
+        throw err;
+      }
+    },
+
+    /**
+     * Validar cupom no checkout no servidor
+     */
+    async validateCoupon(code, subtotal) {
+      const client = await this.init();
+      if (!client) throw new Error('Supabase não conectado.');
+      try {
+        const { data, error } = await client.rpc('loyalty_validate_coupon', {
+          p_code: code,
+          p_subtotal: parseFloat(subtotal) || 0
+        });
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.warn('[Supabase Loyalty] RPC validateCoupon falhou:', err.message);
+        throw err;
+      }
+    },
+
+    /**
+     * Enviar avaliação de produto com pontos atômicos
+     */
+    async submitProductReview(productId, rating, comment, hasPhoto = false, photoUrl = '') {
+      const client = await this.init();
+      if (!client) throw new Error('Supabase não conectado.');
+      try {
+        const { data, error } = await client.rpc('loyalty_submit_review', {
+          p_product_id: productId,
+          p_rating: rating,
+          p_comment: comment,
+          p_has_photo: Boolean(hasPhoto),
+          p_photo_url: photoUrl || ''
+        });
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.warn('[Supabase Loyalty] RPC submitProductReview falhou:', err.message);
+        throw err;
+      }
+    },
+
+    /**
+     * Buscar avaliações aprovadas de um produto
+     */
+    async getProductReviews(productId) {
+      const client = await this.init();
+      if (!client || !productId) return [];
+      try {
+        const { data, error } = await client
+          .from('product_reviews')
+          .select('*')
+          .eq('product_id', productId)
+          .eq('status', 'approved')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.warn('[Supabase Reviews] Erro ao buscar avaliações:', error.message);
+          return [];
+        }
+        return data || [];
+      } catch (err) {
+        console.warn('[Supabase Reviews] Exceção ao carregar avaliações:', err);
+        return [];
+      }
+    },
+
+    /**
+     * Creditar pontos por pedido aprovado via RPC
+     */
+    async processOrderPoints(orderId, userId, orderTotal, orderStatus = 'novo') {
+      const client = await this.init();
+      if (!client || !userId) return null;
+      try {
+        const { data, error } = await client.rpc('loyalty_process_order_points', {
+          p_order_id: orderId,
+          p_user_id: userId,
+          p_order_total: parseFloat(orderTotal) || 0,
+          p_order_status: orderStatus
+        });
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.warn('[Supabase Loyalty] RPC processOrderPoints falhou:', err.message);
+        return null;
+      }
+    },
+
+    /**
+     * Ajuste manual de pontos pelo administrador (com auditoria)
+     */
+    async adminAdjustPoints(targetUserId, points, reason) {
+      const client = await this.init();
+      if (!client) throw new Error('Supabase não conectado.');
+      try {
+        const { data, error } = await client.rpc('loyalty_admin_adjust_points', {
+          p_target_user_id: targetUserId,
+          p_points: parseInt(points, 10),
+          p_reason: reason
+        });
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.warn('[Supabase Loyalty] RPC adminAdjustPoints falhou:', err.message);
+        throw err;
+      }
     },
 
     /**

@@ -82,9 +82,42 @@ CREATE TABLE IF NOT EXISTS public.settings (
     updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
 );
 
--- 5. TABLE: ORDERS
+-- 5. TABLE: PROFILES (Contas de clientes)
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    phone TEXT DEFAULT '',
+    default_address JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW()),
+    updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
+);
+
+-- Trigger de criação automática de perfil
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.profiles (user_id, name, created_at, updated_at)
+    VALUES (
+        NEW.id,
+        COALESCE(NEW.raw_user_meta_data->>'name', NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
+        NOW(),
+        NOW()
+    )
+    ON CONFLICT (user_id) DO NOTHING;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- 6. TABLE: ORDERS
 CREATE TABLE IF NOT EXISTS public.orders (
     id TEXT PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     customer JSONB NOT NULL,
     delivery_type TEXT NOT NULL DEFAULT 'delivery',
     delivery_fee NUMERIC(10, 2) DEFAULT 0,
@@ -96,12 +129,16 @@ CREATE TABLE IF NOT EXISTS public.orders (
     created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW())
 );
 
+CREATE INDEX IF NOT EXISTS idx_orders_user_id ON public.orders(user_id);
+CREATE INDEX IF NOT EXISTS idx_orders_created_at ON public.orders(created_at DESC);
+
 -- ============================================================
--- 6. ROW LEVEL SECURITY (RLS) POLICIES
+-- 7. ROW LEVEL SECURITY (RLS) POLICIES
 -- ============================================================
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 
 -- Limpa políticas antigas
@@ -113,12 +150,25 @@ DROP POLICY IF EXISTS "Public can view settings" ON public.settings;
 DROP POLICY IF EXISTS "Allow all on settings" ON public.settings;
 DROP POLICY IF EXISTS "Public can insert orders" ON public.orders;
 DROP POLICY IF EXISTS "Allow all on orders" ON public.orders;
+DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can view own orders" ON public.orders;
+DROP POLICY IF EXISTS "Anyone can insert orders with integrity" ON public.orders;
 
--- Políticas abertas (compatíveis com painel admin via senha do proprietário)
+-- Políticas de catálogo e configurações
 CREATE POLICY "Allow all on categories" ON public.categories FOR ALL TO public USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on products" ON public.products FOR ALL TO public USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on settings" ON public.settings FOR ALL TO public USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all on orders" ON public.orders FOR ALL TO public USING (true) WITH CHECK (true);
+
+-- Políticas de perfis de clientes (privado ao próprio usuário)
+CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own profile" ON public.profiles FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+-- Políticas de pedidos (clientes consultam apenas os seus; nenhum cliente pode alterar preço ou status)
+CREATE POLICY "Users can view own orders" ON public.orders FOR SELECT TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY "Anyone can insert orders with integrity" ON public.orders FOR INSERT TO public WITH CHECK (user_id IS NULL OR user_id = auth.uid());
 
 -- ============================================================
 -- 7. REALTIME REPLICATION
