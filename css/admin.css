@@ -210,7 +210,21 @@
   padding: 16px 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
+}
+
+.admin-nav-group-title {
+  font-size: 0.64rem;
+  font-weight: 800;
+  color: #64748B;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 14px 14px 6px 14px;
+  user-select: none;
+}
+
+.admin-nav-group-title:first-child {
+  padding-top: 4px;
 }
 
 .admin-nav-item {
@@ -486,6 +500,65 @@
   border-radius: var(--radius-full);
   background: #DC2626;
   color: white;
+}
+
+/* Dashboard Recent Orders Table */
+.dash-orders-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.dash-orders-table th {
+  background: #F8FAFC;
+  padding: 12px 16px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #64748B;
+  text-align: left;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.dash-order-row {
+  transition: background 0.15s ease;
+  cursor: pointer;
+}
+
+.dash-order-row:hover {
+  background: #F8FAFC;
+}
+
+.dash-order-row td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #F1F5F9;
+  font-size: 0.86rem;
+  vertical-align: middle;
+}
+
+.dash-order-id {
+  font-family: monospace;
+  font-weight: 700;
+  color: #0F172A;
+  background: #F1F5F9;
+  padding: 3px 7px;
+  border-radius: 6px;
+}
+
+.dash-order-customer {
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.dash-order-total {
+  font-weight: 700;
+  color: #059669;
+}
+
+.dash-order-time {
+  font-size: 0.78rem;
+  color: #64748B;
 }
 
 /* ===== 5. ADMIN CARDS & SECTIONS ===== */

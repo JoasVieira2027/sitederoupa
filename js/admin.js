@@ -222,17 +222,74 @@
     const products = DataStore.getProducts({ includeInactive: true });
     const orders = DataStore.getOrders();
     const settings = DataStore.getSettings();
-    const totalRevenue = orders.filter(o => o.status !== 'cancelado').reduce((s, o) => s + o.total, 0);
+    const validOrders = orders.filter(o => o.status !== 'cancelado');
+    const totalRevenue = validOrders.reduce((s, o) => s + (o.total || 0), 0);
+    const avgTicket = validOrders.length ? totalRevenue / validOrders.length : 0;
     const activeProducts = products.filter(p => p.active).length;
+    const newOrders = orders.filter(o => o.status === 'novo').length;
+
+    // Stock alerts (qty <= 3)
+    const alerts = [];
+    products.filter(p => p.active).forEach(p => {
+      (p.variants || []).forEach(v => {
+        (v.sizes || []).forEach(s => {
+          if (s.qty <= 3 && s.qty >= 0) {
+            alerts.push({ product: p.name, color: v.color, size: s.size, qty: s.qty });
+          }
+        });
+      });
+    });
 
     // Stats
     const statsEl = $('admin-stats');
     if (statsEl) {
       statsEl.innerHTML = `
-        <div class="stat-card"><div class="stat-card-icon"><i data-lucide="shopping-bag"></i></div><div class="stat-card-value">${orders.length}</div><div class="stat-card-label">Total de Pedidos</div></div>
-        <div class="stat-card"><div class="stat-card-icon"><i data-lucide="dollar-sign"></i></div><div class="stat-card-value">${Utils.formatCurrency(totalRevenue)}</div><div class="stat-card-label">Receita Total</div></div>
-        <div class="stat-card"><div class="stat-card-icon"><i data-lucide="layers"></i></div><div class="stat-card-value">${activeProducts}</div><div class="stat-card-label">Produtos Ativos</div></div>
-        <div class="stat-card"><div class="stat-card-icon"><i data-lucide="bell"></i></div><div class="stat-card-value">${orders.filter(o => o.status === 'novo').length}</div><div class="stat-card-label">Pedidos Novos</div></div>`;
+        <div class="stat-card">
+          <div class="stat-card-icon-wrap" style="background:#ECFDF5;color:#059669;">
+            <i data-lucide="dollar-sign"></i>
+          </div>
+          <div class="stat-card-info">
+            <div class="stat-card-value">${Utils.formatCurrency(totalRevenue)}</div>
+            <div class="stat-card-label">Receita Confirmada</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon-wrap" style="background:#EFF6FF;color:#2563EB;">
+            <i data-lucide="shopping-bag"></i>
+          </div>
+          <div class="stat-card-info">
+            <div class="stat-card-value">${orders.length} <span style="font-size:0.75rem;font-weight:700;color:#2563EB;background:#DBEAFE;padding:2px 6px;border-radius:4px;">${newOrders} novos</span></div>
+            <div class="stat-card-label">Total de Pedidos</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon-wrap" style="background:#F5F3FF;color:#7C3AED;">
+            <i data-lucide="trending-up"></i>
+          </div>
+          <div class="stat-card-info">
+            <div class="stat-card-value">${Utils.formatCurrency(avgTicket)}</div>
+            <div class="stat-card-label">Ticket Médio</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon-wrap" style="background:#F0FDF4;color:#10B981;">
+            <i data-lucide="layers"></i>
+          </div>
+          <div class="stat-card-info">
+            <div class="stat-card-value">${activeProducts} <span style="font-size:0.75rem;font-weight:600;color:#64748B;">/ ${products.length}</span></div>
+            <div class="stat-card-label">Peças Ativas</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon-wrap" style="background:${alerts.length > 0 ? '#FEF2F2' : '#F8FAFC'};color:${alerts.length > 0 ? '#DC2626' : '#64748B'};">
+            <i data-lucide="${alerts.length > 0 ? 'alert-triangle' : 'check-circle-2'}"></i>
+          </div>
+          <div class="stat-card-info">
+            <div class="stat-card-value" style="${alerts.length > 0 ? 'color:#DC2626;' : ''}">${alerts.length}</div>
+            <div class="stat-card-label">Itens c/ Estoque Baixo</div>
+          </div>
+        </div>
+      `;
     }
 
     // Store toggle
@@ -266,18 +323,6 @@
       };
     }
 
-    // Stock alerts (qty <= 3)
-    const alerts = [];
-    products.filter(p => p.active).forEach(p => {
-      (p.variants || []).forEach(v => {
-        (v.sizes || []).forEach(s => {
-          if (s.qty <= 3 && s.qty >= 0) {
-            alerts.push({ product: p.name, color: v.color, size: s.size, qty: s.qty });
-          }
-        });
-      });
-    });
-
     const alertsCard = $('dash-stock-alerts-card');
     const alertsEl = $('dash-stock-alerts');
     if (alertsEl && alerts.length > 0) {
@@ -300,15 +345,49 @@
     const recentEl = $('dash-recent-orders');
     if (recentEl) {
       const recent = orders.slice(0, 6);
-      recentEl.innerHTML = recent.length ? recent.map(o =>
-        `<div class="dash-order-row">
-          <span class="dash-order-id">#${o.id.slice(-6)}</span>
-          <span class="dash-order-customer">${Utils.sanitize(o.customer?.name || '—')}</span>
-          <span class="status-badge ${statusClass(o.status)}">${o.status}</span>
-          <span class="dash-order-total">${Utils.formatCurrency(o.total)}</span>
-          <span class="dash-order-time">${Utils.formatDate(o.createdAt)}</span>
-        </div>`
-      ).join('') : '<p style="color:var(--text-muted);font-size:0.85rem;">Nenhum pedido ainda.</p>';
+      if (!recent.length) {
+        recentEl.innerHTML = `
+          <div style="text-align:center;padding:40px 20px;color:#94A3B8;">
+            <i data-lucide="inbox" style="width:36px;height:36px;margin-bottom:8px;opacity:0.6;"></i>
+            <p style="font-size:0.9rem;font-weight:600;margin:0;">Nenhum pedido registrado ainda.</p>
+            <p style="font-size:0.78rem;color:#94A3B8;margin-top:4px;">Novos pedidos de clientes aparecerão aqui em tempo real.</p>
+          </div>
+        `;
+      } else {
+        recentEl.innerHTML = `
+          <div style="overflow-x:auto;">
+            <table class="dash-orders-table">
+              <thead>
+                <tr>
+                  <th>Pedido</th>
+                  <th>Cliente</th>
+                  <th>Status</th>
+                  <th>Total</th>
+                  <th>Data</th>
+                  <th style="text-align:right;">Ação</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${recent.map(o => `
+                  <tr class="dash-order-row" onclick="AdminPanel.viewOrder('${o.id}')">
+                    <td><span class="dash-order-id">#${o.id.slice(-6)}</span></td>
+                    <td><span class="dash-order-customer">${Utils.sanitize(o.customer?.name || 'Cliente')}</span></td>
+                    <td><span class="status-badge ${statusClass(o.status)}">${o.status}</span></td>
+                    <td><span class="dash-order-total">${Utils.formatCurrency(o.total)}</span></td>
+                    <td><span class="dash-order-time">${Utils.formatDate(o.createdAt)}</span></td>
+                    <td style="text-align:right;">
+                      <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); AdminPanel.viewOrder('${o.id}')" title="Ver Detalhes">
+                        <i data-lucide="eye" style="width:13px;height:13px;"></i>
+                        <span>Ver</span>
+                      </button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
     }
 
     const btnViewAll = $('btn-dash-view-all-orders');

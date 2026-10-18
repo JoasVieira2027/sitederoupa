@@ -1341,6 +1341,13 @@
         updateModalAddCartBtn();
       });
     });
+
+    // Auto-select first in-stock size if available
+    const firstInStockSize = sizesToShow.find(s => (sizeMap[s] || 0) > 0);
+    if (firstInStockSize) {
+      const btnToSelect = modalSizeSelector.querySelector(`[data-size="${firstInStockSize}"]`);
+      if (btnToSelect) btnToSelect.click();
+    }
   }
 
   function updateModalStockIndicator() {
@@ -1541,6 +1548,7 @@
   }
 
   function addToCart(product, color, colorHex, size, qty = 1) {
+    if (!product) return false;
     if (!DataStore.isStoreOpen()) {
       Utils.showToast('A loja está fechada no momento.', 'error');
       return false;
@@ -1548,11 +1556,39 @@
 
     const hasVariants = (product.variants || []).length > 0;
     if (hasVariants) {
+      // Se cor ou tamanho não foram passados diretamente, seleciona a primeira opção com estoque disponível
+      if (!color || !size) {
+        let found = false;
+        for (const v of product.variants) {
+          const availSizes = (v.sizes || []).filter(s => (s.qty || 0) > 0);
+          if (availSizes.length > 0) {
+            color = color || v.color;
+            colorHex = colorHex || v.colorHex;
+            size = size || availSizes[0].size;
+            found = true;
+            break;
+          }
+        }
+        if (!found && product.variants.length > 0) {
+          color = color || product.variants[0].color;
+          colorHex = colorHex || product.variants[0].colorHex;
+          size = size || (product.variants[0].sizes?.[0]?.size || 'U');
+        }
+      }
+
       const available = DataStore.getVariantStock(product.id, color, size);
       const existing = cart.find(i => i.id === product.id && i.color === color && i.size === size);
       const alreadyInCart = existing ? existing.qty : 0;
-      if (alreadyInCart + qty > available) {
+      if (available > 0 && alreadyInCart + qty > available) {
         Utils.showToast(`Estoque insuficiente! Disponível: ${available} un.`, 'warning');
+        return false;
+      }
+    } else {
+      const totalStock = DataStore.getProductTotalStock(product.id);
+      const existing = cart.find(i => i.id === product.id);
+      const alreadyInCart = existing ? existing.qty : 0;
+      if (totalStock > 0 && alreadyInCart + qty > totalStock) {
+        Utils.showToast(`Estoque insuficiente! Disponível: ${totalStock} un.`, 'warning');
         return false;
       }
     }
@@ -2525,18 +2561,14 @@
     const customerData = { name, phone, address: finalAddress, neighborhood: neighborhoodName, obs, troco, payment: payLabel, installment: installmentText };
     const orderNumber = `FV-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    // Decrement stock in DB
-    for (const item of cart) {
-      if (item.color && item.size) {
-        try {
-          await DataStore.decrementStock(item.id, item.color, item.size, item.qty);
-        } catch (stockErr) {
-          console.warn('[Store] Erro ao debitar estoque:', stockErr);
-        }
-      }
+    const submitBtn = checkoutForm?.querySelector('button[type="submit"]') || $('btn-checkout-submit');
+    const originalBtnText = submitBtn ? submitBtn.innerHTML : '';
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>Validando e registrando pedido...</span>';
     }
 
-    // Save order com associação estrita ao usuário autenticado (auth.uid())
+    // 1. Gravar pedido no Supabase com associação estrita ao usuário autenticado (auth.uid())
     try {
       await DataStore.saveOrder({
         id: `ord_${orderNumber}_${Date.now()}`,
@@ -2555,10 +2587,28 @@
         status: 'novo'
       });
     } catch (err) {
-      console.warn('[Store] Erro ao registrar pedido:', err);
+      console.error('[Store] Falha crítica ao registrar pedido no backend:', err);
+      Utils.showToast(`Não foi possível confirmar o pedido no servidor: ${err.message || 'Erro de conexão'}. Seu carrinho foi mantido intacto.`, 'error');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+        refreshIcons();
+      }
+      return; // ABORTA O FLUXO: não debita estoque, não limpa carrinho, não envia para WhatsApp
     }
 
-    // Processar cupom e pontos de fidelidade no Supabase
+    // 2. Somente após gravação confirmada no backend: debitar estoque no banco
+    for (const item of cart) {
+      if (item.color && item.size) {
+        try {
+          await DataStore.decrementStock(item.id, item.color, item.size, item.qty);
+        } catch (stockErr) {
+          console.warn('[Store] Erro ao debitar estoque no banco:', stockErr);
+        }
+      }
+    }
+
+    // 3. Processar cupom e pontos de fidelidade no Supabase
     if (appliedCoupon && appliedCoupon.code) {
       try {
         await DataStore.markCouponUsed(appliedCoupon.code, orderNumber, currentCustomer.id);
@@ -2573,7 +2623,7 @@
       console.warn('[Store] Erro ao creditar pontos do pedido:', e);
     }
 
-    // Redirect to WhatsApp
+    // 4. Preparar mensagem do WhatsApp e finalizar
     const msg = buildWhatsAppMessage(customerData, orderNumber);
     const waNumber = s.whatsappNumber || '';
     const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`;
@@ -3245,25 +3295,559 @@
     });
   }
 
-  // ===== 3. BOUTIQUE SOCIAL PROOF ACTIONS =====
-  function toggleFollowStore() {
-    isStoreFollowed = !isStoreFollowed;
+  // ===== 3. PROGRAMA DE FIDELIDADE & SEGUIR LOJA (OFICIAL SUPABASE) =====
+  async function toggleFollowStore() {
+    if (!currentCustomer) {
+      Utils.showToast('Faça login ou crie sua conta para seguir a loja e ganhar pontos.', 'info');
+      openCustomerAuthModal('login');
+      return;
+    }
+
     const btnLabel = $('btn-follow-label');
     const followersEl = $('boutique-followers-val');
 
-    if (isStoreFollowed) {
-      if (btnLabel) btnLabel.textContent = '✓ Seguindo loja';
-      if (followersEl) followersEl.textContent = '4.9k';
-      Utils.showToast('Agora você está seguindo a Donna Fitness PE!', 'success');
-    } else {
+    try {
+      if (btnLabel) btnLabel.textContent = 'Processando...';
+      const res = await DataStore.followStore(currentCustomer.id);
+      if (res && res.success) {
+        Utils.showToast(res.message || 'Você agora está seguindo a Donna Fitness PE!', 'success');
+        if (btnLabel) btnLabel.textContent = '✓ Seguindo loja';
+      } else {
+        Utils.showToast(res?.message || 'Você já está seguindo a Donna Fitness PE.', 'info');
+        if (btnLabel) btnLabel.textContent = '✓ Seguindo loja';
+      }
+      const count = await DataStore.getStoreFollowersCount();
+      if (followersEl) followersEl.textContent = String(count);
+      updateLoyaltyUI();
+    } catch (err) {
+      Utils.showToast(`Erro ao seguir loja: ${err.message}`, 'error');
       if (btnLabel) btnLabel.textContent = '+ Seguir loja';
-      if (followersEl) followersEl.textContent = '4.8k';
-      Utils.showToast('Você deixou de seguir a loja.', 'info');
     }
   }
 
-  function doCheckin() {
-    Utils.showToast('Check-in realizado! Aproveite nossos fretes promocionais na sacola.', 'success');
+  async function followStoreFromLoyalty() {
+    await toggleFollowStore();
+  }
+
+  async function claimDailyCheckin() {
+    if (!currentCustomer) {
+      Utils.showToast('Faça login ou crie sua conta para fazer o check-in diário.', 'info');
+      openCustomerAuthModal('login');
+      return;
+    }
+
+    const btnCheckin = $('btn-do-checkin-modal');
+    const btnLabel = $('btn-checkin-label');
+    try {
+      if (btnCheckin) btnCheckin.disabled = true;
+      if (btnLabel) btnLabel.textContent = 'Validando no servidor...';
+
+      const res = await DataStore.claimDailyCheckin(currentCustomer.id);
+      if (res && res.success) {
+        Utils.showToast(res.message || 'Check-in realizado com sucesso! Pontos creditados.', 'success');
+      } else {
+        Utils.showToast(res?.message || 'Check-in já realizado hoje.', 'info');
+      }
+      await updateLoyaltyUI();
+    } catch (err) {
+      Utils.showToast(`Erro no check-in: ${err.message}`, 'error');
+    } finally {
+      if (btnCheckin) btnCheckin.disabled = false;
+    }
+  }
+
+  // Modais de Fidelidade
+  async function openLoyaltyModal() {
+    if (!currentCustomer) {
+      Utils.showToast('Fidelidade: Entre na sua conta para acompanhar seus pontos e benefícios.', 'info');
+      openCustomerAuthModal('login');
+      return;
+    }
+
+    const modal = $('loyalty-modal');
+    if (modal) {
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      await updateLoyaltyUI();
+      refreshIcons();
+    }
+  }
+
+  function closeLoyaltyModal() {
+    const modal = $('loyalty-modal');
+    if (modal) {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  }
+
+  async function updateLoyaltyUI() {
+    if (!currentCustomer) {
+      const btnHeaderLoyalty = $('btn-header-loyalty');
+      if (btnHeaderLoyalty) btnHeaderLoyalty.style.display = 'none';
+      return;
+    }
+
+    try {
+      const [account, missionsData, rewards, coupons, isFollowing, followersCount] = await Promise.all([
+        DataStore.getLoyaltyAccount(currentCustomer.id),
+        DataStore.getLoyaltyMissions(currentCustomer.id),
+        DataStore.getLoyaltyRewards(),
+        DataStore.getLoyaltyCoupons(currentCustomer.id),
+        DataStore.isUserFollowingStore(currentCustomer.id),
+        DataStore.getStoreFollowersCount()
+      ]);
+
+      const balance = (account && typeof account.points_balance === 'number') ? account.points_balance : 0;
+      const streak = (account && account.checkin_streak) ? account.checkin_streak : 0;
+      const lastCheckin = account?.last_checkin_date || null;
+      const todayStr = new Date().toISOString().split('T')[0];
+      const hasCheckedInToday = lastCheckin === todayStr;
+
+      // Header button
+      const btnHeaderLoyalty = $('btn-header-loyalty');
+      const headerPts = $('header-loyalty-pts');
+      if (btnHeaderLoyalty) {
+        btnHeaderLoyalty.style.display = 'inline-flex';
+        if (headerPts) headerPts.textContent = `${balance} pts`;
+      }
+
+      // Modal balance
+      const balEl = $('loyalty-modal-balance');
+      if (balEl) balEl.textContent = balance.toLocaleString('pt-BR');
+
+      // Streak pill
+      const streakCount = $('loyalty-streak-count');
+      if (streakCount) streakCount.textContent = String(streak);
+
+      // Render 7-day streak track
+      const trackEl = $('checkin-days-track');
+      if (trackEl) {
+        const streakPoints = [10, 15, 20, 25, 30, 35, 40];
+        const currentDayIndex = ((streak - (hasCheckedInToday ? 1 : 0)) % 7);
+        trackEl.innerHTML = streakPoints.map((pts, idx) => {
+          const dayNum = idx + 1;
+          const isCompleted = idx < currentDayIndex || (idx === currentDayIndex && hasCheckedInToday);
+          const isToday = idx === currentDayIndex && !hasCheckedInToday;
+          let nodeClass = 'checkin-day-node';
+          if (isCompleted) nodeClass += ' completed';
+          else if (isToday) nodeClass += ' today';
+
+          return `
+            <div class="${nodeClass}">
+              <div class="checkin-day-icon">
+                ${isCompleted ? '✓' : `+${pts}`}
+              </div>
+              <span class="checkin-day-label">Dia ${dayNum}</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Check-in Button
+      const btnCheckin = $('btn-do-checkin-modal');
+      const btnCheckinLabel = $('btn-checkin-label');
+      if (btnCheckin && btnCheckinLabel) {
+        if (hasCheckedInToday) {
+          btnCheckin.className = 'btn-checkin-action claimed';
+          btnCheckin.disabled = true;
+          btnCheckinLabel.textContent = '✓ Check-in realizado hoje';
+        } else {
+          btnCheckin.className = 'btn-checkin-action ready';
+          btnCheckin.disabled = false;
+          const nextDay = (streak % 7);
+          const nextPts = [10, 15, 20, 25, 30, 35, 40][nextDay] || 10;
+          btnCheckinLabel.textContent = `Fazer Check-in (+${nextPts} pts)`;
+        }
+      }
+
+      // Follow store banner in loyalty modal
+      const followBtn = $('btn-follow-store-loyalty');
+      if (followBtn) {
+        if (isFollowing) {
+          followBtn.textContent = '✓ Seguindo Loja';
+          followBtn.disabled = true;
+          followBtn.style.opacity = '0.7';
+          followBtn.style.cursor = 'default';
+        } else {
+          followBtn.textContent = '+ Seguir Loja';
+          followBtn.disabled = false;
+          followBtn.style.opacity = '1';
+          followBtn.style.cursor = 'pointer';
+        }
+      }
+
+      // Boutique follower counter on home/bio
+      const followersEl = $('boutique-followers-val');
+      if (followersEl) followersEl.textContent = String(followersCount);
+
+      // Missions list
+      const missionsEl = $('loyalty-missions-list');
+      const missionsCountEl = $('missions-completed-count');
+      if (missionsEl && missionsData) {
+        const missions = missionsData.missions || [];
+        const userMissions = missionsData.userMissions || [];
+        let completedCount = 0;
+
+        missionsEl.innerHTML = missions.map(m => {
+          const userM = userMissions.find(um => um.mission_id === m.id);
+          const isDone = userM?.completed || (m.id === 'mission_welcome' && isFollowing);
+          if (isDone) completedCount++;
+
+          return `
+            <div class="mission-item-card ${isDone ? 'completed' : ''}">
+              <div class="mission-info">
+                <strong>${Utils.sanitize(m.title)}</strong>
+                <p>${Utils.sanitize(m.description || '')}</p>
+              </div>
+              <div class="mission-status-pill">
+                ${isDone ? '<span class="mission-badge-done">✓ Concluída</span>' : `<span class="mission-badge-pts">+${m.points_reward} pts</span>`}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        if (missionsCountEl) {
+          missionsCountEl.textContent = `${completedCount}/${missions.length} concluídas`;
+        }
+      }
+
+      // Rewards catalog
+      const rewardsEl = $('loyalty-rewards-list');
+      if (rewardsEl) {
+        if (!rewards.length) {
+          rewardsEl.innerHTML = '<p style="color:#94A3B8;font-size:0.85rem;padding:16px 0;">Nenhuma recompensa ativa no momento.</p>';
+        } else {
+          rewardsEl.innerHTML = rewards.map(r => {
+            const canAfford = balance >= r.points_cost;
+            let valLabel = '';
+            if (r.reward_type === 'fixed_discount') valLabel = Utils.formatCurrency(r.discount_value);
+            else if (r.reward_type === 'percentage_discount') valLabel = `${r.discount_value}% OFF`;
+            else if (r.reward_type === 'free_shipping') valLabel = 'Frete Grátis';
+
+            return `
+              <div class="reward-item-card ${canAfford ? 'affordable' : 'locked'}">
+                <div class="reward-info">
+                  <div class="reward-val-badge">${valLabel}</div>
+                  <strong>${Utils.sanitize(r.title)}</strong>
+                  <small>${Utils.sanitize(r.description || (r.min_order_value > 0 ? `Pedido mín. ${Utils.formatCurrency(r.min_order_value)}` : 'Válido no checkout'))}</small>
+                </div>
+                <button type="button" class="btn-redeem-reward" ${canAfford ? '' : 'disabled'} onclick="window.StoreApp?.redeemLoyaltyReward('${r.id}')">
+                  ${canAfford ? `Resgatar (${r.points_cost} pts)` : `${r.points_cost} pts`}
+                </button>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      // User Coupons
+      const couponsEl = $('loyalty-user-coupons-list');
+      if (couponsEl) {
+        const activeCoupons = (coupons || []).filter(c => c.status === 'active');
+        if (!activeCoupons.length) {
+          couponsEl.innerHTML = '<p style="color:#94A3B8;font-size:0.85rem;padding:12px 0;">Você ainda não possui cupons resgatados. Troque seus pontos por descontos!</p>';
+        } else {
+          couponsEl.innerHTML = activeCoupons.map(c => `
+            <div class="user-coupon-card">
+              <div class="coupon-details">
+                <span class="coupon-code-pill">${c.code}</span>
+                <span class="coupon-desc">${Utils.sanitize(c.title || 'Cupom Fidelidade')}</span>
+              </div>
+              <div class="coupon-actions">
+                <button type="button" class="btn-coupon-copy" onclick="window.StoreApp?.copyCouponCode('${c.code}')">Copiar</button>
+                <button type="button" class="btn-coupon-use" onclick="window.StoreApp?.useCouponInCheckout('${c.code}')">Usar</button>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+
+      refreshIcons();
+    } catch (err) {
+      console.warn('[Store] Erro ao atualizar painel de fidelidade:', err);
+    }
+  }
+
+  async function redeemLoyaltyReward(rewardId) {
+    if (!currentCustomer) {
+      Utils.showToast('Faça login para resgatar recompensas.', 'info');
+      openCustomerAuthModal('login');
+      return;
+    }
+
+    try {
+      const res = await DataStore.redeemReward(rewardId, currentCustomer.id);
+      if (res && res.success) {
+        Utils.showToast(res.message || 'Cupom resgatado com sucesso!', 'success');
+        await updateLoyaltyUI();
+      } else {
+        Utils.showToast(res?.message || 'Saldo insuficiente para resgatar esta recompensa.', 'error');
+      }
+    } catch (err) {
+      Utils.showToast(`Erro ao resgatar: ${err.message}`, 'error');
+    }
+  }
+
+  function copyCouponCode(code) {
+    if (!code) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).then(() => {
+        Utils.showToast(`Cupom ${code} copiado para a área de transferência!`, 'success');
+      }).catch(() => {
+        Utils.showToast(`Código do cupom: ${code}`, 'info');
+      });
+    } else {
+      Utils.showToast(`Código do cupom: ${code}`, 'info');
+    }
+  }
+
+  function useCouponInCheckout(code) {
+    closeLoyaltyModal();
+    const chkInput = $('checkout-coupon-input');
+    if (chkInput) chkInput.value = code;
+    openCart(true);
+    Utils.showToast(`Cupom ${code} pronto para aplicação no checkout!`, 'info');
+  }
+
+  async function applyCheckoutCoupon() {
+    if (!currentCustomer) {
+      Utils.showToast('Faça login ou crie sua conta para aplicar cupons de fidelidade.', 'info');
+      pendingCheckoutAfterLogin = true;
+      closeCheckout();
+      openCustomerAuthModal('login');
+      return;
+    }
+
+    const input = $('checkout-coupon-input');
+    const feedback = $('checkout-coupon-feedback');
+    const btn = $('btn-apply-coupon');
+    const code = input ? input.value.trim().toUpperCase() : '';
+
+    if (!code) {
+      Utils.showToast('Digite o código do seu cupom de desconto!', 'warning');
+      return;
+    }
+
+    const subtotal = getCartTotal();
+
+    try {
+      if (btn) btn.disabled = true;
+      if (feedback) { feedback.className = 'coupon-feedback info'; feedback.textContent = 'Validando cupom no servidor...'; feedback.classList.remove('hidden'); }
+
+      const res = await DataStore.validateCoupon(code, subtotal, currentCustomer.id);
+      if (res && res.valid && res.coupon) {
+        appliedCoupon = res.coupon;
+        if (feedback) {
+          feedback.className = 'coupon-feedback success';
+          feedback.textContent = `✓ Cupom ${code} aplicado com sucesso!`;
+          feedback.classList.remove('hidden');
+        }
+        Utils.showToast(`Cupom ${code} ativado!`, 'success');
+        renderCheckoutSummary();
+      } else {
+        appliedCoupon = null;
+        if (feedback) {
+          feedback.className = 'coupon-feedback error';
+          feedback.textContent = `✕ ${res?.message || 'Cupom inválido ou expirado.'}`;
+          feedback.classList.remove('hidden');
+        }
+        Utils.showToast(res?.message || 'Cupom não aplicável a este pedido.', 'error');
+        renderCheckoutSummary();
+      }
+    } catch (err) {
+      appliedCoupon = null;
+      if (feedback) {
+        feedback.className = 'coupon-feedback error';
+        feedback.textContent = `✕ Erro ao validar: ${err.message}`;
+        feedback.classList.remove('hidden');
+      }
+      Utils.showToast(`Erro na validação do cupom: ${err.message}`, 'error');
+      renderCheckoutSummary();
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  // Extrato de Pontos
+  async function openLoyaltyHistoryModal() {
+    if (!currentCustomer) {
+      Utils.showToast('Entre na sua conta para visualizar seu histórico de pontos.', 'info');
+      openCustomerAuthModal('login');
+      return;
+    }
+
+    const modal = $('loyalty-history-modal');
+    const recordsEl = $('loyalty-history-records');
+    if (!modal) return;
+
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    if (recordsEl) {
+      recordsEl.innerHTML = '<p style="color:#94A3B8;font-size:0.85rem;text-align:center;padding:24px 0;">Carregando extrato auditável...</p>';
+      try {
+        const txs = await DataStore.getLoyaltyTransactions(currentCustomer.id);
+        if (!txs.length) {
+          recordsEl.innerHTML = '<p style="color:#94A3B8;font-size:0.85rem;text-align:center;padding:24px 0;">Nenhuma movimentação de pontos registrada até o momento.</p>';
+        } else {
+          recordsEl.innerHTML = txs.map(t => {
+            const isPositive = (t.points || 0) > 0;
+            const dateStr = t.created_at ? new Date(t.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+            return `
+              <div class="loyalty-tx-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+                <div>
+                  <strong style="font-size:0.88rem;color:#FFFFFF;display:block;">${Utils.sanitize(t.description || 'Movimentação')}</strong>
+                  <small style="font-size:0.75rem;color:#94A3B8;">${dateStr}</small>
+                </div>
+                <span style="font-size:0.95rem;font-weight:800;color:${isPositive ? '#10B981' : '#EF4444'};">
+                  ${isPositive ? `+${t.points}` : t.points} pts
+                </span>
+              </div>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        recordsEl.innerHTML = `<p style="color:#EF4444;font-size:0.85rem;text-align:center;padding:24px 0;">Erro ao carregar extrato: ${Utils.sanitize(err.message)}</p>`;
+      }
+    }
+    refreshIcons();
+  }
+
+  function closeLoyaltyHistoryModal() {
+    const modal = $('loyalty-history-modal');
+    if (modal) {
+      modal.classList.remove('active');
+      if (!checkoutModal || !checkoutModal.classList.contains('active')) {
+        document.body.style.overflow = '';
+      }
+    }
+  }
+
+  // Avaliação de Produtos (Reviews com Pontos)
+  function openReviewModal(productId) {
+    if (!currentCustomer) {
+      Utils.showToast('Faça login ou crie sua conta para avaliar produtos e ganhar pontos.', 'info');
+      openCustomerAuthModal('login');
+      return;
+    }
+
+    const modal = $('product-review-modal');
+    const prodIdInput = $('review-product-id');
+    if (modal) {
+      const activeProdId = productId || currentModalProductId;
+      if (prodIdInput && activeProdId) prodIdInput.value = activeProdId;
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      initInteractiveStars();
+      refreshIcons();
+    }
+  }
+
+  function closeReviewModal() {
+    const modal = $('product-review-modal');
+    if (modal) {
+      modal.classList.remove('active');
+      if (!checkoutModal || !checkoutModal.classList.contains('active')) {
+        document.body.style.overflow = '';
+      }
+    }
+  }
+
+  function initInteractiveStars() {
+    const stars = $$('#review-stars-selector .interactive-star');
+    const ratingInput = $('review-rating-val');
+    stars.forEach(s => {
+      s.onclick = () => {
+        const val = parseInt(s.dataset.val, 10);
+        if (ratingInput) ratingInput.value = val;
+        stars.forEach(star => {
+          const starVal = parseInt(star.dataset.val, 10);
+          if (starVal <= val) star.classList.add('selected');
+          else star.classList.remove('selected');
+        });
+      };
+    });
+  }
+
+  async function handleSubmitReview(e) {
+    e.preventDefault();
+    if (!currentCustomer) {
+      Utils.showToast('Você precisa estar logado para enviar uma avaliação.', 'error');
+      openCustomerAuthModal('login');
+      return;
+    }
+
+    const prodId = $('review-product-id')?.value || currentModalProductId;
+    const rating = parseInt($('review-rating-val')?.value || '5', 10);
+    const comment = $('review-comment-input')?.value?.trim();
+    const photoFile = $('review-photo-input')?.files?.[0] || null;
+    const btnSubmit = $('btn-submit-review');
+
+    if (!prodId) {
+      Utils.showToast('Produto não identificado.', 'error');
+      return;
+    }
+
+    if (!comment) {
+      Utils.showToast('Por favor, escreva um comentário sobre a peça.', 'warning');
+      return;
+    }
+
+    try {
+      if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'Enviando avaliação...'; }
+
+      let photoUrl = '';
+      if (photoFile) {
+        try {
+          photoUrl = await SupabaseService.uploadImage(photoFile, 'reviews');
+        } catch (uploadErr) {
+          console.warn('[Store] Falha no upload de foto da avaliação:', uploadErr);
+        }
+      }
+
+      const res = await DataStore.submitProductReview(prodId, rating, comment, !!photoUrl, photoUrl, currentCustomer.id, currentProfile?.name || 'Cliente');
+      if (res && res.success) {
+        Utils.showToast(res.message || 'Avaliação enviada com sucesso! Pontos creditados.', 'success');
+        closeReviewModal();
+        const form = $('product-review-form');
+        if (form) form.reset();
+        await updateLoyaltyUI();
+        await loadProductReviews(prodId);
+      } else {
+        Utils.showToast(res?.message || 'Erro ao enviar avaliação.', 'error');
+      }
+    } catch (err) {
+      Utils.showToast(`Erro ao avaliar: ${err.message}`, 'error');
+    } finally {
+      if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerHTML = '<i data-lucide="check"></i><span>Publicar Avaliação & Ganhar Pontos</span>'; refreshIcons(); }
+    }
+  }
+
+  async function loadProductReviews(productId) {
+    const listEl = $('product-reviews-list');
+    if (!listEl || !productId) return;
+
+    try {
+      const reviews = await DataStore.getProductReviews(productId);
+      if (!reviews.length) {
+        listEl.innerHTML = '<p style="color:#94A3B8;font-size:0.82rem;">Esta peça ainda não possui avaliações. Seja a primeira a avaliar e ganhe pontos!</p>';
+        return;
+      }
+
+      listEl.innerHTML = reviews.map(r => `
+        <div class="product-review-card" style="padding:12px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <strong style="font-size:0.85rem;color:#0F172A;">${Utils.sanitize(r.user_name || 'Cliente Verificada')}</strong>
+            <span style="color:#F59E0B;font-size:0.85rem;">${'★'.repeat(r.rating || 5)}${'☆'.repeat(5 - (r.rating || 5))}</span>
+          </div>
+          <p style="font-size:0.82rem;color:#475569;margin-bottom:6px;line-height:1.4;">${Utils.sanitize(r.comment || '')}</p>
+          ${r.photo_url ? `<img src="${r.photo_url}" alt="Foto da cliente" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #E2E8F0;">` : ''}
+        </div>
+      `).join('');
+    } catch (err) {
+      listEl.innerHTML = '<p style="color:#94A3B8;font-size:0.82rem;">Avaliações disponíveis em breve.</p>';
+    }
   }
 
   function openStoreAboutModal() {
@@ -3365,6 +3949,17 @@
       if (pAddress && currentProfile?.address) pAddress.value = currentProfile.address;
       if (pNeigh && currentProfile?.neighborhood) pNeigh.value = currentProfile.neighborhood;
 
+      // Atualizar dados de fidelidade do cliente logado
+      updateLoyaltyUI();
+
+      // Se havia tentativa de checkout antes do login, retoma automaticamente sem perder o carrinho
+      if (pendingCheckoutAfterLogin) {
+        pendingCheckoutAfterLogin = false;
+        closeCustomerAuthModal();
+        closeCustomerAccountModal();
+        setTimeout(() => openCheckout(), 350);
+      }
+
     } else {
       if (btnAccount) {
         btnAccount.innerHTML = `
@@ -3376,6 +3971,12 @@
 
       if (mobileNavAccountText) {
         mobileNavAccountText.textContent = 'Entrar';
+      }
+
+      // Pontos são estritamente privados: ocultar para visitantes
+      const btnHeaderLoyalty = $('btn-header-loyalty');
+      if (btnHeaderLoyalty) {
+        btnHeaderLoyalty.style.display = 'none';
       }
     }
 
@@ -3445,18 +4046,37 @@
 
     try {
       if (btn) { btn.disabled = true; btn.innerText = 'Entrando...'; }
-      const res = await SupabaseService.signIn(email, password);
-      if (res && res.user) {
-        currentCustomer = res.user;
-        currentProfile = await SupabaseService.getProfile(res.user.id);
+      const { data, error } = await SupabaseService.signIn(email, password);
+
+      if (error) {
+        throw error;
+      }
+
+      if (data && data.user) {
+        currentCustomer = data.user;
+        try {
+          currentProfile = await SupabaseService.getProfile(data.user.id);
+        } catch (pe) {
+          currentProfile = { name: data.user.user_metadata?.full_name || data.user.user_metadata?.name || data.user.email.split('@')[0] };
+        }
         updateCustomerAuthUI(currentCustomer);
         closeCustomerAuthModal();
         Utils.showToast('Login realizado com sucesso! Bem-vindo(a).', 'success');
+
+        // Se havia tentativa de checkout antes do login, retoma automaticamente
+        if (pendingCheckoutAfterLogin) {
+          pendingCheckoutAfterLogin = false;
+          setTimeout(() => openCheckout(), 350);
+        }
+      } else {
+        throw new Error('Não foi possível obter os dados da sessão.');
       }
     } catch (err) {
       const msg = err.message || '';
-      if (msg.includes('Invalid login credentials')) {
+      if (msg.includes('Invalid login credentials') || msg.includes('invalid_grant')) {
         Utils.showToast('E-mail ou senha incorretos!', 'error');
+      } else if (msg.includes('Email not confirmed')) {
+        Utils.showToast('Por favor, confirme seu e-mail antes de entrar.', 'warning');
       } else {
         Utils.showToast(`Erro ao entrar: ${msg}`, 'error');
       }
@@ -3490,16 +4110,36 @@
 
     try {
       if (btn) { btn.disabled = true; btn.innerText = 'Criando conta...'; }
-      const res = await SupabaseService.signUp(name, email, password);
+      const { data, error } = await SupabaseService.signUp(name, email, password);
+
+      if (error) {
+        throw error;
+      }
+
       closeCustomerAuthModal();
 
-      if (res?.session) {
-        Utils.showToast('Conta criada com sucesso! Você já está logado.', 'success');
+      if (data && data.session && data.user) {
+        currentCustomer = data.user;
+        currentProfile = { name };
+        updateCustomerAuthUI(currentCustomer);
+        Utils.showToast('Conta criada com sucesso! Você já está conectado.', 'success');
+
+        if (pendingCheckoutAfterLogin) {
+          pendingCheckoutAfterLogin = false;
+          setTimeout(() => openCheckout(), 350);
+        }
       } else {
         Utils.showToast('Cadastro realizado! Verifique seu e-mail para confirmação se necessário.', 'success');
+        switchAuthTab('login');
       }
     } catch (err) {
-      Utils.showToast(`Erro ao cadastrar: ${err.message}`, 'error');
+      const msg = err.message || '';
+      if (msg.includes('User already registered') || msg.includes('user_already_exists')) {
+        Utils.showToast('Este e-mail já está cadastrado. Faça login!', 'warning');
+        switchAuthTab('login');
+      } else {
+        Utils.showToast(`Erro ao cadastrar: ${msg}`, 'error');
+      }
     } finally {
       if (btn) { btn.disabled = false; btn.innerHTML = '<span>Criar Minha Conta</span><i data-lucide="check"></i>'; refreshIcons(); }
     }
@@ -3517,7 +4157,9 @@
 
     try {
       if (btn) { btn.disabled = true; btn.innerText = 'Enviando...'; }
-      await SupabaseService.resetPassword(email);
+      const { data, error } = await SupabaseService.resetPassword(email);
+      if (error) throw error;
+
       Utils.showToast('Link de recuperação enviado para o seu e-mail!', 'success');
       switchAuthTab('login');
     } catch (err) {
@@ -3940,6 +4582,7 @@
     clearColorFilter,
     addLookToCart,
     openProductModal,
+    addToCart,
     openCart,
     updateCartQty: updateCartItemQty,
     removeCartItem: removeFromCart,
@@ -3948,7 +4591,21 @@
     selectNeighborhoodFromModal,
     onSelectNeighborhood,
     toggleFollowStore,
-    doCheckin,
+    followStoreFromLoyalty,
+    claimDailyCheckin,
+    openLoyaltyModal,
+    closeLoyaltyModal,
+    updateLoyaltyUI,
+    openLoyaltyHistoryModal,
+    closeLoyaltyHistoryModal,
+    redeemLoyaltyReward,
+    copyCouponCode,
+    useCouponInCheckout,
+    applyCheckoutCoupon,
+    openReviewModal,
+    closeReviewModal,
+    handleSubmitReview,
+    loadProductReviews,
     openStoreAboutModal,
     closeStoreAboutModal,
     openCustomerAuthModal,
