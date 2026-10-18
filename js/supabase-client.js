@@ -545,6 +545,19 @@
     },
 
     /**
+     * Obter contagem oficial e real de seguidores da loja (sem dados fictícios)
+     */
+    async getStoreFollowersCount() {
+      const client = await this.init();
+      if (!client) return 0;
+      try {
+        const { data, error } = await client.rpc('get_store_followers_count');
+        if (!error && typeof data === 'number') return data;
+      } catch (err) {}
+      return 0;
+    },
+
+    /**
      * Resgatar recompensa gerando cupom atômico no servidor
      */
     async redeemReward(rewardId) {

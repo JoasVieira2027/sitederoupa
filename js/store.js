@@ -176,7 +176,8 @@
   let currentProfile = null;
   let heroSliderInterval = null;
   let currentHeroSlideIndex = 0;
-  let isStoreFollowed = false;
+  let pendingCheckoutAfterLogin = false;
+  let appliedCoupon = null;
 
   // Icon mapping for clean Lucide icons per category
   const CATEGORY_ICON_MAP = {
@@ -1454,95 +1455,69 @@
     }
   }
 
-  // ===== ABOUT SECTION =====
+  // ===== 6. ABOUT STORE SECTION (Apresentação Curta e Profissional) =====
   function renderAbout() {
-    if (!settings || !settings.about) return;
-    const about = settings.about;
-
-    if (!about.active) {
-      if (aboutSection) aboutSection.classList.add('hidden');
-      return;
-    }
-
-    if (aboutSection) aboutSection.classList.remove('hidden');
-    if (aboutTagline) aboutTagline.textContent = about.subtitle || 'Tecnologia, Conforto & Performance';
-    if (aboutTitle) aboutTitle.textContent = about.title || 'Feito para o Seu Melhor Movimento';
-    if (aboutText) aboutText.textContent = about.text || '';
-
-    if (aboutFeatures && about.features && about.features.length) {
-      aboutFeatures.innerHTML = about.features.map(f => {
-        let iconName = 'sparkles';
-        if (f.icon === 'shield-check' || f.title.toLowerCase().includes('transparência')) iconName = 'shield-check';
-        else if (f.icon === 'wind' || f.title.toLowerCase().includes('dry')) iconName = 'wind';
-        else if (f.icon === 'activity' || f.title.toLowerCase().includes('compressão')) iconName = 'activity';
-        else if (f.icon === 'refresh-cw' || f.title.toLowerCase().includes('troca')) iconName = 'refresh-cw';
-
-        return `
-          <div class="about-feature">
-            <div class="about-feature-icon-wrap">
-              <i data-lucide="${iconName}"></i>
-            </div>
-            <h4>${Utils.sanitize(f.title)}</h4>
-            <p>${Utils.sanitize(f.desc)}</p>
-          </div>
-        `;
-      }).join('');
-      refreshIcons();
-    }
-  }
-
-  // ===== INSTAGRAM FEED EDITORIAL =====
-  function renderInstagramFeed() {
-    if (!instagramSection || !instagramGrid) return;
-
-    const s = DataStore.getSettings();
-    const ig = s.instagramFeed || {};
-
-    if (ig.active === false) {
-      instagramSection.classList.add('hidden');
-      return;
-    }
-
-    instagramSection.classList.remove('hidden');
-    if (instagramTitle) instagramTitle.textContent = ig.title || 'Siga @fitvibe.activewear';
-    if (instagramSubtitle) instagramSubtitle.textContent = ig.subtitle || 'Confira nossos treinos, novidades diárias e bastidores exclusivos';
-
-    const profileUrl = ig.profileUrl || 'https://instagram.com';
-    if (btnInstagramProfile) btnInstagramProfile.href = profileUrl;
-
-    const posts = ig.posts || [];
-    if (posts.length > 0) {
-      instagramGrid.innerHTML = posts.map(post => {
-        const href = post.postUrl || profileUrl;
-        return `
-          <a href="${Utils.sanitize(href)}" target="_blank" rel="noopener noreferrer" class="instagram-post-card" title="${Utils.sanitize(post.caption || 'Donna Fitness PE')}">
-            <img src="${Utils.sanitize(post.image)}" alt="${Utils.sanitize(post.caption || 'Foto Donna Fitness PE')}" loading="lazy">
-            <div class="instagram-post-overlay">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="ig-card-icon">
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-              </svg>
-              <span>Ver no Instagram</span>
-            </div>
-          </a>
-        `;
-      }).join('');
-    }
-  }
-
-  // ===== FOOTER =====
-  function renderFooter() {
     if (!settings) return;
-    if (footerTagline) footerTagline.textContent = settings.storeTagline || 'Roupas fitness femininas de alta performance.';
-    if (footerAddress) footerAddress.textContent = settings.address || 'São Paulo - SP';
-    if (footerPhone) footerPhone.textContent = settings.contactPhone || '(11) 99999-9999';
-    if (footerCopyright) footerCopyright.textContent = settings.footerCopyright || '© 2026 Donna Fitness PE. Todos os direitos reservados.';
+    const titleEl = $('about-store-title');
+    const descEl = $('about-store-desc');
+    const phoneItem = $('about-store-phone-item');
+    const phoneEl = $('about-store-phone');
+    const waItem = $('about-store-wa-item');
+    const waLink = $('about-store-wa-link');
+    const instaItem = $('about-store-insta-item');
+    const instaLink = $('about-store-insta-link');
+    const locItem = $('about-store-location-item');
+    const locEl = $('about-store-location');
 
-    const wa = `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent('Olá! Gostaria de falar com o atendimento da Donna Fitness PE.')}`;
-    if (footerWhatsapp) footerWhatsapp.href = wa;
-
-    if (settings.instagram && footerInstagram) {
-      footerInstagram.href = `https://instagram.com/${settings.instagram.replace('@', '')}`;
+    if (titleEl) titleEl.textContent = settings.storeName ? `Sobre a ${settings.storeName}` : 'Sobre a Loja';
+    if (descEl) {
+      descEl.textContent = settings.storeTagline || 'Moda fitness feminina desenvolvida com tecidos nobres, modelagem anatômica e tecnologia zero transparência para seu treino com máxima confiança, compressão e conforto.';
     }
+
+    // Atendimento (somente se configurado e real)
+    if (phoneItem && phoneEl) {
+      if (settings.contactPhone && !settings.contactPhone.includes('99999-9999') && !settings.contactPhone.includes('11 99999')) {
+        phoneEl.textContent = settings.contactPhone;
+        phoneItem.style.display = 'flex';
+      } else {
+        phoneItem.style.display = 'none';
+      }
+    }
+
+    // WhatsApp (somente se configurado e real)
+    if (waItem && waLink) {
+      if (settings.whatsappNumber && !settings.whatsappNumber.includes('999999999')) {
+        waLink.href = `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent('Olá! Gostaria de mais informações sobre a Donna Fitness PE.')}`;
+        waItem.style.display = 'flex';
+      } else {
+        waItem.style.display = 'none';
+      }
+    }
+
+    // Instagram (somente se configurado e real)
+    if (instaItem && instaLink) {
+      const handle = settings.instagram || (settings.instagramFeed && settings.instagramFeed.handle) || '';
+      if (handle && !handle.toLowerCase().includes('fitvibe.activewear') && !handle.toLowerCase().includes('exemplo')) {
+        const cleanHandle = handle.startsWith('@') ? handle : `@${handle}`;
+        instaLink.textContent = cleanHandle;
+        instaLink.href = `https://instagram.com/${handle.replace('@', '')}`;
+        instaItem.style.display = 'flex';
+      } else {
+        instaItem.style.display = 'none';
+      }
+    }
+
+    // Localização (somente se configurada e real)
+    if (locItem && locEl) {
+      if (settings.address && !settings.address.toLowerCase().includes('rua do fitness') && !settings.address.toLowerCase().includes('são paulo - sp')) {
+        locEl.textContent = settings.address;
+        locItem.style.display = 'flex';
+      } else {
+        locItem.style.display = 'none';
+      }
+    }
+
+    refreshIcons();
   }
 
   // ===== CART MANAGEMENT =====
@@ -1827,6 +1802,14 @@
     }
     if (!DataStore.isStoreOpen()) {
       Utils.showToast('A loja está fechada no momento.', 'error');
+      return;
+    }
+
+    if (!currentCustomer) {
+      Utils.showToast('Faça login ou crie sua conta para finalizar o pedido.', 'info');
+      pendingCheckoutAfterLogin = true;
+      closeCart();
+      openCustomerAuthModal('login');
       return;
     }
 
@@ -2253,9 +2236,44 @@
 
     if (checkoutSubtotal) checkoutSubtotal.textContent = Utils.formatCurrency(subtotal);
 
+    // Desconto de cupom fidelidade
+    let discountAmount = 0;
+    let isFreeShippingFromCoupon = false;
+    if (appliedCoupon) {
+      if (appliedCoupon.reward_type === 'fixed_discount') {
+        discountAmount = Math.min(subtotal, appliedCoupon.discount_value || 0);
+      } else if (appliedCoupon.reward_type === 'percentage_discount') {
+        const rawPct = (subtotal * (appliedCoupon.discount_value || 0)) / 100;
+        discountAmount = appliedCoupon.max_discount > 0 ? Math.min(rawPct, appliedCoupon.max_discount) : rawPct;
+      } else if (appliedCoupon.reward_type === 'free_shipping') {
+        isFreeShippingFromCoupon = true;
+      }
+    }
+
+    const discountRow = $('checkout-discount-row');
+    const discountVal = $('checkout-discount-val');
+    const discountLabel = $('checkout-discount-label');
+    if (discountRow) {
+      if (appliedCoupon && (discountAmount > 0 || isFreeShippingFromCoupon)) {
+        discountRow.classList.remove('hidden');
+        if (discountLabel) {
+          discountLabel.textContent = `Cupom (${appliedCoupon.code}):`;
+        }
+        if (discountVal) {
+          discountVal.textContent = isFreeShippingFromCoupon ? 'Frete Grátis' : `- ${Utils.formatCurrency(discountAmount)}`;
+        }
+      } else {
+        discountRow.classList.add('hidden');
+      }
+    }
+
+    const effectiveFee = isFreeShippingFromCoupon ? 0 : fee;
+
     if (checkoutDeliveryFee) {
       if (deliveryType === 'pickup') {
         checkoutDeliveryFee.innerHTML = '<span style="color:#059669;font-weight:700;">Grátis (Retirada)</span>';
+      } else if (isFreeShippingFromCoupon) {
+        checkoutDeliveryFee.innerHTML = '<span style="color:#059669;font-weight:700;">Grátis</span> <small style="color:#059669;">(Cupom Fidelidade)</small>';
       } else if (isPendingNeighborhood) {
         const isFreeActive = d.freeDeliveryEnabled !== false;
         const freeAt = isFreeActive ? (d.freeDeliveryThreshold !== undefined ? d.freeDeliveryThreshold : 199) : Infinity;
@@ -2264,20 +2282,20 @@
         } else {
           checkoutDeliveryFee.innerHTML = '<span style="color:#d97706;font-weight:700;font-size:0.85rem;">Selecione o bairro</span>';
         }
-      } else if (fee === 0) {
+      } else if (effectiveFee === 0) {
         checkoutDeliveryFee.innerHTML = '<span style="color:#059669;font-weight:700;">Grátis</span>';
       } else {
         const n = selectedNeighborhoodId ? activeNeighs.find(x => x.id === selectedNeighborhoodId) : null;
         checkoutDeliveryFee.innerHTML = n 
-          ? `<strong>${Utils.formatCurrency(fee)}</strong> <small style="color:var(--text-muted);font-weight:normal;">(${n.name})</small>` 
-          : `<strong>${Utils.formatCurrency(fee)}</strong>`;
+          ? `<strong>${Utils.formatCurrency(effectiveFee)}</strong> <small style="color:var(--text-muted);font-weight:normal;">(${n.name})</small>` 
+          : `<strong>${Utils.formatCurrency(effectiveFee)}</strong>`;
       }
     }
 
-    const total = subtotal + (fee || 0);
+    const total = Math.max(0, subtotal - discountAmount + (effectiveFee || 0));
     if (checkoutTotal) {
-      if (isPendingNeighborhood && fee === null) {
-        checkoutTotal.innerHTML = `${Utils.formatCurrency(subtotal)} <small style="color:var(--text-muted);font-size:0.75rem;font-weight:normal;">(+ frete)</small>`;
+      if (isPendingNeighborhood && effectiveFee === null) {
+        checkoutTotal.innerHTML = `${Utils.formatCurrency(Math.max(0, subtotal - discountAmount))} <small style="color:var(--text-muted);font-size:0.75rem;font-weight:normal;">(+ frete)</small>`;
       } else {
         checkoutTotal.textContent = Utils.formatCurrency(total);
       }
@@ -2285,8 +2303,8 @@
 
     const btnSendText = $('btn-send-whatsapp-text');
     if (btnSendText) {
-      if (isPendingNeighborhood && fee === null) {
-        btnSendText.textContent = `Finalizar Pedido pelo WhatsApp • ${Utils.formatCurrency(subtotal)} (+ frete)`;
+      if (isPendingNeighborhood && effectiveFee === null) {
+        btnSendText.textContent = `Finalizar Pedido pelo WhatsApp • ${Utils.formatCurrency(Math.max(0, subtotal - discountAmount))} (+ frete)`;
       } else {
         btnSendText.textContent = `Finalizar Pedido pelo WhatsApp • ${Utils.formatCurrency(total)}`;
       }
@@ -2312,7 +2330,20 @@
     const d = s.delivery || {};
     const subtotal = getCartTotal();
     const fee = calculateDeliveryFee(subtotal);
-    const total = subtotal + (fee || 0);
+    let discountAmount = 0;
+    let isFreeShippingFromCoupon = false;
+    if (appliedCoupon) {
+      if (appliedCoupon.reward_type === 'fixed_discount') {
+        discountAmount = Math.min(subtotal, appliedCoupon.discount_value || 0);
+      } else if (appliedCoupon.reward_type === 'percentage_discount') {
+        const rawPct = (subtotal * (appliedCoupon.discount_value || 0)) / 100;
+        discountAmount = appliedCoupon.max_discount > 0 ? Math.min(rawPct, appliedCoupon.max_discount) : rawPct;
+      } else if (appliedCoupon.reward_type === 'free_shipping') {
+        isFreeShippingFromCoupon = true;
+      }
+    }
+    const effectiveFee = isFreeShippingFromCoupon ? 0 : (fee || 0);
+    const total = Math.max(0, subtotal - discountAmount + effectiveFee);
     const orderNum = orderNumber || `FV-${Math.floor(1000 + Math.random() * 9000)}`;
 
     let msg = `🛍️ *NOVO PEDIDO #${orderNum}* — ${s.storeName}\n`;
@@ -2332,6 +2363,13 @@
 
     msg += `\n━━━━━━━━━━━━━━━━━━━━━\n`;
     msg += `💰 *Subtotal:* ${Utils.formatCurrency(subtotal)}\n`;
+    if (appliedCoupon) {
+      if (isFreeShippingFromCoupon) {
+        msg += `🎟️ *Cupom Fidelidade:* ${appliedCoupon.code} (Frete Grátis)\n`;
+      } else {
+        msg += `🎟️ *Cupom Fidelidade:* ${appliedCoupon.code} (- ${Utils.formatCurrency(discountAmount)})\n`;
+      }
+    }
 
     if (deliveryType === 'delivery') {
       msg += `🚚 *Modalidade:* Entrega a Domicílio\n`;
@@ -2339,8 +2377,8 @@
         msg += `📍 *Bairro:* ${customerData.neighborhood}\n`;
       }
       msg += `🏠 *Endereço:* ${customerData.address}\n`;
-      let feeText = fee === 0 ? 'Grátis' : Utils.formatCurrency(fee);
-      if (selectedNeighborhoodId) {
+      let feeText = effectiveFee === 0 ? 'Grátis' : Utils.formatCurrency(effectiveFee);
+      if (selectedNeighborhoodId && !isFreeShippingFromCoupon) {
         const n = (d.neighborhoods || []).find(x => x.id === selectedNeighborhoodId);
         if (n && n.estimate) {
           feeText += ` (Prazo: ${n.estimate})`;
@@ -2374,6 +2412,14 @@
 
   async function submitOrder(e) {
     e.preventDefault();
+
+    if (!currentCustomer || !currentCustomer.id) {
+      Utils.showToast('Faça login ou crie sua conta para finalizar o pedido.', 'error');
+      pendingCheckoutAfterLogin = true;
+      closeCheckout();
+      openCustomerAuthModal('login');
+      return;
+    }
 
     const name = $('customer-name') ? $('customer-name').value.trim() : '';
     const phone = $('customer-phone') ? $('customer-phone').value.trim() : '';
@@ -2452,7 +2498,20 @@
     }
 
     const fee = calculateDeliveryFee(subtotal);
-    const total = subtotal + (fee || 0);
+    let discountAmount = 0;
+    let isFreeShippingFromCoupon = false;
+    if (appliedCoupon) {
+      if (appliedCoupon.reward_type === 'fixed_discount') {
+        discountAmount = Math.min(subtotal, appliedCoupon.discount_value || 0);
+      } else if (appliedCoupon.reward_type === 'percentage_discount') {
+        const rawPct = (subtotal * (appliedCoupon.discount_value || 0)) / 100;
+        discountAmount = appliedCoupon.max_discount > 0 ? Math.min(rawPct, appliedCoupon.max_discount) : rawPct;
+      } else if (appliedCoupon.reward_type === 'free_shipping') {
+        isFreeShippingFromCoupon = true;
+      }
+    }
+    const effectiveFee = isFreeShippingFromCoupon ? 0 : (fee || 0);
+    const total = Math.max(0, subtotal - discountAmount + effectiveFee);
     const payLabel = (s.paymentMethods || []).find(m => m.id === selectedPayment)?.name || selectedPayment;
 
     let installmentText = '';
@@ -2477,15 +2536,17 @@
       }
     }
 
-    // Save order com associação segura do usuário autenticado (se logado)
+    // Save order com associação estrita ao usuário autenticado (auth.uid())
     try {
       await DataStore.saveOrder({
         id: `ord_${orderNumber}_${Date.now()}`,
         orderNumber,
-        userId: currentCustomer ? currentCustomer.id : null,
+        userId: currentCustomer.id,
         customer: { name, phone, address: finalAddress, neighborhood: neighborhoodName, obs, installment: installmentText },
         deliveryType,
-        deliveryFee: fee,
+        deliveryFee: effectiveFee,
+        discount: discountAmount,
+        couponCode: appliedCoupon ? appliedCoupon.code : null,
         items: cart.map(i => ({ ...i })),
         subtotal,
         total,
@@ -2497,11 +2558,27 @@
       console.warn('[Store] Erro ao registrar pedido:', err);
     }
 
+    // Processar cupom e pontos de fidelidade no Supabase
+    if (appliedCoupon && appliedCoupon.code) {
+      try {
+        await DataStore.markCouponUsed(appliedCoupon.code, orderNumber, currentCustomer.id);
+      } catch (e) {
+        console.warn('[Store] Erro ao marcar cupom usado:', e);
+      }
+    }
+
+    try {
+      await DataStore.processOrderLoyaltyPoints({ id: orderNumber, subtotal, total, status: 'novo' }, currentCustomer.id);
+    } catch (e) {
+      console.warn('[Store] Erro ao creditar pontos do pedido:', e);
+    }
+
     // Redirect to WhatsApp
     const msg = buildWhatsAppMessage(customerData, orderNumber);
     const waNumber = s.whatsappNumber || '';
     const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`;
 
+    appliedCoupon = null;
     renderProducts();
     cart = [];
     saveCart();

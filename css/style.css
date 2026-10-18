@@ -7452,3 +7452,126 @@ body {
   margin-left: 6px;
 }
 
+/* ===== SEÇÃO SOBRE A LOJA (CLEAN & MINIMALIST) ===== */
+.about-store-section {
+  padding: 60px 0 40px;
+}
+
+.about-store-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.about-store-header {
+  max-width: 680px;
+  margin-bottom: 32px;
+}
+
+.about-store-header .section-label {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--primary, #059669);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+
+.about-store-header h2 {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 12px;
+  letter-spacing: -0.5px;
+}
+
+.about-store-desc {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: #475569;
+  margin: 0;
+}
+
+.about-store-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  border-top: 1px solid #F1F5F9;
+  padding-top: 28px;
+}
+
+.about-store-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  background: #F8FAFC;
+  border-radius: 12px;
+  border: 1px solid #EDF2F7;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.about-store-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+}
+
+.about-store-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(5, 150, 105, 0.1);
+  color: #059669;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.about-store-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.about-store-item strong {
+  display: block;
+  font-size: 0.88rem;
+  color: #0F172A;
+  margin-bottom: 4px;
+}
+
+.about-store-item span,
+.about-store-item a {
+  font-size: 0.82rem;
+  color: #64748B;
+  line-height: 1.45;
+  text-decoration: none;
+}
+
+.about-store-item a:hover {
+  color: #059669;
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .about-store-section {
+    padding: 40px 16px 24px;
+  }
+  .about-store-card {
+    padding: 24px 18px;
+    border-radius: 16px;
+  }
+  .about-store-header h2 {
+    font-size: 1.35rem;
+  }
+  .about-store-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding-top: 20px;
+  }
+}
+
+

@@ -221,6 +221,51 @@ CREATE POLICY "Public can view approved reviews"
     TO public
     USING (status = 'approved');
 
+-- orders: RLS Definitivo (Login obrigatório para criar pedidos; cliente vê somente seus pedidos)
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can insert orders with integrity" ON public.orders;
+DROP POLICY IF EXISTS "Allow all on orders" ON public.orders;
+DROP POLICY IF EXISTS "Public can insert orders" ON public.orders;
+DROP POLICY IF EXISTS "Users can insert own orders" ON public.orders;
+DROP POLICY IF EXISTS "Users can view own orders" ON public.orders;
+
+CREATE POLICY "Users can view own orders"
+    ON public.orders FOR SELECT
+    TO authenticated
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own orders"
+    ON public.orders FOR INSERT
+    TO authenticated
+    WITH CHECK (auth.uid() = user_id AND user_id IS NOT NULL);
+
+-- Catálogo: Somente SELECT para visitantes públicos
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all on products" ON public.products;
+DROP POLICY IF EXISTS "Public can select products" ON public.products;
+CREATE POLICY "Public can select products" ON public.products FOR SELECT TO public USING (active = true);
+
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all on categories" ON public.categories;
+DROP POLICY IF EXISTS "Public can select categories" ON public.categories;
+CREATE POLICY "Public can select categories" ON public.categories FOR SELECT TO public USING (true);
+
+ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all on settings" ON public.settings;
+DROP POLICY IF EXISTS "Public can select settings" ON public.settings;
+CREATE POLICY "Public can select settings" ON public.settings FOR SELECT TO public USING (true);
+
+-- Contagem pública oficial e real de seguidores (sem expor user_id aos visitantes)
+CREATE OR REPLACE FUNCTION public.get_store_followers_count()
+RETURNS INTEGER
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT count(*)::integer FROM public.store_follows;
+$$;
+GRANT EXECUTE ON FUNCTION public.get_store_followers_count() TO anon, authenticated;
+
 -- Nota de Segurança: INSERT, UPDATE e DELETE em loyalty_accounts, loyalty_transactions
 -- e loyalty_coupons são estritamente proibidos para clientes diretos.
 -- Todas as mutações ocorrem exclusivamente através das funções transacionais SECURITY DEFINER abaixo.

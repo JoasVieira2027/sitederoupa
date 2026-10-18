@@ -124,49 +124,28 @@
         </div>
       </a>
 
-      <!-- Desktop Navigation Menu (Categorias Centrais Principais) -->
+      <!-- Desktop Navigation Menu -->
       <nav class="desktop-nav" aria-label="Navegação principal">
         <ul class="nav-list">
-          <li><a href="#products" class="nav-link nav-cat-link active" data-cat="all" onclick="window.StoreApp?.selectCategory('all')">Todas as Peças</a></li>
-          <li><a href="#products" class="nav-link nav-cat-link" data-cat="Conjuntos" onclick="window.StoreApp?.selectCategory('Conjuntos')">Conjuntos</a></li>
-          <li><a href="#products" class="nav-link nav-cat-link" data-cat="Leggings" onclick="window.StoreApp?.selectCategory('Leggings')">Leggings</a></li>
-          <li><a href="#products" class="nav-link nav-cat-link" data-cat="Tops & Croppeds" onclick="window.StoreApp?.selectCategory('Tops & Croppeds')">Tops</a></li>
-          <li><a href="#products" class="nav-link nav-cat-link" data-cat="Shorts & Bermudas" onclick="window.StoreApp?.selectCategory('Shorts & Bermudas')">Shorts</a></li>
-          <li><a href="#looks-section" class="nav-link">Monte seu Look</a></li>
+          <li><a href="#products" class="nav-link nav-cat-link active" onclick="window.StoreApp?.selectCategory('all')">Produtos</a></li>
+          <li><a href="#visual-categories" class="nav-link">Categorias</a></li>
+          <li><a href="#featured-section" class="nav-link">Ofertas</a></li>
         </ul>
       </nav>
 
-      <!-- Header Actions -->
+      <!-- Header Actions: Busca | Conta | Carrinho -->
       <div class="header-actions">
         
         <!-- Search Trigger / Quick Search Bar -->
         <div class="search-box-wrap" id="search-box-wrap">
           <div class="search-input-inner">
             <i data-lucide="search" class="search-icon"></i>
-            <input type="search" id="quick-search-input" placeholder="Buscar peça, legging, top..." aria-label="Buscar produtos">
+            <input type="search" id="quick-search-input" placeholder="Buscar produtos..." aria-label="Buscar produtos">
             <button type="button" class="btn-clear-search hidden" id="btn-clear-search" aria-label="Limpar busca">
               <i data-lucide="x"></i>
             </button>
           </div>
         </div>
-
-        <!-- Store Open / Closed Indicator -->
-        <div class="navbar-status" id="store-status" title="Status da loja">
-          <span class="status-dot" aria-hidden="true"></span>
-          <span id="store-status-text">Aberta</span>
-        </div>
-
-        <!-- WhatsApp Support Direct Link -->
-        <a href="#" class="btn-header-wa" id="navbar-whatsapp-btn" target="_blank" rel="noopener noreferrer" aria-label="Falar com especialista no WhatsApp">
-          <i data-lucide="message-circle" class="icon-inline"></i>
-          <span class="wa-label">WhatsApp</span>
-        </a>
-
-        <!-- Loyalty Points Button -->
-        <button type="button" class="btn-header-loyalty" id="btn-header-loyalty" onclick="window.StoreApp?.openLoyaltyModal()" title="Ver meus pontos e recompensas">
-          <span class="loyalty-coin-icon">🪙</span>
-          <span class="loyalty-header-pts" id="header-loyalty-pts">0 pts</span>
-        </button>
 
         <!-- Customer Account Button -->
         <button type="button" class="btn-header-account" id="btn-customer-account" aria-label="Área do cliente / Minha Conta">
@@ -178,6 +157,12 @@
         <button type="button" class="btn-cart" id="btn-open-cart" aria-label="Abrir carrinho de compras">
           <i data-lucide="shopping-bag" class="cart-icon"></i>
           <span class="cart-count" id="cart-count" style="display:none;">0</span>
+        </button>
+
+        <!-- Loyalty Points Button (Oculto para visitante; acessível em Minha Conta) -->
+        <button type="button" class="btn-header-loyalty" id="btn-header-loyalty" onclick="window.StoreApp?.openLoyaltyModal()" title="Ver meus pontos e recompensas" style="display:none;">
+          <span class="loyalty-coin-icon">🪙</span>
+          <span class="loyalty-header-pts" id="header-loyalty-pts">0 pts</span>
         </button>
       </div>
 
@@ -335,67 +320,7 @@
     <div class="hero-slider-dots" id="hero-slider-dots"></div>
   </section>
 
-  <!-- 2. Barra de Benefícios Elegante (Conceito JoyModa) -->
-  <section class="chic-benefits-bar" aria-label="Garantias e benefícios da loja">
-    <div class="chic-benefits-inner" id="chic-benefits-list">
-      <div class="chic-benefit-pill">
-        <i data-lucide="shield-check"></i>
-        <span>Compra segura</span>
-      </div>
-      <div class="chic-benefit-pill">
-        <i data-lucide="truck"></i>
-        <span>Motoboy p/ região metropolitana</span>
-      </div>
-      <div class="chic-benefit-pill">
-        <i data-lucide="package-check"></i>
-        <span>Frete grátis acima de R$ 199</span>
-      </div>
-      <div class="chic-benefit-pill">
-        <i data-lucide="message-circle"></i>
-        <span>Atendimento exclusivo pelo WhatsApp</span>
-      </div>
-      <div class="chic-benefit-pill">
-        <i data-lucide="refresh-cw"></i>
-        <span>1ª Troca grátis sem burocracia</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- 3. Boutique Social Proof Strip (Referência Visual: Rating, Seguidores e Ações) -->
-  <section class="boutique-bio-strip" aria-label="Informações da loja">
-    <div class="boutique-bio-inner container">
-      <div class="boutique-stats-row">
-        <div class="boutique-stat-item">
-          <div class="boutique-stat-main">
-            <span class="star-icon">★</span>
-            <span id="boutique-rating-val">5.0</span>
-          </div>
-          <span class="boutique-stat-sub">128 avaliações</span>
-        </div>
-        <div style="width:1px;height:24px;background:#E2E8F0;"></div>
-        <div class="boutique-stat-item">
-          <div class="boutique-stat-main" id="boutique-followers-val">4.8k</div>
-          <span class="boutique-stat-sub">seguidores</span>
-        </div>
-      </div>
-      <div class="boutique-actions-row">
-        <button type="button" class="btn-follow-store" id="btn-follow-store" onclick="window.StoreApp?.toggleFollowStore()">
-          <i data-lucide="user-plus"></i>
-          <span id="btn-follow-label">+ Seguir loja</span>
-        </button>
-        <button type="button" class="btn-bio-action" id="btn-checkin" onclick="window.StoreApp?.doCheckin()">
-          <i data-lucide="flame"></i>
-          <span>Check-in</span>
-        </button>
-        <button type="button" class="btn-bio-action" id="btn-open-about" onclick="window.StoreApp?.openStoreAboutModal()">
-          <i data-lucide="info"></i>
-          <span>Sobre a Loja</span>
-        </button>
-      </div>
-    </div>
-  </section>
-
-  <!-- 4. Seção Visual de Categorias (Scroll Horizontal Suave no Mobile) -->
+  <!-- 2. Seção Visual de Categorias (Scroll Horizontal Suave no Mobile) -->
   <section class="chic-categories-section container" id="visual-categories" aria-label="Navegação por categorias">
     <span class="section-label-chic">Categorias</span>
     <div class="chic-categories-scroll-wrap">
@@ -473,209 +398,73 @@
 
   </section>
 
-  <!-- Shop By Color ("Compra por Cor") -->
-  <section class="color-shop-section container" id="color-shop" aria-label="Compre roupas fitness por cor">
-    <div class="color-shop-card">
-      <div class="color-shop-header">
-        <span class="section-label">Paleta Ativa</span>
-        <h2>Compre por Cor</h2>
-        <p>Selecione sua cor favorita para filtrar as peças disponíveis no catálogo</p>
-      </div>
-      
-      <div class="color-shop-palette" id="color-shop-palette">
-        <!-- Buttons rendered in HTML and enhanced by JS -->
-        <button type="button" class="color-shop-btn" data-color="Preto" onclick="window.StoreApp?.filterByColor('Preto')">
-          <span class="color-swatch-circle" style="background:#1E1E1E;"></span>
-          <span class="color-btn-label">Preto Ônix</span>
-        </button>
-        <button type="button" class="color-shop-btn" data-color="Grafite" onclick="window.StoreApp?.filterByColor('Grafite')">
-          <span class="color-swatch-circle" style="background:#4A4A4A;"></span>
-          <span class="color-btn-label">Grafite Mescla</span>
-        </button>
-        <button type="button" class="color-shop-btn" data-color="Verde" onclick="window.StoreApp?.filterByColor('Verde')">
-          <span class="color-swatch-circle" style="background:#3A4D39;"></span>
-          <span class="color-btn-label">Verde Militar</span>
-        </button>
-        <button type="button" class="color-shop-btn" data-color="Azul" onclick="window.StoreApp?.filterByColor('Azul')">
-          <span class="color-swatch-circle" style="background:#1B263B;"></span>
-          <span class="color-btn-label">Azul Marinho</span>
-        </button>
-        <button type="button" class="color-shop-btn" data-color="Vinho" onclick="window.StoreApp?.filterByColor('Vinho')">
-          <span class="color-swatch-circle" style="background:#5A1827;"></span>
-          <span class="color-btn-label">Vinho Borgonha</span>
-        </button>
-        <button type="button" class="color-shop-btn" data-color="Terracota" onclick="window.StoreApp?.filterByColor('Terracota')">
-          <span class="color-swatch-circle" style="background:#A0522D;"></span>
-          <span class="color-btn-label">Terracota</span>
-        </button>
+  <!-- 6. Seção Curta Sobre a Loja (Apresentação Profissional e Elegante) -->
+  <section class="about-store-section container" id="about-store-section" aria-label="Sobre a loja">
+    <div class="about-store-card">
+      <div class="about-store-header">
+        <span class="section-label">A Marca</span>
+        <h2 id="about-store-title">Sobre a Loja</h2>
+        <p id="about-store-desc" class="about-store-desc">Moda fitness feminina desenvolvida com tecidos nobres, modelagem anatômica e tecnologia zero transparência para seu treino com máxima confiança, compressão e conforto.</p>
       </div>
 
-      <div class="color-shop-clear-wrap hidden" id="color-shop-clear-wrap">
-        <button type="button" class="btn-clear-color" id="btn-clear-color-filter" onclick="window.StoreApp?.clearColorFilter()">
-          <i data-lucide="x"></i>
-          <span>Limpar filtro de cor</span>
-        </button>
+      <div class="about-store-grid" id="about-store-grid">
+        <!-- Atendimento (se configurado) -->
+        <div class="about-store-item" id="about-store-phone-item" style="display:none;">
+          <div class="about-store-icon"><i data-lucide="phone"></i></div>
+          <div>
+            <strong>Atendimento</strong>
+            <span id="about-store-phone"></span>
+          </div>
+        </div>
+
+        <!-- WhatsApp (se configurado) -->
+        <div class="about-store-item" id="about-store-wa-item" style="display:none;">
+          <div class="about-store-icon"><i data-lucide="message-circle"></i></div>
+          <div>
+            <strong>WhatsApp</strong>
+            <a href="#" id="about-store-wa-link" target="_blank" rel="noopener noreferrer">Falar no WhatsApp</a>
+          </div>
+        </div>
+
+        <!-- Instagram (se configurado) -->
+        <div class="about-store-item" id="about-store-insta-item" style="display:none;">
+          <div class="about-store-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </div>
+          <div>
+            <strong>Instagram</strong>
+            <a href="#" id="about-store-insta-link" target="_blank" rel="noopener noreferrer">@perfil</a>
+          </div>
+        </div>
+
+        <!-- Localização (se configurada) -->
+        <div class="about-store-item" id="about-store-location-item" style="display:none;">
+          <div class="about-store-icon"><i data-lucide="map-pin"></i></div>
+          <div>
+            <strong>Localização</strong>
+            <span id="about-store-location"></span>
+          </div>
+        </div>
+
+        <!-- Política de Troca -->
+        <div class="about-store-item" id="about-store-policy-item">
+          <div class="about-store-icon"><i data-lucide="refresh-cw"></i></div>
+          <div>
+            <strong>Política de Troca</strong>
+            <span>1ª troca grátis em até 7 dias corridos após o recebimento.</span>
+          </div>
+        </div>
+
+        <!-- Formas de Pagamento -->
+        <div class="about-store-item" id="about-store-payment-item">
+          <div class="about-store-icon"><i data-lucide="credit-card"></i></div>
+          <div>
+            <strong>Formas de Pagamento</strong>
+            <span>Pix com aprovação imediata e cartões de crédito em até 3x sem juros.</span>
+          </div>
+        </div>
       </div>
     </div>
-  </section>
-
-  <!-- Complete Looks ("Monte seu Look") -->
-  <section class="looks-section container" id="looks-section" aria-label="Monte seu look fitness">
-    <div class="section-header">
-      <span class="section-label">Combinações Perfeitas</span>
-      <h2>Monte seu Look</h2>
-      <p>Conjuntos coordenados para potencializar seu desempenho e confiança nos treinos</p>
-    </div>
-
-    <div class="looks-grid" id="looks-grid">
-      
-      <!-- Look 1: Alta Performance Sculpt -->
-      <article class="look-card">
-        <div class="look-card-images">
-          <div class="look-image-item">
-            <img src="assets/images/top_fitness.jpg" alt="Top Fitness Alta Sustentação" loading="lazy">
-            <span class="look-item-tag">Top Sustentação</span>
-          </div>
-          <div class="look-image-plus"><i data-lucide="plus"></i></div>
-          <div class="look-image-item">
-            <img src="assets/images/legging_fitness.jpg" alt="Legging Sculpt Sem Costura" loading="lazy">
-            <span class="look-item-tag">Legging Sculpt</span>
-          </div>
-        </div>
-        <div class="look-card-content">
-          <span class="look-badge">Look Mais Desejado</span>
-          <h3 class="look-title">Look Sculpt Power</h3>
-          <p class="look-desc">Top cruzado de alta sustentação combinado com a Legging Sculpt de cós alto duplo blackout.</p>
-          <div class="look-price-row">
-            <div class="look-price-wrap">
-              <span class="look-price-label">Look Completo (2 peças)</span>
-              <span class="look-price-value">R$ 219,80</span>
-              <span class="look-installments">em até 3x de R$ 73,26 sem juros</span>
-            </div>
-            <button type="button" class="btn-buy-look" onclick="window.StoreApp?.addLookToCart('look_sculpt')">
-              <i data-lucide="sparkles"></i>
-              <span>Montar Look</span>
-            </button>
-          </div>
-        </div>
-      </article>
-
-      <!-- Look 2: Biker Treino Intenso -->
-      <article class="look-card">
-        <div class="look-card-images">
-          <div class="look-image-item">
-            <img src="assets/images/top_fitness.jpg" alt="Top Fitness Alças Cruzadas" loading="lazy">
-            <span class="look-item-tag">Top Sustentação</span>
-          </div>
-          <div class="look-image-plus"><i data-lucide="plus"></i></div>
-          <div class="look-image-item">
-            <img src="assets/images/short_fitness.jpg" alt="Short Biker com Bolso" loading="lazy">
-            <span class="look-item-tag">Short Biker</span>
-          </div>
-        </div>
-        <div class="look-card-content">
-          <span class="look-badge">Perfeito para Corrida</span>
-          <h3 class="look-title">Look Biker Active</h3>
-          <p class="look-desc">Top de alto impacto com Bermuda Ciclista com bolso lateral seguro para celular e documentos.</p>
-          <div class="look-price-row">
-            <div class="look-price-wrap">
-              <span class="look-price-label">Look Completo (2 peças)</span>
-              <span class="look-price-value">R$ 179,80</span>
-              <span class="look-installments">em até 3x de R$ 59,93 sem juros</span>
-            </div>
-            <button type="button" class="btn-buy-look" onclick="window.StoreApp?.addLookToCart('look_biker')">
-              <i data-lucide="sparkles"></i>
-              <span>Montar Look</span>
-            </button>
-          </div>
-        </div>
-      </article>
-
-    </div>
-  </section>
-
-  <!-- Benefícios Essenciais de Compra (Posição Estratégica de Confiança antes do Fechamento) -->
-  <section class="benefits-section" id="benefits-bar" aria-label="Benefícios e diferenciais da loja">
-    <div class="container">
-      <div class="benefits-grid" id="benefits-grid">
-        
-        <div class="benefit-card">
-          <div class="benefit-icon-wrapper">
-            <i data-lucide="truck"></i>
-          </div>
-          <div class="benefit-content">
-            <h3 id="benefit-title-1">Frete grátis acima de R$199</h3>
-            <p id="benefit-desc-1">Entrega rápida e segura para todo o Brasil</p>
-          </div>
-        </div>
-
-        <div class="benefit-card">
-          <div class="benefit-icon-wrapper">
-            <i data-lucide="shield-check"></i>
-          </div>
-          <div class="benefit-content">
-            <h3 id="benefit-title-2">Pagamento seguro</h3>
-            <p id="benefit-desc-2">Ambiente protegido com confirmação imediata</p>
-          </div>
-        </div>
-
-        <div class="benefit-card">
-          <div class="benefit-icon-wrapper">
-            <i data-lucide="refresh-cw"></i>
-          </div>
-          <div class="benefit-content">
-            <h3 id="benefit-title-3">1ª Troca grátis</h3>
-            <p id="benefit-desc-3">Sem custo e sem burocracia em até 7 dias</p>
-          </div>
-        </div>
-
-        <div class="benefit-card">
-          <div class="benefit-icon-wrapper">
-            <i data-lucide="zap"></i>
-          </div>
-          <div class="benefit-content">
-            <h3 id="benefit-title-4">Envio rápido</h3>
-            <p id="benefit-desc-4">Despacho prioritário com rastreamento</p>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- Referências institucionais mantidas para sincronização dinâmica com Admin -->
-  <div class="hidden" id="about-section" style="display:none;" aria-hidden="true">
-    <span id="about-tagline"></span>
-    <h2 id="about-title"></h2>
-    <p id="about-text"></p>
-    <div id="about-features"></div>
-  </div>
-
-  <!-- Instagram Feed Editorial Showcase -->
-  <section class="instagram-section container" id="instagram-section" aria-label="Instagram da Donna Fitness PE">
-    <div class="instagram-header">
-      <div class="instagram-header-text">
-        <span class="instagram-badge">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-          </svg>
-          <span>Feed Oficial</span>
-        </span>
-        <h2 id="instagram-title">Siga @fitvibe.activewear</h2>
-        <p id="instagram-subtitle">Confira nossos treinos, novidades diárias e bastidores exclusivos</p>
-      </div>
-      <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="btn-instagram-profile" id="btn-instagram-profile" aria-label="Abrir perfil no Instagram">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-        </svg>
-        <span id="instagram-btn-text">Seguir no Instagram</span>
-      </a>
-    </div>
-    
-    <div class="instagram-grid" id="instagram-grid">
-      <!-- Populated by JS -->
-    </div>
-    <div class="instagram-fallback hidden" id="instagram-fallback"></div>
   </section>
 
   <!-- Mobile Floating Sticky Cart Bar -->
@@ -1298,35 +1087,34 @@
       <div class="footer-col">
         <h4 class="footer-col-title">Coleção</h4>
         <ul class="footer-menu">
-          <li><a href="#products" onclick="window.StoreApp?.selectCategory('Conjuntos')">Conjuntos Seamless</a></li>
-          <li><a href="#products" onclick="window.StoreApp?.selectCategory('Leggings')">Leggings Cós Alto</a></li>
-          <li><a href="#products" onclick="window.StoreApp?.selectCategory('Tops & Croppeds')">Tops Sustentação</a></li>
-          <li><a href="#products" onclick="window.StoreApp?.selectCategory('Shorts & Bermudas')">Shorts com Bolso</a></li>
-          <li><a href="#looks-section">Looks Coordenados</a></li>
+          <li><a href="#products" onclick="window.StoreApp?.selectCategory('Conjuntos')">Conjuntos</a></li>
+          <li><a href="#products" onclick="window.StoreApp?.selectCategory('Leggings')">Leggings</a></li>
+          <li><a href="#products" onclick="window.StoreApp?.selectCategory('Tops & Croppeds')">Tops</a></li>
+          <li><a href="#products" onclick="window.StoreApp?.selectCategory('Shorts & Bermudas')">Shorts</a></li>
           <li><a href="#featured-section">Novidades da Semana</a></li>
         </ul>
       </div>
 
       <!-- Support & Help Column -->
-      <div class="footer-col">
+      <div class="footer-col" id="footer-contact-col">
         <h4 class="footer-col-title">Ajuda & Contato</h4>
         <ul class="footer-menu">
-          <li>
+          <li class="footer-contact-item" id="footer-phone-item" style="display:none;">
             <div class="footer-info-item">
               <i data-lucide="phone"></i>
-              <span id="footer-phone">(11) 99999-9999</span>
+              <span id="footer-phone"></span>
             </div>
           </li>
-          <li>
+          <li class="footer-contact-item" id="footer-address-item" style="display:none;">
             <div class="footer-info-item">
               <i data-lucide="map-pin"></i>
-              <span id="footer-address">São Paulo - SP</span>
+              <span id="footer-address"></span>
             </div>
           </li>
-          <li>
+          <li class="footer-contact-item" id="footer-hours-item">
             <div class="footer-info-item">
               <i data-lucide="clock"></i>
-              <span>Seg à Sex: 08h às 20h | Sáb: 08h às 18h</span>
+              <span>Atendimento online das 08h às 20h</span>
             </div>
           </li>
         </ul>
