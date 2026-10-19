@@ -1567,26 +1567,92 @@
 
   <!-- ===== CATEGORY FORM MODAL ===== -->
   <div class="modal-overlay" id="category-form-modal" role="dialog" aria-modal="true" aria-labelledby="cat-form-title">
-    <div class="modal" style="max-width:440px;">
+    <div class="modal" style="max-width:520px;width:95%;">
       <div class="modal-header">
-        <h3 id="cat-form-title">Nova Categoria</h3>
+        <div>
+          <h3 id="cat-form-title">Nova Categoria</h3>
+          <p style="font-size:0.8rem;color:var(--text-muted);margin:2px 0 0 0;">Configuração visual, foto de capa e ordem na loja</p>
+        </div>
         <button type="button" class="btn-close-modal" id="btn-close-cat-form" aria-label="Fechar">
           <i data-lucide="x"></i>
         </button>
       </div>
       <div class="modal-body">
         <form id="category-form">
-          <div class="form-group">
-            <label for="cf-name">Nome da Categoria <span class="required">*</span></label>
-            <input type="text" id="cf-name" class="form-control" placeholder="Ex: Leggings, Tops, Shorts..." required>
+          <input type="hidden" id="cf-id">
+
+          <div class="admin-form-grid" style="grid-template-columns: 2fr 1fr; gap: 14px;">
+            <div class="form-group">
+              <label for="cf-name">Nome da Categoria <span class="required">*</span></label>
+              <input type="text" id="cf-name" class="form-control" placeholder="Ex: Leggings, Tops, Shorts..." required>
+            </div>
+            <div class="form-group">
+              <label for="cf-order">Ordem</label>
+              <input type="number" id="cf-order" class="form-control" min="0" placeholder="1, 2, 3..." value="1">
+            </div>
           </div>
+
           <div class="form-group">
-            <label for="cf-icon">Identificador de Ícone (Lucide)</label>
-            <input type="text" id="cf-icon" class="form-control" placeholder="ex: activity, layers, shield">
+            <label for="cf-description">Descrição Resumida</label>
+            <input type="text" id="cf-description" class="form-control" placeholder="Ex: Cós anatômico duplo e zero transparência">
+            <small style="font-size:0.75rem;color:var(--text-muted);">Aparece em subtítulos e metadados de busca</small>
           </div>
-          <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+
+          <!-- Imagem da Categoria (Upload + URL + Preview) -->
+          <div class="form-group" style="margin-top:16px;">
+            <label>Foto de Capa da Categoria (Carrossel & Vitrine)</label>
+            <div style="display:flex;gap:16px;align-items:flex-start;margin-top:8px;">
+              <!-- Preview Box -->
+              <div id="cf-preview-container" style="width:110px;height:110px;border-radius:12px;background:var(--bg-input, #F8FAFC);border:2px dashed var(--border, #E2E8F0);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;position:relative;">
+                <img id="cf-image-preview" src="" alt="Preview da Categoria" style="width:100%;height:100%;object-fit:cover;display:none;">
+                <div id="cf-no-image-placeholder" style="display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text-muted);padding:8px;text-align:center;">
+                  <i data-lucide="image" style="width:28px;height:28px;margin-bottom:4px;opacity:0.6;"></i>
+                  <span style="font-size:0.68rem;font-weight:600;">Sem foto</span>
+                </div>
+              </div>
+
+              <!-- Upload & URL Controls -->
+              <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <label class="btn btn-secondary btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+                    <i data-lucide="upload"></i>
+                    <span>Fazer Upload</span>
+                    <input type="file" id="cf-image-file" accept="image/png,image/jpeg,image/webp,image/avif" style="display:none;">
+                  </label>
+                  <button type="button" class="btn btn-danger btn-sm" id="btn-remove-cat-image" style="display:none;align-items:center;gap:4px;">
+                    <i data-lucide="trash-2"></i>
+                    <span>Remover Foto</span>
+                  </button>
+                </div>
+                <div>
+                  <input type="url" id="cf-image-url" class="form-control form-control-sm" placeholder="Ou cole a URL direta da foto">
+                </div>
+                <div id="cf-upload-status" style="font-size:0.75rem;color:var(--primary);display:none;font-weight:600;"></div>
+                <small style="font-size:0.72rem;color:var(--text-muted);">Recomendado: Proporção 4:5 ou quadrada. JPG, PNG ou WebP até 5MB.</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-form-grid" style="grid-template-columns: 1fr 1fr; gap: 14px; margin-top:16px;">
+            <div class="form-group">
+              <label for="cf-icon">Ícone Lucide</label>
+              <input type="text" id="cf-icon" class="form-control" placeholder="ex: layers, shield, activity">
+            </div>
+            <div class="form-group" style="display:flex;flex-direction:column;justify-content:center;">
+              <label style="margin-bottom:8px;">Visibilidade</label>
+              <label class="toggle-switch-label" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="cf-active" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+                <span style="font-size:0.85rem;font-weight:600;" id="cf-active-label">Ativa na Loja</span>
+              </label>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:24px;border-top:1px solid var(--border);padding-top:16px;">
             <button type="button" class="btn btn-secondary" id="btn-cancel-cat">Cancelar</button>
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary" id="btn-save-cat">
               <i data-lucide="save"></i>
               <span>Salvar Categoria</span>
             </button>

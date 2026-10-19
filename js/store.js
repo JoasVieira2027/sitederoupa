@@ -3314,7 +3314,7 @@
       </div>
     `;
 
-    categories.forEach(cat => {
+    categories.filter(c => c.active !== false && c.active !== 'false').forEach(cat => {
       const catNorm = Utils.normalizeCategory(cat.name);
       const isSel = Utils.normalizeCategory(currentCategory) === catNorm;
 

@@ -1827,4 +1827,23 @@ body.admin-sidebar-locked {
   .modal-sticky-footer .btn {
     width: 100%;
   }
+
+  /* Responsive Category Form & Admin Modals */
+  #category-form-modal .admin-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  #cf-preview-container {
+    width: 90px !important;
+    height: 90px !important;
+  }
+
+  .btn {
+    min-height: 42px;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 10px 12px;
+  }
 }

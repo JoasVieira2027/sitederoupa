@@ -24,6 +24,7 @@
   let editingProductId = null;
   let editingCategoryId = null;
   let productImageData = null;
+  let categoryImageData = null;
   let currentOrderFilter = 'all';
   let confirmCallback = null;
   let variantList = []; // [{color, colorHex, sizes: {PP:0, P:0, ...}}]
@@ -1268,31 +1269,93 @@
   };
 
   // ===== 7. CATEGORIES =====
+  function updateCategoryPreview(url) {
+    categoryImageData = url || '';
+    const img = $('cf-image-preview');
+    const ph = $('cf-no-image-placeholder');
+    const btnRemove = $('btn-remove-cat-image');
+    const urlInput = $('cf-image-url');
+
+    if (url) {
+      if (img) { img.src = url; img.style.display = 'block'; }
+      if (ph) ph.style.display = 'none';
+      if (btnRemove) btnRemove.style.display = 'inline-flex';
+      if (urlInput && urlInput.value !== url) urlInput.value = url;
+    } else {
+      if (img) { img.src = ''; img.style.display = 'none'; }
+      if (ph) ph.style.display = 'flex';
+      if (btnRemove) btnRemove.style.display = 'none';
+      if (urlInput) urlInput.value = '';
+    }
+  }
+
   function renderCategories() {
     const categories = DataStore.getCategories();
     const el = $('categories-list');
     if (!el) return;
 
     el.innerHTML = categories.length ? `
-      <table class="admin-table">
-        <thead><tr><th>Ícone</th><th>Nome</th><th>Produtos</th><th>Ações</th></tr></thead>
-        <tbody>
-          ${categories.map(c => {
-            const products = DataStore.getProducts({ includeInactive: true }).filter(p => p.category === c.name);
-            return `<tr>
-              <td><div style="width:36px;height:36px;border-radius:var(--radius-sm);background:var(--bg-input);display:flex;align-items:center;justify-content:center;color:var(--primary);"><i data-lucide="${Utils.sanitize(c.icon && !c.icon.includes('/') && c.icon.length < 30 ? c.icon : 'tag')}" style="width:18px;height:18px;"></i></div></td>
-              <td style="font-weight:700;">${Utils.sanitize(c.name)}</td>
-              <td>${products.length} produto(s)</td>
-              <td>
-                <div style="display:flex;gap:6px;">
-                  <button class="btn btn-secondary btn-sm" onclick="AdminPanel.editCategory('${c.id}')" style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="edit-3" style="width:13px;height:13px;"></i> Editar</button>
-                  <button class="btn btn-danger btn-sm" onclick="AdminPanel.confirmDeleteCategory('${c.id}')" title="Excluir"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
-                </div>
-              </td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table>` : `<p style="color:var(--text-muted);text-align:center;padding:40px;">Nenhuma categoria cadastrada.</p>`;
+      <div style="overflow-x:auto;">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th style="width:70px;">Foto</th>
+              <th>Categoria & Descrição</th>
+              <th style="width:90px;text-align:center;">Ordem</th>
+              <th style="width:110px;text-align:center;">Status</th>
+              <th style="width:120px;">Produtos</th>
+              <th style="text-align:right;width:160px;">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${categories.map((c, idx) => {
+              const products = DataStore.getProducts({ includeInactive: true }).filter(p => p.category === c.name);
+              const fallbackImg = DEFAULT_CATEGORY_IMAGES[c.name] || 'assets/images/conjunto_fitness.jpg';
+              const displayImg = c.image || fallbackImg;
+              const isActive = c.active !== false;
+
+              return `<tr>
+                <td>
+                  <div style="width:48px;height:48px;border-radius:10px;overflow:hidden;background:var(--bg-input);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.06);">
+                    <img src="${Utils.sanitize(displayImg)}" alt="${Utils.sanitize(c.name)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.onerror=null;this.src='${fallbackImg}'">
+                  </div>
+                </td>
+                <td>
+                  <div style="display:flex;flex-direction:column;gap:2px;">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <strong style="color:var(--text-primary);font-size:0.92rem;">${Utils.sanitize(c.name)}</strong>
+                      ${c.icon ? `<span style="font-size:0.7rem;color:var(--text-muted);background:var(--bg-input);padding:1px 6px;border-radius:4px;"><i data-lucide="${Utils.sanitize(c.icon)}" style="width:12px;height:12px;display:inline-block;vertical-align:middle;"></i></span>` : ''}
+                    </div>
+                    <div style="font-size:0.76rem;color:var(--text-muted);">${Utils.sanitize(c.description || 'Sem descrição')}</div>
+                  </div>
+                </td>
+                <td style="text-align:center;">
+                  <span style="font-weight:700;font-size:0.8rem;background:var(--bg-input);color:var(--text-secondary);padding:3px 8px;border-radius:6px;border:1px solid var(--border);">#${c.order !== undefined ? c.order : (idx + 1)}</span>
+                </td>
+                <td style="text-align:center;">
+                  <span class="status-badge ${isActive ? 'active' : 'inactive'}" style="cursor:pointer;" onclick="AdminPanel.toggleCategoryActive('${c.id}')" title="Clique para alternar visibilidade">
+                    ${isActive ? 'Ativa' : 'Oculta'}
+                  </span>
+                </td>
+                <td>
+                  <span style="font-weight:600;font-size:0.84rem;color:var(--text-secondary);">${products.length} peça(s)</span>
+                </td>
+                <td style="text-align:right;">
+                  <div style="display:inline-flex;gap:6px;">
+                    <button class="btn btn-secondary btn-sm" onclick="AdminPanel.editCategory('${c.id}')" style="display:inline-flex;align-items:center;gap:4px;" title="Editar dados e foto">
+                      <i data-lucide="edit-3" style="width:13px;height:13px;"></i>
+                      <span>Editar</span>
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="AdminPanel.confirmDeleteCategory('${c.id}')" title="Excluir Categoria">
+                      <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>` : `<p style="color:var(--text-muted);text-align:center;padding:40px;">Nenhuma categoria cadastrada.</p>`;
 
     const btnNew = $('btn-new-category');
     if (btnNew) btnNew.onclick = () => openCategoryForm(null);
@@ -1302,32 +1365,69 @@
   function openCategoryForm(id) {
     editingCategoryId = id;
     const isEdit = !!id;
+    const categories = DataStore.getCategories();
     if ($('cat-form-title')) $('cat-form-title').textContent = isEdit ? 'Editar Categoria' : 'Nova Categoria';
     if ($('category-form')) $('category-form').reset();
 
     if (isEdit) {
-      const cat = DataStore.getCategories().find(c => c.id === id);
+      const cat = categories.find(c => c.id === id);
       if (cat) {
-        if ($('cf-name')) $('cf-name').value = cat.name;
-        if ($('cf-icon')) $('cf-icon').value = cat.icon || '';
+        if ($('cf-id')) $('cf-id').value = cat.id;
+        if ($('cf-name')) $('cf-name').value = cat.name || '';
+        if ($('cf-description')) $('cf-description').value = cat.description || '';
+        if ($('cf-order')) $('cf-order').value = cat.order !== undefined ? cat.order : (categories.indexOf(cat) + 1);
+        if ($('cf-icon')) $('cf-icon').value = cat.icon || 'layers';
+        if ($('cf-active')) $('cf-active').checked = cat.active !== false;
+        if ($('cf-active-label')) {
+          $('cf-active-label').textContent = cat.active !== false ? 'Ativa na Loja' : 'Oculta na Loja';
+          $('cf-active-label').style.color = cat.active !== false ? 'var(--primary)' : 'var(--text-muted)';
+        }
+        updateCategoryPreview(cat.image || '');
       }
+    } else {
+      if ($('cf-id')) $('cf-id').value = '';
+      if ($('cf-name')) $('cf-name').value = '';
+      if ($('cf-description')) $('cf-description').value = '';
+      if ($('cf-order')) $('cf-order').value = categories.length + 1;
+      if ($('cf-icon')) $('cf-icon').value = 'layers';
+      if ($('cf-active')) $('cf-active').checked = true;
+      if ($('cf-active-label')) {
+        $('cf-active-label').textContent = 'Ativa na Loja';
+        $('cf-active-label').style.color = 'var(--primary)';
+      }
+      updateCategoryPreview('');
     }
     if ($('category-form-modal')) $('category-form-modal').classList.add('active');
+    refreshIcons();
   }
 
   window.AdminPanel.editCategory = function (id) { openCategoryForm(id); };
+
+  window.AdminPanel.toggleCategoryActive = async function (id) {
+    const cat = DataStore.getCategories().find(c => c.id === id);
+    if (!cat) return;
+    const nextState = cat.active === false;
+    try {
+      await DataStore.saveCategory({ ...cat, active: nextState });
+      Utils.showToast(`Categoria "${cat.name}" ${nextState ? 'ativada' : 'ocultada'} na loja!`, 'info');
+      renderCategories();
+    } catch (err) {
+      Utils.showToast('Erro ao atualizar: ' + (err.message || ''), 'error');
+    }
+  };
+
   window.AdminPanel.confirmDeleteCategory = function (id) {
     const cat = DataStore.getCategories().find(c => c.id === id);
     const name = cat ? cat.name : '';
     const products = DataStore.getProducts({ includeInactive: true }).filter(p => p.category === name);
     if (products.length) {
-      Utils.showToast(`Não é possível excluir: ${products.length} produto(s) nessa categoria!`, 'error');
+      Utils.showToast(`Não é possível excluir: ${products.length} produto(s) vinculado(s) a esta categoria! Mova os produtos antes de excluir.`, 'error');
       return;
     }
-    showConfirm('Excluir Categoria', `Excluir "${name}"?`, async () => {
+    showConfirm('Excluir Categoria', `Tem certeza de que deseja excluir a categoria "${name}"?`, async () => {
       try {
         await DataStore.deleteCategory(id);
-        Utils.showToast('Categoria excluída!', 'success');
+        Utils.showToast('Categoria excluída com sucesso!', 'success');
         renderCategories();
       } catch (err) {
         Utils.showToast('Erro: ' + (err.message || ''), 'error');
@@ -1338,24 +1438,145 @@
   function bindCategoryForm() {
     const form = $('category-form');
     if (!form) return;
+
+    // File input upload handler
+    const fileInput = $('cf-image-file');
+    if (fileInput) {
+      fileInput.onchange = async () => {
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) return;
+
+        // Validate format
+        const validFormats = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/svg+xml'];
+        if (!validFormats.includes(file.type)) {
+          Utils.showToast('Formato inválido! Envie imagem JPG, PNG, WebP ou AVIF.', 'warning');
+          fileInput.value = '';
+          return;
+        }
+
+        // Validate size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          Utils.showToast('Imagem muito grande! O limite é de 5MB.', 'error');
+          fileInput.value = '';
+          return;
+        }
+
+        const statusEl = $('cf-upload-status');
+        if (statusEl) {
+          statusEl.style.display = 'block';
+          statusEl.textContent = 'Enviando imagem para o armazenamento seguro...';
+        }
+
+        try {
+          if (window.SupabaseService && window.SupabaseService.isConfigured()) {
+            const publicUrl = await window.SupabaseService.uploadImage(file, 'categories');
+            updateCategoryPreview(publicUrl);
+            Utils.showToast('Foto da categoria enviada e pronta!', 'success');
+          } else {
+            const reader = new FileReader();
+            reader.onload = e => {
+              updateCategoryPreview(e.target.result);
+              Utils.showToast('Foto carregada com sucesso!', 'success');
+            };
+            reader.readAsDataURL(file);
+          }
+        } catch (err) {
+          console.warn('[Admin] Fallback FileReader upload:', err);
+          const reader = new FileReader();
+          reader.onload = e => {
+            updateCategoryPreview(e.target.result);
+            Utils.showToast('Foto carregada localmente!', 'info');
+          };
+          reader.readAsDataURL(file);
+        } finally {
+          if (statusEl) statusEl.style.display = 'none';
+          fileInput.value = '';
+        }
+      };
+    }
+
+    // URL manual input handler
+    const urlInput = $('cf-image-url');
+    if (urlInput) {
+      urlInput.oninput = () => {
+        const val = urlInput.value.trim();
+        updateCategoryPreview(val);
+      };
+    }
+
+    // Remove photo button handler
+    const btnRemoveImg = $('btn-remove-cat-image');
+    if (btnRemoveImg) {
+      btnRemoveImg.onclick = () => {
+        updateCategoryPreview('');
+        Utils.showToast('Foto da categoria removida.', 'info');
+      };
+    }
+
+    // Active toggle label handler
+    const cfActive = $('cf-active');
+    const cfActiveLabel = $('cf-active-label');
+    if (cfActive && cfActiveLabel) {
+      cfActive.onchange = () => {
+        cfActiveLabel.textContent = cfActive.checked ? 'Ativa na Loja' : 'Oculta na Loja';
+        cfActiveLabel.style.color = cfActive.checked ? 'var(--primary)' : 'var(--text-muted)';
+      };
+    }
+
+    // Form submit
     form.onsubmit = async e => {
       e.preventDefault();
-      const name = $('cf-name').value.trim();
-      const icon = $('cf-icon').value.trim() || 'tag';
-      if (!name) { Utils.showToast('Informe o nome!', 'error'); return; }
+      const name = $('cf-name') ? $('cf-name').value.trim() : '';
+      const description = $('cf-description') ? $('cf-description').value.trim() : '';
+      const order = $('cf-order') ? parseInt($('cf-order').value, 10) || 0 : 0;
+      const icon = $('cf-icon') ? $('cf-icon').value.trim() || 'layers' : 'layers';
+      const active = $('cf-active') ? $('cf-active').checked : true;
+      const image = categoryImageData || ($('cf-image-url') ? $('cf-image-url').value.trim() : '');
+
+      if (!name) {
+        Utils.showToast('Informe o nome da categoria!', 'error');
+        return;
+      }
+
+      const saveBtn = $('btn-save-cat');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> <span>Salvando...</span>';
+        refreshIcons();
+      }
 
       try {
-        await DataStore.saveCategory({ id: editingCategoryId || null, name, icon });
-        Utils.showToast(editingCategoryId ? 'Categoria atualizada!' : 'Categoria criada!', 'success');
+        await DataStore.saveCategory({
+          id: editingCategoryId || null,
+          name,
+          description,
+          order,
+          icon,
+          active,
+          image
+        });
+
+        Utils.showToast(editingCategoryId ? 'Categoria atualizada com sucesso!' : 'Nova categoria criada!', 'success');
         if ($('category-form-modal')) $('category-form-modal').classList.remove('active');
         renderCategories();
         renderStock();
       } catch (err) {
-        Utils.showToast('Erro: ' + (err.message || ''), 'error');
+        Utils.showToast('Erro ao salvar categoria: ' + (err.message || ''), 'error');
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = '<i data-lucide="save"></i> <span>Salvar Categoria</span>';
+          refreshIcons();
+        }
       }
     };
-    $('btn-cancel-cat').onclick = () => { if ($('category-form-modal')) $('category-form-modal').classList.remove('active'); };
-    $('btn-close-cat-form').onclick = () => { if ($('category-form-modal')) $('category-form-modal').classList.remove('active'); };
+
+    $('btn-cancel-cat').onclick = () => {
+      if ($('category-form-modal')) $('category-form-modal').classList.remove('active');
+    };
+    $('btn-close-cat-form').onclick = () => {
+      if ($('category-form-modal')) $('category-form-modal').classList.remove('active');
+    };
   }
 
   // ===== 8. ORDERS =====

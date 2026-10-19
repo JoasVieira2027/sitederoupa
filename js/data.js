@@ -143,12 +143,12 @@ const DEFAULT_CATEGORY_IMAGES = {
 };
 
 const DEFAULT_CATEGORIES = [
-  { id: 'cat_leggings', name: 'Leggings', icon: 'layers', image: 'assets/images/legging_fitness.jpg' },
-  { id: 'cat_tops', name: 'Tops & Croppeds', icon: 'shield', image: 'assets/images/top_fitness.jpg' },
-  { id: 'cat_conjuntos', name: 'Conjuntos', icon: 'sparkles', image: 'assets/images/conjunto_fitness.jpg' },
-  { id: 'cat_shorts', name: 'Shorts & Bermudas', icon: 'activity', image: 'assets/images/short_fitness.jpg' },
-  { id: 'cat_macacoes', name: 'Macacões', icon: 'zap', image: 'assets/images/hero_fitness.jpg' },
-  { id: 'cat_acessorios', name: 'Acessórios', icon: 'package', image: 'assets/images/conjunto_fitness.jpg' }
+  { id: 'cat_leggings', name: 'Leggings', icon: 'layers', image: 'assets/images/legging_fitness.jpg', active: true, order: 1, description: 'Modelagem anatômica, cós duplo e zero transparência' },
+  { id: 'cat_tops', name: 'Tops & Croppeds', icon: 'shield', image: 'assets/images/top_fitness.jpg', active: true, order: 2, description: 'Alta sustentação, costas cruzadas e bojo removível' },
+  { id: 'cat_conjuntos', name: 'Conjuntos', icon: 'sparkles', image: 'assets/images/conjunto_fitness.jpg', active: true, order: 3, description: 'Looks completos coordenados em poliamida nobre' },
+  { id: 'cat_shorts', name: 'Shorts & Bermudas', icon: 'activity', image: 'assets/images/short_fitness.jpg', active: true, order: 4, description: 'Bikers de compressão com bolso lateral para celular' },
+  { id: 'cat_macacoes', name: 'Macacões', icon: 'zap', image: 'assets/images/hero_fitness.jpg', active: true, order: 5, description: 'Peças únicas sem costura com ajuste perfeito ao corpo' },
+  { id: 'cat_acessorios', name: 'Acessórios', icon: 'package', image: 'assets/images/conjunto_fitness.jpg', active: true, order: 6, description: 'Garrafas térmicas, faixas e itens essenciais de treino' }
 ];
 
 // ===== DEFAULT SETTINGS (FITNESS) =====
@@ -643,8 +643,11 @@ const DataStore = (function () {
     return {
       id: row.id,
       name: row.name,
-      icon: row.icon || 'sparkles',
-      image: row.image || DEFAULT_CATEGORY_IMAGES[row.name] || 'assets/images/conjunto_fitness.jpg'
+      description: row.description || '',
+      icon: row.icon || 'tag',
+      image: row.image || DEFAULT_CATEGORY_IMAGES[row.name] || 'assets/images/conjunto_fitness.jpg',
+      active: row.active !== false && row.active !== 'false',
+      order: row.order !== undefined && row.order !== null ? parseInt(row.order, 10) : (row.order_num !== undefined ? parseInt(row.order_num, 10) : 0)
     };
   }
 
@@ -653,16 +656,27 @@ const DataStore = (function () {
     const local = _loadLocal(DB_KEYS.CATEGORIES);
     if (local && local.length) {
       _categories = local.map(_mapCategory).filter(Boolean);
+      DEFAULT_CATEGORIES.forEach(dc => {
+        const found = _categories.find(c => c.name.toLowerCase() === dc.name.toLowerCase());
+        if (!found) {
+          _categories.push({ ...dc });
+        } else {
+          if (!found.image) found.image = dc.image;
+          if (!found.description) found.description = dc.description;
+          if (found.order === undefined) found.order = dc.order;
+        }
+      });
     } else {
       _categories = [...DEFAULT_CATEGORIES];
     }
+    _categories.sort((a, b) => (a.order || 0) - (b.order || 0));
 
     // 2. Fresh sync from Supabase
     if (_supabase) {
       try {
-        const { data, error } = await _supabase.from('categories').select('*').order('name');
+        const { data, error } = await _supabase.from('categories').select('*');
         if (!error && data && data.length) {
-          _categories = data.map(_mapCategory).filter(Boolean);
+          _categories = data.map(_mapCategory).filter(Boolean).sort((a, b) => (a.order || 0) - (b.order || 0));
           _saveLocal(DB_KEYS.CATEGORIES, _categories);
           return;
         }
@@ -948,17 +962,28 @@ const DataStore = (function () {
   async function saveCategory(cat) {
     const isNew = !cat.id;
     if (isNew) cat.id = 'cat_' + Date.now();
-    const catImage = cat.image || DEFAULT_CATEGORY_IMAGES[cat.name] || '';
+    const catImage = cat.image !== undefined ? cat.image : (DEFAULT_CATEGORY_IMAGES[cat.name] || '');
+    const active = cat.active !== false && cat.active !== 'false';
+    const order = cat.order !== undefined && cat.order !== null ? parseInt(cat.order, 10) : 0;
+    const description = cat.description || '';
 
     if (_supabase) {
-      const row = { id: cat.id, name: cat.name, icon: cat.icon, image: catImage };
+      const row = {
+        id: cat.id,
+        name: cat.name,
+        icon: cat.icon || 'tag',
+        image: catImage,
+        description,
+        active,
+        order
+      };
       try {
         const { error } = isNew
           ? await _supabase.from('categories').insert([row])
           : await _supabase.from('categories').update(row).eq('id', cat.id);
         if (error) {
-          // Fallback gracioso se a coluna 'image' não existir ainda
-          const fallbackRow = { id: cat.id, name: cat.name, icon: cat.icon };
+          // Fallback gracioso se colunas adicionais não existirem no Supabase
+          const fallbackRow = { id: cat.id, name: cat.name, icon: cat.icon || 'tag', image: catImage };
           const { error: fErr } = isNew
             ? await _supabase.from('categories').insert([fallbackRow])
             : await _supabase.from('categories').update(fallbackRow).eq('id', cat.id);
@@ -969,10 +994,12 @@ const DataStore = (function () {
       }
     }
 
-    const item = { ...cat, image: catImage };
+    const item = { ...cat, image: catImage, active, order, description };
     const idx = _categories.findIndex(c => c.id === cat.id);
     if (idx >= 0) _categories[idx] = item;
     else _categories.push(item);
+
+    _categories.sort((a, b) => (a.order || 0) - (b.order || 0));
     _saveLocal(DB_KEYS.CATEGORIES, _categories);
     document.dispatchEvent(new CustomEvent('categories-updated'));
     return item;
