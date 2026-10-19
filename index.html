@@ -1769,19 +1769,19 @@
        MODAL 7: EXTRATO COMPLETO DE PONTOS (HISTÓRICO AUDITÁVEL)
        ============================================================ -->
   <div class="modal-overlay" id="loyalty-history-modal" role="dialog" aria-modal="true" aria-labelledby="history-modal-title">
-    <div class="modal" style="max-width:540px;width:95%;background:#141416;color:#FFFFFF;border-radius:18px;border:1px solid rgba(255,255,255,0.08);box-shadow:0 24px 60px rgba(0,0,0,0.6);">
-      <div class="modal-header" style="background:#18181B;border-bottom:1px solid rgba(255,255,255,0.08);padding:16px 20px;">
-        <h3 id="history-modal-title" style="font-size:1.1rem;font-weight:800;color:#FFFFFF;display:flex;align-items:center;gap:8px;">
-          <i data-lucide="file-text" style="width:18px;height:18px;color:#F59E0B;"></i>
-          Extrato Auditável de Pontos
+    <div class="modal modal-loyalty-history" style="max-width:540px;width:95%;background:#FFFFFF;color:var(--text-primary);border-radius:18px;border:1px solid var(--border);box-shadow:var(--shadow-xl);">
+      <div class="modal-header" style="background:#FFFFFF;border-bottom:1px solid var(--border);padding:18px 22px;">
+        <h3 id="history-modal-title" style="font-size:1.15rem;font-weight:800;color:var(--carbon);display:flex;align-items:center;gap:8px;">
+          <i data-lucide="file-text" style="width:18px;height:18px;color:var(--primary);"></i>
+          Extrato de Pontos
         </h3>
-        <button type="button" class="btn-close-modal" id="btn-close-loyalty-history" onclick="window.StoreApp?.closeLoyaltyHistoryModal()" aria-label="Fechar extrato" style="background:rgba(255,255,255,0.1);color:#FFFFFF;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;">
+        <button type="button" class="btn-close-modal" id="btn-close-loyalty-history" onclick="window.StoreApp?.closeLoyaltyHistoryModal()" aria-label="Fechar extrato">
           <i data-lucide="x"></i>
         </button>
       </div>
-      <div class="modal-body" style="padding:18px 20px;">
+      <div class="modal-body" style="padding:20px;background:#F8FAFC;">
         <div class="loyalty-history-list" id="loyalty-history-records">
-          <p style="color:#64748B;font-size:0.82rem;text-align:center;padding:24px 0;">Nenhuma movimentação registrada até o momento.</p>
+          <p style="color:var(--text-secondary);font-size:0.85rem;text-align:center;padding:24px 0;">Nenhuma movimentação registrada até o momento.</p>
         </div>
       </div>
     </div>

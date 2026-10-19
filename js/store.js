@@ -3787,15 +3787,24 @@
             else if (r.reward_type === 'free_shipping') valLabel = 'Frete Grátis';
 
             return `
-              <div class="reward-item-card ${canAfford ? 'affordable' : 'locked'}">
-                <div class="reward-info">
-                  <div class="reward-val-badge">${valLabel}</div>
-                  <strong>${Utils.sanitize(r.title)}</strong>
-                  <small>${Utils.sanitize(r.description || (r.min_order_value > 0 ? `Pedido mín. ${Utils.formatCurrency(r.min_order_value)}` : 'Válido no checkout'))}</small>
+              <div class="reward-item-card reward-card-item ${canAfford ? 'affordable' : 'locked'}">
+                <div class="reward-info reward-meta-group">
+                  <div class="reward-top-row">
+                    <span class="reward-val-badge">${valLabel}</span>
+                    <div class="reward-cost-badge">
+                      <i data-lucide="award" style="width:14px;height:14px;"></i>
+                      <span><strong>${r.points_cost.toLocaleString('pt-BR')}</strong> pts</span>
+                    </div>
+                  </div>
+                  <strong class="reward-title-main">${Utils.sanitize(r.title)}</strong>
+                  <small class="reward-desc-sub">${Utils.sanitize(r.description || (r.min_order_value > 0 ? `Pedido mín. ${Utils.formatCurrency(r.min_order_value)}` : 'Válido no checkout'))}</small>
                 </div>
-                <button type="button" class="btn-redeem-reward" ${canAfford ? '' : 'disabled'} onclick="window.StoreApp?.redeemLoyaltyReward('${r.id}')">
-                  ${canAfford ? `Resgatar (${r.points_cost} pts)` : `${r.points_cost} pts`}
-                </button>
+                <div class="reward-action-group">
+                  <button type="button" class="btn-redeem-action btn-redeem-reward ${canAfford ? 'active' : 'locked'}" ${canAfford ? '' : 'disabled'} onclick="window.StoreApp?.redeemLoyaltyReward('${r.id}')">
+                    ${canAfford ? 'Resgatar' : `${r.points_cost} pts`}
+                  </button>
+                  ${!canAfford ? `<span class="reward-needed-hint">Faltam <strong>${Math.max(0, r.points_cost - balance).toLocaleString('pt-BR')}</strong> pts</span>` : ''}
+                </div>
               </div>
             `;
           }).join('');
@@ -3807,17 +3816,17 @@
       if (couponsEl) {
         const activeCoupons = (coupons || []).filter(c => c.status === 'active');
         if (!activeCoupons.length) {
-          couponsEl.innerHTML = '<p style="color:#94A3B8;font-size:0.85rem;padding:12px 0;">Você ainda não possui cupons resgatados. Troque seus pontos por descontos!</p>';
+          couponsEl.innerHTML = '<p style="color:#64748B;font-size:0.85rem;padding:12px 0;">Você ainda não possui cupons resgatados. Troque seus pontos por descontos!</p>';
         } else {
           couponsEl.innerHTML = activeCoupons.map(c => `
-            <div class="user-coupon-card">
+            <div class="user-coupon-ticket user-coupon-card">
               <div class="coupon-details">
-                <span class="coupon-code-pill">${c.code}</span>
-                <span class="coupon-desc">${Utils.sanitize(c.title || 'Cupom Fidelidade')}</span>
+                <span class="user-coupon-code-badge coupon-code-pill">${c.code}</span>
+                <strong class="user-coupon-title" style="display:block;margin-top:4px;font-size:0.85rem;color:var(--carbon);">${Utils.sanitize(c.title || 'Cupom Fidelidade')}</strong>
               </div>
-              <div class="coupon-actions">
-                <button type="button" class="btn-coupon-copy" onclick="window.StoreApp?.copyCouponCode('${c.code}')">Copiar</button>
-                <button type="button" class="btn-coupon-use" onclick="window.StoreApp?.useCouponInCheckout('${c.code}')">Usar</button>
+              <div class="coupon-actions" style="display:flex;gap:6px;">
+                <button type="button" class="btn-copy-coupon btn-coupon-copy" onclick="window.StoreApp?.copyCouponCode('${c.code}')">Copiar</button>
+                <button type="button" class="btn-copy-coupon btn-coupon-use" style="background:var(--primary)!important;border-color:var(--primary)!important;color:white!important;" onclick="window.StoreApp?.useCouponInCheckout('${c.code}')">Usar</button>
               </div>
             </div>
           `).join('');
@@ -3946,22 +3955,22 @@
     document.body.style.overflow = 'hidden';
 
     if (recordsEl) {
-      recordsEl.innerHTML = '<p style="color:#94A3B8;font-size:0.85rem;text-align:center;padding:24px 0;">Carregando extrato auditável...</p>';
+      recordsEl.innerHTML = '<p style="color:#64748B;font-size:0.85rem;text-align:center;padding:24px 0;">Carregando extrato de pontos...</p>';
       try {
         const txs = await DataStore.getLoyaltyTransactions(currentCustomer.id);
         if (!txs.length) {
-          recordsEl.innerHTML = '<p style="color:#94A3B8;font-size:0.85rem;text-align:center;padding:24px 0;">Nenhuma movimentação de pontos registrada até o momento.</p>';
+          recordsEl.innerHTML = '<p style="color:#64748B;font-size:0.85rem;text-align:center;padding:24px 0;">Nenhuma movimentação de pontos registrada até o momento.</p>';
         } else {
           recordsEl.innerHTML = txs.map(t => {
             const isPositive = (t.points || 0) > 0;
             const dateStr = t.created_at ? new Date(t.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
             return `
-              <div class="loyalty-tx-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
-                <div>
-                  <strong style="font-size:0.88rem;color:#FFFFFF;display:block;">${Utils.sanitize(t.description || 'Movimentação')}</strong>
-                  <small style="font-size:0.75rem;color:#94A3B8;">${dateStr}</small>
+              <div class="loyalty-tx-row">
+                <div class="loyalty-tx-info">
+                  <strong class="loyalty-tx-desc">${Utils.sanitize(t.description || 'Movimentação')}</strong>
+                  <small class="loyalty-tx-meta">${dateStr}</small>
                 </div>
-                <span style="font-size:0.95rem;font-weight:800;color:${isPositive ? '#10B981' : '#EF4444'};">
+                <span class="loyalty-tx-amount ${isPositive ? 'positive' : 'negative'}">
                   ${isPositive ? `+${t.points}` : t.points} pts
                 </span>
               </div>

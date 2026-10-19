@@ -7223,93 +7223,153 @@ body {
   gap: 12px;
 }
 
-.reward-card-item {
-  background: #FFFFFF;
-  border: 1px solid var(--border);
+.reward-card-item,
+.reward-item-card {
+  background: #FFFFFF !important;
+  border: 1.5px solid #E2E8F0 !important;
   border-radius: 14px;
   padding: 14px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
   transition: all 0.2s ease;
 }
 
-.reward-card-item:hover {
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-sm);
+.reward-card-item:hover,
+.reward-item-card:hover {
+  border-color: #CBD5E1 !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
 }
 
-.reward-meta-group {
+.reward-meta-group,
+.reward-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  flex: 1;
 }
 
-.reward-title-main {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--carbon);
+.reward-top-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.reward-desc-sub {
-  font-size: 0.74rem;
-  color: var(--text-secondary);
+.reward-val-badge {
+  display: inline-flex;
+  align-items: center;
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.2px;
 }
 
 .reward-cost-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.78rem;
+  gap: 5px;
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FCD34D;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
   font-weight: 700;
-  color: var(--primary);
-  margin-top: 4px;
+}
+
+.reward-cost-badge svg {
+  width: 14px;
+  height: 14px;
+  color: #B45309;
+}
+
+.reward-cost-badge strong {
+  font-size: 0.88rem;
+  font-weight: 900;
+  color: #78350F;
+}
+
+.reward-title-main {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin-top: 2px;
+}
+
+.reward-desc-sub {
+  font-size: 0.76rem;
+  color: #475569;
+  line-height: 1.35;
 }
 
 .reward-action-group {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 4px;
+  gap: 5px;
+  flex-shrink: 0;
 }
 
 .reward-needed-hint {
-  font-size: 0.7rem;
-  color: var(--text-muted);
+  font-size: 0.74rem;
+  color: #B45309;
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
 }
 
-.btn-redeem-action {
-  padding: 8px 16px;
+.reward-needed-hint strong {
+  font-weight: 800;
+  color: #92400E;
+}
+
+.btn-redeem-action,
+.btn-redeem-reward {
+  padding: 9px 18px;
   border-radius: 10px;
   font-family: var(--font-body);
-  font-size: 0.82rem;
-  font-weight: 700;
+  font-size: 0.84rem;
+  font-weight: 800;
   cursor: pointer;
   border: none;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   transition: all 0.2s ease;
   white-space: nowrap;
 }
 
-.btn-redeem-action.active {
-  background: var(--primary);
-  color: #FFFFFF;
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+.btn-redeem-action.active,
+.btn-redeem-reward.active {
+  background: var(--primary) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
 }
 
-.btn-redeem-action.active:hover {
-  background: var(--primary-dark);
-  transform: scale(1.02);
+.btn-redeem-action.active:hover,
+.btn-redeem-reward.active:hover {
+  background: var(--primary-dark) !important;
+  transform: translateY(-1px);
 }
 
-.btn-redeem-action.locked {
-  background: var(--surface-alt);
-  color: var(--text-muted);
+.btn-redeem-action.locked,
+.btn-redeem-reward.locked,
+.btn-redeem-reward:disabled {
+  background: #E2E8F0 !important;
+  color: #334155 !important;
   cursor: not-allowed;
-  border: 1px solid var(--border);
+  border: 1px solid #CBD5E1 !important;
+  font-weight: 800 !important;
+  box-shadow: none !important;
 }
 
 /* 6. Cupons Ativos do Usuário */
@@ -7373,10 +7433,11 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  background: #FFFFFF;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  background: #FFFFFF !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px;
   gap: 12px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
 .loyalty-tx-info {
@@ -7386,31 +7447,32 @@ body {
 }
 
 .loyalty-tx-desc {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--carbon);
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
+  color: var(--carbon) !important;
 }
 
 .loyalty-tx-meta {
-  font-size: 0.72rem;
-  color: var(--text-muted);
+  font-size: 0.74rem !important;
+  color: #64748B !important;
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-top: 2px;
 }
 
 .loyalty-tx-amount {
-  font-size: 0.95rem;
-  font-weight: 800;
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
   white-space: nowrap;
 }
 
 .loyalty-tx-amount.positive {
-  color: var(--success);
+  color: #059669 !important;
 }
 
 .loyalty-tx-amount.negative {
-  color: var(--danger);
+  color: #DC2626 !important;
 }
 
 /* 8. Checkout: Seção de Cupom */
@@ -8079,10 +8141,13 @@ body {
   border: 1px solid #FDE68A !important;
 }
 
-.btn-redeem-action.locked {
-  background: #F1F5F9 !important;
-  color: #94A3B8 !important;
-  border: 1px solid #E2E8F0 !important;
+.btn-redeem-action.locked,
+.btn-redeem-reward.locked,
+.btn-redeem-reward:disabled {
+  background: #E2E8F0 !important;
+  color: #334155 !important;
+  font-weight: 800 !important;
+  border: 1px solid #CBD5E1 !important;
 }
 
 .user-coupon-ticket {
