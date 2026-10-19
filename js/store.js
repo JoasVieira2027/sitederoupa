@@ -3670,6 +3670,8 @@
         btnHeaderLoyalty.style.display = 'inline-flex';
         if (headerPts) headerPts.textContent = `${balance} pts`;
       }
+      const drawerLoyaltyPts = $('drawer-loyalty-pts');
+      if (drawerLoyaltyPts) drawerLoyaltyPts.textContent = `${balance} pts disponíveis`;
 
       // Modal balance
       const balEl = $('loyalty-modal-balance');
@@ -4224,6 +4226,11 @@
       if (pAddress && currentProfile?.address) pAddress.value = currentProfile.address;
       if (pNeigh && currentProfile?.neighborhood) pNeigh.value = currentProfile.neighborhood;
 
+      const drawerUserName = $('drawer-user-name');
+      const drawerUserStatus = $('drawer-user-status');
+      if (drawerUserName) drawerUserName.textContent = `Olá, ${firstName}`;
+      if (drawerUserStatus) drawerUserStatus.textContent = 'Ver perfil e pedidos';
+
       // Atualizar dados de fidelidade do cliente logado
       updateLoyaltyUI();
 
@@ -4236,6 +4243,14 @@
       }
 
     } else {
+      const drawerUserName = $('drawer-user-name');
+      const drawerUserStatus = $('drawer-user-status');
+      if (drawerUserName) drawerUserName.textContent = 'Minha Conta';
+      if (drawerUserStatus) drawerUserStatus.textContent = 'Entrar ou criar cadastro';
+
+      const drawerLoyaltyPts = $('drawer-loyalty-pts');
+      if (drawerLoyaltyPts) drawerLoyaltyPts.textContent = 'Ver Recompensas';
+
       if (btnAccount) {
         btnAccount.innerHTML = `
           <i data-lucide="user"></i>

@@ -167,7 +167,7 @@
 
         <!-- Loyalty Points Button (Oculto para visitante; acessível em Minha Conta) -->
         <button type="button" class="btn-header-loyalty" id="btn-header-loyalty" onclick="window.StoreApp?.openLoyaltyModal()" title="Ver meus pontos e recompensas" style="display:none;">
-          <span class="loyalty-coin-icon">🪙</span>
+          <span class="loyalty-coin-icon"><i data-lucide="award"></i></span>
           <span class="loyalty-header-pts" id="header-loyalty-pts">0 pts</span>
         </button>
       </div>
@@ -207,6 +207,27 @@
         <i data-lucide="search" class="search-icon"></i>
         <input type="search" id="mobile-search-input" placeholder="O que você está procurando?" aria-label="Buscar no catálogo">
       </div>
+    </div>
+
+    <!-- Mobile User & Loyalty Quick Access -->
+    <div class="mobile-drawer-user-card" id="mobile-drawer-user-card">
+      <button type="button" class="drawer-user-btn" onclick="window.StoreApp?.openCustomerAccountModal(); window.StoreApp?.closeMobileMenu();">
+        <div style="display:flex;align-items:center;">
+          <div class="drawer-user-icon"><i data-lucide="user"></i></div>
+          <div class="drawer-user-info">
+            <strong id="drawer-user-name">Minha Conta</strong>
+            <small id="drawer-user-status">Acessar perfil e pedidos</small>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="nav-arrow"></i>
+      </button>
+      <button type="button" class="drawer-loyalty-btn" onclick="window.StoreApp?.openLoyaltyModal(); window.StoreApp?.closeMobileMenu();">
+        <div class="drawer-loyalty-left">
+          <span class="drawer-loyalty-badge"><i data-lucide="award" style="width:14px;height:14px;"></i> Fidelidade Donna PE</span>
+          <span class="drawer-loyalty-pts" id="drawer-loyalty-pts">Ver Meus Pontos & Cupons</span>
+        </div>
+        <i data-lucide="chevron-right" class="nav-arrow"></i>
+      </button>
     </div>
 
     <!-- Mobile Nav Links -->
@@ -1615,7 +1636,7 @@
               Seus pontos Donna Fitness PE
             </span>
             <div class="loyalty-balance-wrap">
-              <div class="loyalty-gold-coin">🪙</div>
+              <div class="loyalty-gold-coin"><i data-lucide="award"></i></div>
               <div class="loyalty-balance-number" id="loyalty-modal-balance">0</div>
             </div>
             <div class="loyalty-expiry-note" id="loyalty-modal-expiry">
@@ -1646,7 +1667,8 @@
                   <p>Volte a cada 24h e ganhe pontos progressivos. Não quebre a sequência!</p>
                 </div>
                 <div class="checkin-streak-pill" id="loyalty-streak-pill">
-                  <span id="loyalty-streak-count">0</span> dias 🔥
+                  <i data-lucide="flame" style="width:13px;height:13px;color:#EF4444;"></i>
+                  <span id="loyalty-streak-count">0</span> dias
                 </div>
               </div>
 

@@ -1498,9 +1498,9 @@ img, picture, video, canvas, svg {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #EFF6FF;
-  border: 1px solid #BFDBFE;
-  color: #1D4ED8;
+  background: var(--primary-50, #ECFDF5);
+  border: 1px solid var(--primary-100, #A7F3D0);
+  color: var(--primary-dark, #065F46);
   font-size: 0.78rem;
   font-weight: 600;
   padding: 5px 12px;
@@ -1510,11 +1510,16 @@ img, picture, video, canvas, svg {
 .btn-remove-chip {
   background: transparent;
   border: none;
-  color: #1D4ED8;
+  color: var(--primary, #059669);
   cursor: pointer;
   display: flex;
   align-items: center;
   padding: 0;
+  transition: color var(--transition-fast);
+}
+
+.btn-remove-chip:hover {
+  color: var(--primary-dark, #047857);
 }
 
 .btn-remove-chip svg {
@@ -1806,26 +1811,37 @@ img, picture, video, canvas, svg {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: var(--surface-alt);
-  color: var(--carbon);
-  border: 1px solid var(--border);
+  background: var(--primary);
+  color: #FFFFFF;
+  border: 1px solid var(--primary);
   padding: 10px 14px;
   border-radius: var(--radius);
   font-size: 0.84rem;
   font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
   transition: all var(--transition-fast);
 }
 
 .btn-add-cart:hover:not(:disabled) {
-  background: var(--primary);
-  border-color: var(--primary);
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
   color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3);
+}
+
+.btn-add-cart:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .btn-add-cart:disabled {
-  opacity: 0.55;
+  background: var(--surface-alt);
+  border-color: var(--border);
+  color: var(--text-muted);
+  box-shadow: none;
   cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .btn-add-cart svg {
@@ -4986,20 +5002,29 @@ details[open] .accordion-arrow {
   .btn-add-cart {
     width: 100% !important;
     padding: 8px 6px !important;
-    font-size: 0.76rem !important;
+    font-size: 0.78rem !important;
     font-weight: 700 !important;
     border-radius: 9px !important;
     min-height: 38px !important;
     gap: 5px !important;
-    background: var(--surface-alt) !important;
-    color: var(--carbon) !important;
-    border: 1px solid var(--border) !important;
+    background: var(--primary) !important;
+    color: #FFFFFF !important;
+    border: 1px solid var(--primary) !important;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2) !important;
   }
 
   .btn-add-cart:active:not(:disabled) {
-    background: var(--carbon) !important;
+    background: var(--primary-dark) !important;
+    border-color: var(--primary-dark) !important;
     color: white !important;
-    transform: scale(0.96) !important;
+    transform: scale(0.97) !important;
+  }
+
+  .btn-add-cart:disabled {
+    background: var(--surface-alt) !important;
+    border-color: var(--border) !important;
+    color: var(--text-muted) !important;
+    box-shadow: none !important;
   }
 
   .btn-add-cart svg {
@@ -6644,31 +6669,38 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: linear-gradient(135deg, #1E293B, #0F172A);
-  color: #F8FAFC;
-  border: 1px solid rgba(245, 158, 11, 0.4);
+  background: var(--surface-alt);
+  color: var(--carbon);
+  border: 1px solid var(--border);
   padding: 6px 14px;
   border-radius: 9999px;
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-header-loyalty:hover {
-  border-color: #F59E0B;
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.28);
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.2);
 }
 
 .loyalty-coin-icon {
-  font-size: 0.95rem;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  width: 15px;
+  height: 15px;
+  color: var(--primary);
+}
+
+.btn-header-loyalty:hover .loyalty-coin-icon {
+  color: white;
 }
 
 .loyalty-header-pts {
-  color: #FBBF24;
   font-weight: 800;
   letter-spacing: 0.2px;
 }
@@ -6677,12 +6709,12 @@ body {
 .modal-loyalty-container {
   max-width: 900px;
   width: 95%;
-  background: #141416;
-  color: #F8FAFC;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #FFFFFF;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
   max-height: 90vh;
   display: flex;
   flex-direction: column;
@@ -6692,15 +6724,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
-  background: #18181B;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 18px 24px;
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--border);
 }
 
 .modal-loyalty-header h3 {
+  font-family: var(--font-display);
   font-size: 1.15rem;
   font-weight: 800;
-  color: #FFFFFF;
+  color: var(--carbon);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -6712,29 +6745,34 @@ body {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  background: #F8FAFC;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* 1. Hero Card: Saldo de Pontos */
 .loyalty-hero-card {
   position: relative;
-  background: linear-gradient(135deg, #4A3A2C 0%, #30261C 50%, #1E1A17 100%);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  border-radius: 18px;
+  background: var(--carbon);
+  border: none;
+  border-radius: 16px;
   padding: 24px 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
   overflow: hidden;
+  gap: 16px;
 }
 
 .loyalty-hero-card::after {
-  content: "★";
+  content: "";
   position: absolute;
-  right: -10px;
-  top: -20px;
-  font-size: 140px;
-  color: rgba(255, 255, 255, 0.03);
+  right: -30px;
+  top: -30px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.08);
   pointer-events: none;
 }
 
@@ -6762,23 +6800,27 @@ body {
 .loyalty-gold-coin {
   width: 44px;
   height: 44px;
-  background: radial-gradient(circle at 30% 30%, #FDE68A 0%, #F59E0B 70%, #B45309 100%);
+  background: var(--primary);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.4rem;
-  color: #78350F;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
+  flex-shrink: 0;
+}
+
+.loyalty-gold-coin svg {
+  width: 22px;
+  height: 22px;
 }
 
 .loyalty-balance-number {
-  font-family: var(--font-display, sans-serif);
+  font-family: var(--font-display);
   font-size: 2.4rem;
   font-weight: 900;
   color: #FFFFFF;
   line-height: 1;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .loyalty-expiry-note {
@@ -6826,13 +6868,14 @@ body {
 
 /* 2. Card: Check-in Diário */
 .loyalty-card {
-  background: #1C1C1E;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: #FFFFFF;
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  box-shadow: var(--shadow-sm);
 }
 
 .loyalty-card-header {
@@ -6843,9 +6886,10 @@ body {
 }
 
 .loyalty-card-title-wrap h4 {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: #FFFFFF;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--carbon);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -6854,18 +6898,18 @@ body {
 
 .loyalty-card-title-wrap p {
   font-size: 0.78rem;
-  color: #94A3B8;
+  color: var(--text-secondary);
   line-height: 1.4;
 }
 
 .checkin-streak-pill {
-  background: rgba(239, 68, 68, 0.16);
-  color: #F87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid rgba(5, 150, 105, 0.25);
   padding: 4px 10px;
   border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 800;
+  font-size: 0.74rem;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -6881,10 +6925,10 @@ body {
 }
 
 .checkin-day-node {
-  background: #27272A;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 10px 4px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -6894,45 +6938,46 @@ body {
 }
 
 .checkin-day-node.completed {
-  background: #064E3B;
-  border-color: #059669;
+  background: var(--success-bg);
+  border-color: rgba(5, 150, 105, 0.3);
 }
 
 .checkin-day-node.completed .checkin-day-icon {
-  background: #059669;
+  background: var(--primary);
   color: #FFFFFF;
 }
 
 .checkin-day-node.today {
-  border-color: #F59E0B;
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
-  background: #2E2519;
+  border-color: var(--primary);
+  background: var(--primary-50);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
 }
 
 .checkin-day-icon {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  background: #3F3F46;
-  color: #FBBF24;
+  background: var(--border);
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 800;
 }
 
 .checkin-day-pts {
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   font-weight: 800;
-  color: #FBBF24;
+  color: var(--primary);
 }
 
 .checkin-day-label {
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  color: #94A3B8;
+  color: var(--text-muted);
   text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .btn-checkin-action {
@@ -6962,16 +7007,16 @@ body {
 }
 
 .btn-checkin-action.claimed {
-  background: #27272A;
-  color: #94A3B8;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
   cursor: default;
 }
 
 /* 3. Card: Seguir a Loja */
 .loyalty-follow-banner {
-  background: linear-gradient(135deg, #1E293B, #0F172A);
-  border: 1px solid rgba(52, 211, 153, 0.25);
+  background: var(--primary-50);
+  border: 1px solid var(--primary-100);
   border-radius: 14px;
   padding: 14px 18px;
   display: flex;
@@ -6987,29 +7032,36 @@ body {
 }
 
 .loyalty-follow-icon {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: rgba(5, 150, 105, 0.2);
-  color: #34D399;
+  background: var(--primary-100);
+  color: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+
+.loyalty-follow-icon svg {
+  width: 18px;
+  height: 18px;
 }
 
 .loyalty-follow-text strong {
   display: block;
   font-size: 0.88rem;
-  color: #FFFFFF;
+  font-weight: 700;
+  color: var(--carbon);
 }
 
 .loyalty-follow-text small {
-  font-size: 0.75rem;
-  color: #94A3B8;
+  font-size: 0.74rem;
+  color: var(--text-secondary);
 }
 
 .btn-loyalty-follow {
-  background: #059669;
+  background: var(--primary);
   color: #FFFFFF;
   border: none;
   padding: 8px 16px;
@@ -7021,9 +7073,14 @@ body {
   transition: all 0.2s ease;
 }
 
+.btn-loyalty-follow:hover {
+  background: var(--primary-dark);
+}
+
 .btn-loyalty-follow.following {
-  background: #334155;
-  color: #94A3B8;
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
   cursor: default;
 }
 
@@ -7035,13 +7092,18 @@ body {
 }
 
 .mission-item-card {
-  background: #242428;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #FFFFFF;
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  transition: border-color 0.2s ease;
+}
+
+.mission-item-card:hover {
+  border-color: var(--border-strong);
 }
 
 .mission-top-row {
@@ -7061,34 +7123,40 @@ body {
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  background: #2E2E33;
-  color: #F59E0B;
+  background: var(--primary-50);
+  color: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+
+.mission-icon-wrap svg {
+  width: 17px;
+  height: 17px;
 }
 
 .mission-title-group h5 {
-  font-size: 0.92rem;
-  font-weight: 800;
-  color: #FFFFFF;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--carbon);
   margin: 0;
 }
 
 .mission-title-group p {
   font-size: 0.74rem;
-  color: #94A3B8;
+  color: var(--text-secondary);
   margin: 2px 0 0;
 }
 
 .mission-reward-badge {
-  background: rgba(245, 158, 11, 0.15);
-  color: #FBBF24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid rgba(5, 150, 105, 0.2);
   padding: 4px 10px;
   border-radius: 9999px;
-  font-size: 0.8rem;
-  font-weight: 800;
+  font-size: 0.78rem;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -7111,23 +7179,24 @@ body {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  border: 1px solid #64748B;
+  border: 1px solid var(--border-strong);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .mission-step-check.done {
-  background: #059669;
-  border-color: #059669;
+  background: var(--primary);
+  border-color: var(--primary);
   color: #FFFFFF;
 }
 
 .mission-progress-bar-wrap {
   position: relative;
   width: 100%;
-  height: 6px;
-  background: #3F3F46;
+  height: 5px;
+  background: var(--surface-alt);
   border-radius: 9999px;
   overflow: hidden;
   margin-top: 4px;
@@ -7135,16 +7204,16 @@ body {
 
 .mission-progress-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #F59E0B, #10B981);
+  background: var(--primary);
   border-radius: 9999px;
   transition: width 0.4s ease;
 }
 
 .mission-progress-text {
   font-size: 0.72rem;
-  color: #94A3B8;
+  color: var(--text-muted);
   text-align: right;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 /* 5. Catálogo de Recompensas */
@@ -7155,8 +7224,8 @@ body {
 }
 
 .reward-card-item {
-  background: #242428;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #FFFFFF;
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 14px 16px;
   display: flex;
@@ -7167,7 +7236,8 @@ body {
 }
 
 .reward-card-item:hover {
-  border-color: rgba(255, 255, 255, 0.14);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
 }
 
 .reward-meta-group {
@@ -7177,14 +7247,14 @@ body {
 }
 
 .reward-title-main {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: #FFFFFF;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--carbon);
 }
 
 .reward-desc-sub {
   font-size: 0.74rem;
-  color: #94A3B8;
+  color: var(--text-secondary);
 }
 
 .reward-cost-badge {
@@ -7193,7 +7263,7 @@ body {
   gap: 4px;
   font-size: 0.78rem;
   font-weight: 700;
-  color: #FBBF24;
+  color: var(--primary);
   margin-top: 4px;
 }
 
@@ -7206,38 +7276,40 @@ body {
 
 .reward-needed-hint {
   font-size: 0.7rem;
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .btn-redeem-action {
   padding: 8px 16px;
   border-radius: 10px;
+  font-family: var(--font-body);
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
   border: none;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .btn-redeem-action.active {
-  background: linear-gradient(135deg, #10B981, #059669);
+  background: var(--primary);
   color: #FFFFFF;
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
 }
 
 .btn-redeem-action.active:hover {
-  filter: brightness(1.1);
+  background: var(--primary-dark);
   transform: scale(1.02);
 }
 
 .btn-redeem-action.locked {
-  background: #2E2E33;
-  color: #64748B;
+  background: var(--surface-alt);
+  color: var(--text-muted);
   cursor: not-allowed;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
 }
 
 /* 6. Cupons Ativos do Usuário */
@@ -7248,8 +7320,8 @@ body {
 }
 
 .user-coupon-ticket {
-  background: #18181B;
-  border: 1px dashed rgba(245, 158, 11, 0.4);
+  background: var(--success-bg);
+  border: 1px dashed rgba(5, 150, 105, 0.4);
   border-radius: 12px;
   padding: 12px 16px;
   display: flex;
@@ -7262,17 +7334,17 @@ body {
   font-family: monospace;
   font-size: 0.95rem;
   font-weight: 800;
-  color: #FBBF24;
-  background: rgba(245, 158, 11, 0.1);
+  color: var(--primary-dark);
+  background: rgba(5, 150, 105, 0.1);
   padding: 4px 8px;
   border-radius: 6px;
   letter-spacing: 1px;
 }
 
 .btn-copy-coupon {
-  background: #27272A;
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #FFFFFF;
+  color: var(--primary);
+  border: 1px solid rgba(5, 150, 105, 0.3);
   padding: 6px 12px;
   border-radius: 8px;
   font-size: 0.78rem;
@@ -7282,7 +7354,9 @@ body {
 }
 
 .btn-copy-coupon:hover {
-  background: #3F3F46;
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
 }
 
 /* 7. Extrato de Transações (Histórico Auditável) */
@@ -7299,8 +7373,8 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  background: #18181B;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: #FFFFFF;
+  border: 1px solid var(--border);
   border-radius: 10px;
   gap: 12px;
 }
@@ -7313,13 +7387,13 @@ body {
 
 .loyalty-tx-desc {
   font-size: 0.85rem;
-  font-weight: 700;
-  color: #FFFFFF;
+  font-weight: 600;
+  color: var(--carbon);
 }
 
 .loyalty-tx-meta {
   font-size: 0.72rem;
-  color: #94A3B8;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -7332,11 +7406,11 @@ body {
 }
 
 .loyalty-tx-amount.positive {
-  color: #34D399;
+  color: var(--success);
 }
 
 .loyalty-tx-amount.negative {
-  color: #F87171;
+  color: var(--danger);
 }
 
 /* 8. Checkout: Seção de Cupom */
@@ -7843,6 +7917,16 @@ body {
   color: #059669;
 }
 
+@media (max-width: 640px) {
+  .btn-share-store {
+    padding: 8px 10px;
+    gap: 0;
+  }
+  .btn-share-store .share-btn-text {
+    display: none;
+  }
+}
+
 /* ============================================================
    FIDELIDADE: REDESIGN PROFISSIONAL (CLEAN & LUXURY LIGHT)
    ============================================================ */
@@ -8041,6 +8125,141 @@ body {
 
 .loyalty-tx-meta {
   color: #64748B !important;
+}
+
+/* ============================================================
+   CHECKOUT: RESPONSIVIDADE IPAD & DESKTOP (2 COLUNAS)
+   ============================================================ */
+@media (min-width: 768px) {
+  .modal-checkout {
+    max-width: 860px !important;
+  }
+  
+  #checkout-form {
+    display: grid !important;
+    grid-template-columns: 1.15fr 0.85fr !important;
+    gap: 20px !important;
+    align-items: start !important;
+  }
+
+  #checkout-form > .checkout-step-block:nth-of-type(1),
+  #checkout-form > .checkout-step-block:nth-of-type(2),
+  #checkout-form > .checkout-step-block:nth-of-type(3),
+  #checkout-form > .checkout-step-block:nth-of-type(4) {
+    grid-column: 1 !important;
+  }
+
+  #checkout-form > .checkout-summary-block {
+    grid-column: 2 !important;
+    grid-row: 1 / span 4 !important;
+    position: sticky !important;
+    top: 0 !important;
+  }
+
+  #checkout-form > .btn-whatsapp-submit {
+    grid-column: 2 !important;
+    margin-top: 0 !important;
+  }
+}
+
+/* ============================================================
+   HEADER & MOBILE SAFE AREA AJUSTES FINOS
+   ============================================================ */
+@media (max-width: 390px) {
+  .header-actions {
+    gap: 6px !important;
+  }
+  .navbar-brand .brand-name {
+    font-size: 1.05rem !important;
+  }
+  .navbar-brand .brand-tagline {
+    font-size: 0.52rem !important;
+    letter-spacing: 1.5px !important;
+  }
+  .btn-cart {
+    width: 38px !important;
+    height: 38px !important;
+  }
+}
+
+/* Mobile Drawer User & Loyalty Navigation */
+.mobile-drawer-user-card {
+  padding: 14px 16px;
+  background: var(--surface-alt);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 18px;
+}
+
+.drawer-user-btn,
+.drawer-loyalty-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.drawer-user-btn:hover,
+.drawer-loyalty-btn:hover {
+  border-color: var(--primary);
+  background: #F0FDF4;
+}
+
+.drawer-user-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-50);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.drawer-user-info strong {
+  display: block;
+  font-size: 0.84rem;
+  color: var(--carbon);
+}
+
+.drawer-user-info small {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.drawer-loyalty-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.drawer-loyalty-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.drawer-loyalty-pts {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: var(--carbon);
 }
 
 
