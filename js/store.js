@@ -149,6 +149,7 @@
   const modalStickyPrice = $('modal-sticky-price');
   const modalStickyVariant = $('modal-sticky-variant');
   const btnStickyAddCart = $('btn-sticky-add-cart');
+  const btnCloseProductModal = $('btn-close-product-modal');
 
   // Footer
   const footerBrand = $('footer-brand');
@@ -201,30 +202,34 @@
 
   // ===== INIT =====
   async function init() {
-    // 1. Renderização Instantânea Inicial (0ms a partir de cache/defaults seguros)
     settings = DataStore.getSettings();
-    applyBranding();
-    applyStoreStatus();
-    renderAnnouncementBar();
-    renderBenefitsBar();
-    renderHeroBanners();
-    renderCategories();
-    renderVisualCategories();
-    renderFeaturedCollection();
-    renderProducts();
-    renderAbout();
-    renderInstagramFeed();
-    renderFooter();
+
+    // CRÍTICO: Registrar event listeners PRIMEIRO, antes de qualquer render
+    // que possa lançar exceção. Isso garante que os botões sempre respondam.
     bindEvents();
     initMobileBottomNav();
-    initInstantSearch();
-    initHeroParallax();
     loadCart();
     updateCartUI();
-    refreshIcons();
 
-    // Iniciar sessão de autenticação do cliente (Supabase Auth)
+    // Iniciar autenticação do cliente (Supabase Auth)
     initCustomerAuth();
+
+    // 1. Renderização inicial com dados do cache (cada uma protegida individualmente)
+    try { applyBranding(); } catch(e) { console.warn('[init] applyBranding:', e); }
+    try { applyStoreStatus(); } catch(e) { console.warn('[init] applyStoreStatus:', e); }
+    try { renderAnnouncementBar(); } catch(e) { console.warn('[init] renderAnnouncementBar:', e); }
+    try { renderBenefitsBar(); } catch(e) { console.warn('[init] renderBenefitsBar:', e); }
+    try { renderHeroBanners(); } catch(e) { console.warn('[init] renderHeroBanners:', e); }
+    try { renderCategories(); } catch(e) { console.warn('[init] renderCategories:', e); }
+    try { renderVisualCategories(); } catch(e) { console.warn('[init] renderVisualCategories:', e); }
+    try { renderFeaturedCollection(); } catch(e) { console.warn('[init] renderFeaturedCollection:', e); }
+    try { renderProducts(); } catch(e) { console.warn('[init] renderProducts:', e); }
+    try { renderAbout(); } catch(e) { console.warn('[init] renderAbout:', e); }
+    try { renderInstagramFeed(); } catch(e) { console.warn('[init] renderInstagramFeed:', e); }
+    try { renderFooter(); } catch(e) { console.warn('[init] renderFooter:', e); }
+    try { initInstantSearch(); } catch(e) { console.warn('[init] initInstantSearch:', e); }
+    try { initHeroParallax(); } catch(e) { console.warn('[init] initHeroParallax:', e); }
+    refreshIcons();
 
     // 2. Sincronização em Segundo Plano (Supabase / Servidor)
     try {
@@ -1335,7 +1340,7 @@
         const maxQty = parseInt(btn.dataset.qty) || 1;
         modalQty = 1;
         if (modalProductQty) modalProductQty.textContent = 1;
-        if (btnModalQtyPlus) btnModalQtyPlus.disabled = maxQty <= 1;
+        if (btnModalQtyPlus) btnModalQtyPlus.disabled = false;
 
         updateModalStockIndicator();
         updateModalAddCartBtn();
@@ -1524,6 +1529,36 @@
       }
     }
 
+    refreshIcons();
+  }
+
+  // ===== INSTAGRAM FEED =====
+  function renderInstagramFeed() {
+    if (!instagramSection || !instagramGrid) return;
+    const feed = settings?.instagramFeed;
+    if (!feed || feed.active === false) {
+      instagramSection.style.display = 'none';
+      return;
+    }
+    instagramSection.style.display = '';
+    if (instagramTitle && feed.title) instagramTitle.textContent = feed.title;
+    if (instagramSubtitle && feed.subtitle) instagramSubtitle.textContent = feed.subtitle;
+    if (btnInstagramProfile && feed.profileUrl) btnInstagramProfile.href = feed.profileUrl;
+
+    const posts = feed.posts || [];
+    if (!posts.length) {
+      instagramSection.style.display = 'none';
+      return;
+    }
+
+    instagramGrid.innerHTML = posts.map(p => `
+      <a href="${Utils.sanitize(p.postUrl || '#')}" target="_blank" rel="noopener noreferrer" class="instagram-post-card">
+        <img src="${Utils.sanitize(p.image)}" alt="${Utils.sanitize(p.caption || 'Donna Fitness PE')}" loading="lazy">
+        <div class="instagram-post-overlay">
+          <i data-lucide="instagram"></i>
+        </div>
+      </a>
+    `).join('');
     refreshIcons();
   }
 
@@ -4566,9 +4601,6 @@
       };
     }
   }
-
-  // Ref close product modal button selector
-  const btnCloseProductModal = $('btn-close-product-modal');
 
   // ===== EXPOSE STORE API =====
   window.StoreApp = {

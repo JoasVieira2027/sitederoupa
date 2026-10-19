@@ -1601,3 +1601,9 @@ const Utils = {
     return `ou até ${top.count}x de ${this.formatCurrency(top.value)} sem juros`;
   }
 };
+
+// Explicit global exports for multi-script browser environments
+if (typeof window !== 'undefined') {
+  window.DataStore = DataStore;
+  window.Utils = Utils;
+}
