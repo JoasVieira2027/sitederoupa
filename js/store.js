@@ -3068,7 +3068,37 @@
     const btnOpenSearch = $('btn-open-search-modal');
     if (btnOpenSearch) btnOpenSearch.addEventListener('click', openSearchModal);
 
-    // ESC key closes customer modals
+    // Loyalty Modal Close Triggers
+    const btnCloseLoyalty = $('btn-close-loyalty-modal');
+    if (btnCloseLoyalty) btnCloseLoyalty.addEventListener('click', closeLoyaltyModal);
+    const loyaltyModal = $('loyalty-modal');
+    if (loyaltyModal) {
+      loyaltyModal.addEventListener('click', e => {
+        if (e.target === loyaltyModal) closeLoyaltyModal();
+      });
+    }
+
+    // Loyalty History Modal Close Triggers
+    const btnCloseLoyaltyHist = $('btn-close-loyalty-history');
+    if (btnCloseLoyaltyHist) btnCloseLoyaltyHist.addEventListener('click', closeLoyaltyHistoryModal);
+    const loyaltyHistModal = $('loyalty-history-modal');
+    if (loyaltyHistModal) {
+      loyaltyHistModal.addEventListener('click', e => {
+        if (e.target === loyaltyHistModal) closeLoyaltyHistoryModal();
+      });
+    }
+
+    // Product Review Modal Close Triggers
+    const btnCloseRevModal = $('btn-close-review-modal');
+    if (btnCloseRevModal) btnCloseRevModal.addEventListener('click', closeReviewModal);
+    const prodReviewModal = $('product-review-modal');
+    if (prodReviewModal) {
+      prodReviewModal.addEventListener('click', e => {
+        if (e.target === prodReviewModal) closeReviewModal();
+      });
+    }
+
+    // ESC key closes all active modals
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
         closeCustomerAuthModal();
@@ -3076,6 +3106,10 @@
         closeOrderDetailsModal();
         closeStoreAboutModal();
         closeSearchModal();
+        closeLoyaltyModal();
+        closeLoyaltyHistoryModal();
+        closeReviewModal();
+        closeProductModal();
       }
     });
 
@@ -3535,7 +3569,7 @@
                 <p>${Utils.sanitize(m.description || '')}</p>
               </div>
               <div class="mission-status-pill">
-                ${isDone ? '<span class="mission-badge-done">✓ Concluída</span>' : `<span class="mission-badge-pts">+${m.points_reward} pts</span>`}
+                ${isDone ? '<span class="mission-badge-done">✓ Concluída</span>' : `<span class="mission-badge-pts">+${m.reward_points || m.points_reward || m.points || 0} pts</span>`}
               </div>
             </div>
           `;

@@ -1560,7 +1560,7 @@
           <span style="color:#F59E0B;">★</span>
           <span>Donna Fidelidade & Recompensas</span>
         </h3>
-        <button type="button" class="btn-close-modal" id="btn-close-loyalty-modal" aria-label="Fechar janela" style="background:rgba(255,255,255,0.1);color:#FFFFFF;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;">
+        <button type="button" class="btn-close-modal" id="btn-close-loyalty-modal" onclick="window.StoreApp?.closeLoyaltyModal()" aria-label="Fechar janela" style="background:rgba(255,255,255,0.1);color:#FFFFFF;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;">
           <i data-lucide="x"></i>
         </button>
       </div>
@@ -1713,7 +1713,7 @@
           <i data-lucide="file-text" style="width:18px;height:18px;color:#F59E0B;"></i>
           Extrato Auditável de Pontos
         </h3>
-        <button type="button" class="btn-close-modal" id="btn-close-loyalty-history" aria-label="Fechar extrato" style="background:rgba(255,255,255,0.1);color:#FFFFFF;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;">
+        <button type="button" class="btn-close-modal" id="btn-close-loyalty-history" onclick="window.StoreApp?.closeLoyaltyHistoryModal()" aria-label="Fechar extrato" style="background:rgba(255,255,255,0.1);color:#FFFFFF;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;">
           <i data-lucide="x"></i>
         </button>
       </div>
@@ -1735,7 +1735,7 @@
           <h3 id="review-modal-title" style="font-size:1.1rem;font-weight:800;color:#0F172A;">Avaliar Peça</h3>
           <span style="font-size:0.75rem;color:#059669;font-weight:700;">Ganhe +30 pontos (+20 pts bônus com foto!)</span>
         </div>
-        <button type="button" class="btn-close-modal" id="btn-close-review-modal" aria-label="Fechar avaliação">
+        <button type="button" class="btn-close-modal" id="btn-close-review-modal" onclick="window.StoreApp?.closeReviewModal()" aria-label="Fechar avaliação">
           <i data-lucide="x"></i>
         </button>
       </div>
