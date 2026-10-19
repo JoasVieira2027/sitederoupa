@@ -2598,6 +2598,48 @@
     if ($('v-instagram')) $('v-instagram').value = s.instagram || '';
     if ($('v-address')) $('v-address').value = s.address || '';
 
+    // ---- Low Stock Config ----
+    const lsc = s.lowStockConfig || {};
+    if ($('v-lowstock-active')) $('v-lowstock-active').checked = lsc.active !== false;
+    if ($('v-lowstock-threshold')) $('v-lowstock-threshold').value = lsc.threshold != null ? lsc.threshold : 5;
+    if ($('v-lowstock-text')) $('v-lowstock-text').value = lsc.text || 'Últimas peças';
+
+    // ---- Recommended Config ----
+    const rc = s.recommendedConfig || {};
+    if ($('v-rec-active')) $('v-rec-active').checked = rc.active !== false;
+    if ($('v-rec-title')) $('v-rec-title').value = rc.title || 'Recomendados para Você';
+    if ($('v-rec-max')) $('v-rec-max').value = rc.maxItems != null ? rc.maxItems : 4;
+
+    // Populate product checkboxes for recommended section
+    const recProductsContainer = $('v-rec-products-list');
+    if (recProductsContainer) {
+      const allProds = DataStore.getProducts ? DataStore.getProducts({ includeInactive: true }) : [];
+      const manualIds = Array.isArray(rc.productIds) ? rc.productIds : [];
+      if (allProds.length > 0) {
+        recProductsContainer.innerHTML = allProds.map(p =>
+          `<label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;cursor:pointer;padding:2px 0;">
+            <input type="checkbox" data-prod-id="${Utils.sanitize(String(p.id || ''))}" ${manualIds.includes(String(p.id || '')) ? 'checked' : ''}>
+            <span>${Utils.sanitize(p.name || 'Sem nome')}</span>
+          </label>`
+        ).join('');
+      } else {
+        recProductsContainer.innerHTML = '<p style="color:var(--text-muted);font-size:0.8rem;margin:0;">Nenhum produto cadastrado ainda.</p>';
+      }
+    }
+
+    // ---- Floating Contact Config ----
+    const fcc = s.floatingContactConfig || {};
+    if ($('v-floating-active')) $('v-floating-active').checked = fcc.active !== false;
+    if ($('v-floating-number')) $('v-floating-number').value = fcc.whatsappNumber || '';
+    if ($('v-floating-label')) $('v-floating-label').value = fcc.label || 'Fale Conosco';
+    if ($('v-floating-message')) $('v-floating-message').value = fcc.message || 'Olá! Estou no site da loja e gostaria de tirar uma dúvida.';
+
+    // ---- Share Config ----
+    const sc2 = s.shareConfig || {};
+    if ($('v-share-active')) $('v-share-active').checked = sc2.active !== false;
+    if ($('v-share-title')) $('v-share-title').value = sc2.title || '';
+    if ($('v-share-text')) $('v-share-text').value = sc2.text || '';
+
     const btn = $('btn-save-visual');
     if (btn) btn.onclick = async () => {
       const origText = btn.textContent;
@@ -2663,7 +2705,35 @@
           whatsappNumber: $('v-whatsapp').value.trim(),
           contactPhone: $('v-phone').value.trim(),
           instagram: $('v-instagram').value.trim(),
-          address: $('v-address').value.trim()
+          address: $('v-address').value.trim(),
+          lowStockConfig: {
+            active: $('v-lowstock-active') ? $('v-lowstock-active').checked : true,
+            threshold: $('v-lowstock-threshold') ? (parseInt($('v-lowstock-threshold').value, 10) || 5) : 5,
+            text: $('v-lowstock-text') ? ($('v-lowstock-text').value.trim() || 'Últimas peças') : 'Últimas peças'
+          },
+          recommendedConfig: {
+            active: $('v-rec-active') ? $('v-rec-active').checked : true,
+            title: $('v-rec-title') ? ($('v-rec-title').value.trim() || 'Recomendados para Você') : 'Recomendados para Você',
+            maxItems: $('v-rec-max') ? (parseInt($('v-rec-max').value, 10) || 4) : 4,
+            productIds: (() => {
+              const container = $('v-rec-products-list');
+              if (!container) return [];
+              return Array.from(container.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(cb => cb.dataset.prodId).filter(Boolean);
+            })()
+          },
+          floatingContactConfig: {
+            active: $('v-floating-active') ? $('v-floating-active').checked : true,
+            whatsappNumber: $('v-floating-number') ? $('v-floating-number').value.trim() : '',
+            label: $('v-floating-label') ? ($('v-floating-label').value.trim() || 'Fale Conosco') : 'Fale Conosco',
+            message: $('v-floating-message') ? $('v-floating-message').value.trim() : ''
+          },
+          shareConfig: {
+            active: $('v-share-active') ? $('v-share-active').checked : true,
+            title: $('v-share-title') ? $('v-share-title').value.trim() : '',
+            text: $('v-share-text') ? $('v-share-text').value.trim() : '',
+            url: ''
+          }
         });
         Utils.showToast('Configurações visuais salvas!', 'success');
         if ($('admin-brand-title')) $('admin-brand-title').textContent = $('v-store-name').value.trim();
