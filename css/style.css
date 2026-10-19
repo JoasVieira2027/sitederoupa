@@ -1591,8 +1591,15 @@ img, picture, video, canvas, svg {
 /* Badges */
 .product-badge {
   position: absolute;
-  top: 12px;
-  left: 12px;
+  top: 10px;
+  left: 10px;
+  right: auto !important;
+  width: fit-content !important;
+  max-width: max-content !important;
+  white-space: nowrap !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   z-index: 2;
   font-size: 0.68rem;
   font-weight: 700;
@@ -1600,6 +1607,8 @@ img, picture, video, canvas, svg {
   border-radius: var(--radius-full);
   letter-spacing: 0.3px;
   text-transform: uppercase;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .badge-custom {
@@ -1610,6 +1619,12 @@ img, picture, video, canvas, svg {
 .badge-promo {
   background: #DC2626;
   color: white;
+}
+
+.badge-ranking {
+  background: var(--carbon);
+  color: #F8FAFC;
+  border: 1px solid rgba(255, 215, 0, 0.4);
 }
 
 .badge-esgotado {
@@ -4632,6 +4647,10 @@ details[open] .accordion-arrow {
     gap: 8px;
   }
 
+  .btn-mobile-menu {
+    display: none !important;
+  }
+
   .brand-name {
     font-size: 1rem;
     font-weight: 800;
@@ -4991,8 +5010,15 @@ details[open] .accordion-arrow {
   .product-badge {
     top: 6px !important;
     left: 6px !important;
+    right: auto !important;
+    width: fit-content !important;
+    max-width: max-content !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     font-size: 0.6rem !important;
-    padding: 2px 7px !important;
+    padding: 3px 8px !important;
     border-radius: 9999px !important;
   }
 

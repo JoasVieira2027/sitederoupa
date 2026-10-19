@@ -95,6 +95,40 @@ const DEFAULT_PRODUCTS = [
       { color: 'Chumbo', colorHex: '#3D3D3D', image: 'assets/images/short_fitness.jpg', sizes: [{ size: 'P', qty: 4 }, { size: 'M', qty: 5 }, { size: 'G', qty: 3 }] }
     ],
     promotion: { active: true, discountPercent: 15 }
+  },
+  {
+    id: 'prod_macacao_sculpt',
+    name: 'Macacão Fitness Seamless Costas Nuas',
+    category: 'Macacões',
+    price: 169.90,
+    badge: 'Destaque',
+    description: 'Macacão fitness de alta performance em malha tecnológica sem costura. Efeito modelador que valoriza o corpo com decote costas abertas e suporte firme no busto. Tecido encorpado que não fica transparente.',
+    image: 'assets/images/hero_fitness.jpg',
+    active: true,
+    inStock: true,
+    featured: true,
+    variants: [
+      { color: 'Preto Ônix', colorHex: '#1E1E1E', image: 'assets/images/hero_fitness.jpg', sizes: [{ size: 'P', qty: 5 }, { size: 'M', qty: 8 }, { size: 'G', qty: 4 }] },
+      { color: 'Verde Militar', colorHex: '#3A4D39', image: 'assets/images/hero_fitness.jpg', sizes: [{ size: 'P', qty: 4 }, { size: 'M', qty: 6 }, { size: 'G', qty: 3 }] }
+    ],
+    promotion: { active: false, discountPercent: 0 }
+  },
+  {
+    id: 'prod_garrafa_matte',
+    name: 'Garrafa Térmica Donna Inox Matte 750ml',
+    category: 'Acessórios',
+    price: 69.90,
+    badge: 'Acessório',
+    description: 'Garrafa térmica esportiva em aço inoxidável com acabamento fosco aveludado antiderrapante. Conserva líquidos gelados por até 24 horas e quentes por 12 horas. Tampa antivazamento com bico articulado e alça de transporte.',
+    image: 'assets/images/conjunto_fitness.jpg',
+    active: true,
+    inStock: true,
+    featured: false,
+    variants: [
+      { color: 'Preto Fosco', colorHex: '#1E1E1E', image: 'assets/images/conjunto_fitness.jpg', sizes: [{ size: 'Único', qty: 15 }] },
+      { color: 'Verde Esmeralda', colorHex: '#059669', image: 'assets/images/conjunto_fitness.jpg', sizes: [{ size: 'Único', qty: 10 }] }
+    ],
+    promotion: { active: false, discountPercent: 0 }
   }
 ];
 
@@ -641,6 +675,11 @@ const DataStore = (function () {
     const local = _loadLocal(DB_KEYS.PRODUCTS);
     if (local && Array.isArray(local) && local.length) {
       _products = local;
+      DEFAULT_PRODUCTS.forEach(dp => {
+        if (!_products.some(p => p.id === dp.id)) {
+          _products.push(dp);
+        }
+      });
     } else {
       _products = [...DEFAULT_PRODUCTS];
     }

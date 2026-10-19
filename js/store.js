@@ -874,13 +874,10 @@
     let badgeHtml = '';
     if (isOut) {
       badgeHtml = `<span class="product-badge badge-esgotado">Esgotado</span>`;
-    } else if (isRanking && index < 3) {
-      badgeHtml = `<span class="ranking-badge">★ TOP ${index + 1}</span>`;
-      if (hasPromo) {
-        badgeHtml += `<span class="product-badge badge-promo" style="left:auto;right:10px;">-${p.promotion.discountPercent}%</span>`;
-      }
     } else if (hasPromo) {
       badgeHtml = `<span class="product-badge badge-promo">-${p.promotion.discountPercent}% OFF</span>`;
+    } else if (isRanking && index < 3) {
+      badgeHtml = `<span class="product-badge badge-ranking">★ TOP ${index + 1}</span>`;
     } else if (p.badge) {
       badgeHtml = `<span class="product-badge badge-custom">${Utils.sanitize(p.badge)}</span>`;
     }
@@ -3306,13 +3303,15 @@
 
       const displayName = Utils.decodeHtml(cat.name);
 
+      const countLabel = count > 0 ? `${count} ${count === 1 ? 'peça' : 'peças'}` : 'Novidades';
+
       html += `
         <div class="chic-cat-card ${isSel ? 'active' : ''}" data-cat="${Utils.sanitize(cat.name)}">
           <img src="${Utils.sanitize(catImg)}" alt="${Utils.sanitize(displayName)}" loading="lazy">
           <div class="chic-cat-overlay"></div>
           <div class="chic-cat-info">
             <span class="chic-cat-name">${Utils.sanitize(displayName)}</span>
-            <span class="chic-cat-count">${count} ${count === 1 ? 'peça' : 'peças'}</span>
+            <span class="chic-cat-count">${countLabel}</span>
           </div>
         </div>
       `;
