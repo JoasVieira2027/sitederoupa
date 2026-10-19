@@ -1010,6 +1010,122 @@
             </div>
           </div>
 
+          <!-- Configuração: Últimas Peças -->
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <h3>
+                <i data-lucide="flame"></i>
+                <span>Estoque Limitado & Selo "Últimas Peças"</span>
+              </h3>
+              <label class="toggle-switch">
+                <input type="checkbox" id="v-lowstock-active" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="admin-card-body">
+              <div class="admin-form-grid">
+                <div class="form-group">
+                  <label for="v-lowstock-threshold">Disparar quando estoque for menor ou igual a</label>
+                  <input type="number" id="v-lowstock-threshold" class="form-control" min="1" max="50" value="5">
+                  <small style="font-size:0.75rem;color:var(--text-muted);display:block;margin-top:4px;">Ex: com limite 5, peças com 5 ou menos unidades mostram o selo automaticamente</small>
+                </div>
+                <div class="form-group">
+                  <label for="v-lowstock-text">Texto do Selo / Aviso</label>
+                  <input type="text" id="v-lowstock-text" class="form-control" value="Últimas peças" placeholder="Ex: Últimas peças, Poucas unidades">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Configuração: Recomendados -->
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <h3>
+                <i data-lucide="sparkles"></i>
+                <span>Seção de Produtos Recomendados</span>
+              </h3>
+              <label class="toggle-switch">
+                <input type="checkbox" id="v-rec-active" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="admin-card-body">
+              <div class="admin-form-grid">
+                <div class="form-group">
+                  <label for="v-rec-title">Título da Seção de Recomendados</label>
+                  <input type="text" id="v-rec-title" class="form-control" value="Recomendados para Você" placeholder="Ex: Recomendados para Você">
+                </div>
+                <div class="form-group">
+                  <label for="v-rec-max">Quantidade Máxima Exibida</label>
+                  <input type="number" id="v-rec-max" class="form-control" min="1" max="12" value="4">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Selecionar Peças Recomendadas Manualmente</label>
+                <small style="font-size:0.75rem;color:var(--text-muted);display:block;margin-bottom:8px;">Deixe desmarcado para o sistema recomendar automaticamente por relevância/destaque</small>
+                <div id="v-rec-products-list" style="max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px;display:flex;flex-direction:column;gap:6px;background:white;">
+                  <!-- Checkboxes populated by admin.js -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Configuração: Botão Flutuante de Contato (WhatsApp) -->
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <h3>
+                <i data-lucide="message-circle"></i>
+                <span>Botão Flutuante de Contato (WhatsApp)</span>
+              </h3>
+              <label class="toggle-switch">
+                <input type="checkbox" id="v-floating-active" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="admin-card-body">
+              <div class="admin-form-grid">
+                <div class="form-group">
+                  <label for="v-floating-number">WhatsApp Exclusivo do Botão (ou deixe vazio para usar o oficial)</label>
+                  <input type="text" id="v-floating-number" class="form-control" placeholder="5511999999999">
+                </div>
+                <div class="form-group">
+                  <label for="v-floating-label">Texto do Botão / Tooltip</label>
+                  <input type="text" id="v-floating-label" class="form-control" value="Fale Conosco" placeholder="Ex: Falar com a Loja">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="v-floating-message">Mensagem Inicial Pré-preenchida</label>
+                <input type="text" id="v-floating-message" class="form-control" value="Olá! Estou no site da Donna Fitness PE e gostaria de tirar uma dúvida.">
+              </div>
+            </div>
+          </div>
+
+          <!-- Configuração: Compartilhar Loja -->
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <h3>
+                <i data-lucide="share-2"></i>
+                <span>Função "Compartilhar Loja"</span>
+              </h3>
+              <label class="toggle-switch">
+                <input type="checkbox" id="v-share-active" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="admin-card-body">
+              <div class="admin-form-grid">
+                <div class="form-group">
+                  <label for="v-share-title">Título ao Compartilhar</label>
+                  <input type="text" id="v-share-title" class="form-control" value="Donna Fitness PE | Moda Fitness de Alta Performance">
+                </div>
+                <div class="form-group">
+                  <label for="v-share-text">Texto de Apresentação</label>
+                  <input type="text" id="v-share-text" class="form-control" value="Conheça as melhores peças fitness femininas com tecnologia e zero transparência!">
+                </div>
+              </div>
+            </div>
+          </div>
+
           <button type="button" class="btn btn-primary" id="btn-save-visual">
             <i data-lucide="save"></i>
             <span>Salvar Configurações Visuais</span>
@@ -1452,32 +1568,48 @@
             </div>
           </div>
 
-          <div class="admin-form-grid">
-            <div class="form-group">
-              <label style="display:flex;align-items:center;gap:10px;">
-                <label class="toggle-switch">
-                  <input type="checkbox" id="pf-active" checked>
-                  <span class="toggle-slider"></span>
-                </label>
-                Produto Ativo na Loja
-              </label>
+          <div class="admin-card" style="margin-bottom:16px;">
+            <div class="admin-card-header">
+              <h3>
+                <i data-lucide="award"></i>
+                <span>Relevância, Destaques & Selos</span>
+              </h3>
             </div>
-            <div class="form-group">
-              <label style="display:flex;align-items:center;gap:10px;">
-                <label class="toggle-switch">
-                  <input type="checkbox" id="pf-featured">
-                  <span class="toggle-slider"></span>
+            <div class="admin-card-body">
+              <div class="admin-form-grid">
+                <div class="form-group">
+                  <label for="pf-relevance">Pontuação de Relevância (0 a 100)</label>
+                  <input type="number" id="pf-relevance" class="form-control" min="0" max="100" value="50" placeholder="Ex: 80">
+                  <small style="font-size:0.75rem;color:var(--text-muted);display:block;margin-top:4px;">Usado na ordenação "Mais relevantes" do catálogo</small>
+                </div>
+                <div class="form-group">
+                  <label for="pf-display-order">Ordem Manual na Vitrine</label>
+                  <input type="number" id="pf-display-order" class="form-control" min="0" max="9999" value="0">
+                  <small style="font-size:0.75rem;color:var(--text-muted);display:block;margin-top:4px;">0 = início &middot; maior = final</small>
+                </div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));gap:12px;margin-top:10px;">
+                <label style="display:flex;align-items:center;gap:10px;font-size:0.85rem;font-weight:600;cursor:pointer;">
+                  <input type="checkbox" id="pf-active" checked style="width:18px;height:18px;">
+                  Produto Ativo na Loja
                 </label>
-                Destaque na Nova Coleção
-              </label>
-            </div>
-            <div class="form-group">
-              <label for="pf-display-order">Posição na Vitrine</label>
-              <div style="display:flex;align-items:center;gap:10px;">
-                <input type="number" id="pf-display-order" class="form-control" min="0" max="9999" value="0"
-                  style="width:90px;">
-                <span style="font-size:0.78rem;color:var(--text-muted);">0 = início &middot; maior número = ao
-                  fundo</span>
+                <label style="display:flex;align-items:center;gap:10px;font-size:0.85rem;font-weight:600;cursor:pointer;">
+                  <input type="checkbox" id="pf-featured" style="width:18px;height:18px;">
+                  Destaque na Coleção
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;font-size:0.85rem;font-weight:600;cursor:pointer;">
+                  <input type="checkbox" id="pf-bestseller" style="width:18px;height:18px;">
+                  Selo "Mais Vendido"
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;font-size:0.85rem;font-weight:600;cursor:pointer;">
+                  <input type="checkbox" id="pf-new" style="width:18px;height:18px;">
+                  Selo "Novidade"
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;font-size:0.85rem;font-weight:600;cursor:pointer;">
+                  <input type="checkbox" id="pf-recommended" style="width:18px;height:18px;">
+                  Recomendado para Você
+                </label>
               </div>
             </div>
           </div>

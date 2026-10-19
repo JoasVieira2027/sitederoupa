@@ -327,6 +327,30 @@ const DEFAULT_SETTINGS = {
     expirationEnabled: false,
     expirationDays: 365
   },
+  lowStockConfig: {
+    active: true,
+    threshold: 5,
+    text: 'Últimas peças'
+  },
+  recommendedConfig: {
+    active: true,
+    title: 'Recomendados para Você',
+    productIds: [],
+    maxItems: 4
+  },
+  floatingContactConfig: {
+    active: true,
+    whatsappNumber: '',
+    message: 'Olá! Estou no site da Donna Fitness PE e gostaria de tirar uma dúvida.',
+    label: 'Fale Conosco',
+    position: 'bottom-right'
+  },
+  shareConfig: {
+    active: true,
+    title: 'Donna Fitness PE | Moda Fitness de Alta Performance',
+    text: 'Conheça as melhores peças fitness com compressão e zero transparência!',
+    url: ''
+  },
   adminPassword: 'admin123',
   adminAccessKey: 'fitvibe@2026'
 };
@@ -494,6 +518,10 @@ const DataStore = (function () {
       })),
       promotion: promo || { active: false, discountPercent: 0 },
       displayOrder: row.display_order || 0,
+      relevance: row.relevance !== undefined ? parseInt(row.relevance, 10) : (row.display_order ? 100 - row.display_order : 0),
+      isBestSeller: row.is_best_seller === true || Boolean(row.badge && row.badge.toLowerCase().includes('mais vendido')),
+      isNew: row.is_new === true || Boolean(row.badge && row.badge.toLowerCase().includes('novidade')),
+      isRecommended: row.is_recommended === true,
       createdAt: row.created_at,
       updatedAt: row.updated_at
     };
@@ -588,6 +616,10 @@ const DataStore = (function () {
       closures: parseJsonField(row.closures, []),
       availableSizes: parseJsonField(row.available_sizes, DEFAULT_SETTINGS.availableSizes),
       loyalty: parseJsonField(row.loyalty, DEFAULT_SETTINGS.loyalty),
+      lowStockConfig: parseJsonField(row.low_stock_config, DEFAULT_SETTINGS.lowStockConfig),
+      recommendedConfig: parseJsonField(row.recommended_config, DEFAULT_SETTINGS.recommendedConfig),
+      floatingContactConfig: parseJsonField(row.floating_contact_config, DEFAULT_SETTINGS.floatingContactConfig),
+      shareConfig: parseJsonField(row.share_config, DEFAULT_SETTINGS.shareConfig),
       adminPassword: DEFAULT_SETTINGS.adminPassword
     };
   }
@@ -1376,9 +1408,29 @@ const DataStore = (function () {
     }
   }
 
+  async function hasCustomerPurchasedProduct(userId, productId) {
+    if (!userId || !productId) return false;
+    try {
+      const orders = await getCustomerOrders(userId);
+      if (!orders || !orders.length) return false;
+      return orders.some(o => {
+        if (o.status === 'cancelado') return false;
+        return (o.items || []).some(item => (item.id === productId || item.productId === productId));
+      });
+    } catch (e) {
+      console.warn('[DataStore] Erro ao checar compra do cliente:', e);
+      return false;
+    }
+  }
+
   async function submitProductReview(productId, rating, comment, hasPhoto = false, photoUrl = '', userId = null, userName = '') {
     if (!userId) return { success: false, message: 'Você precisa estar logado para avaliar produtos e ganhar pontos.' };
     if (!productId || !rating) return { success: false, message: 'Produto e avaliação são obrigatórios.' };
+
+    const hasBought = await hasCustomerPurchasedProduct(userId, productId);
+    if (!hasBought) {
+      return { success: false, message: 'Apenas clientes que compraram este produto podem enviar uma avaliação.' };
+    }
 
     if (_supabase && window.SupabaseService) {
       try {
@@ -1515,6 +1567,7 @@ const DataStore = (function () {
     getSettings,
     getOrders,
     getCustomerOrders,
+    hasCustomerPurchasedProduct,
     getProductTotalStock,
     getVariantStock,
     getAvailableSizesForColor,

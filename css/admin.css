@@ -1846,4 +1846,23 @@ body.admin-sidebar-locked {
   .admin-table td {
     padding: 10px 12px;
   }
+
+  /* Previne zoom automático do iPhone / Safari em todos os campos do admin */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="search"],
+  input[type="url"],
+  textarea,
+  select,
+  .form-control,
+  .variant-size-input,
+  .stock-qty-input {
+    font-size: 16px !important;
+    line-height: normal !important;
+    -webkit-text-size-adjust: 100% !important;
+  }
 }
+

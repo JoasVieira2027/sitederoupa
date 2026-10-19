@@ -594,6 +594,16 @@ BEGIN
         RETURN jsonb_build_object('success', false, 'error', 'Por favor, escreva um comentário com sua opinião.');
     END IF;
 
+    -- Verificar se o cliente realmente comprou este produto (pedido não cancelado)
+    IF NOT EXISTS (
+        SELECT 1 FROM public.orders
+        WHERE user_id = v_user_id
+          AND status != 'cancelado'
+          AND items::text LIKE '%' || p_product_id || '%'
+    ) THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Você só pode avaliar produtos que realmente comprou nesta loja.');
+    END IF;
+
     -- Verificar se já avaliou este produto
     IF EXISTS (SELECT 1 FROM public.product_reviews WHERE user_id = v_user_id AND product_id = p_product_id) THEN
         RETURN jsonb_build_object('success', false, 'error', 'Você já avaliou este produto anteriormente.');

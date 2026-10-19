@@ -147,6 +147,12 @@
           </div>
         </div>
 
+        <!-- Share Store Button -->
+        <button type="button" class="btn-share-store" id="btn-share-store" onclick="window.StoreApp?.shareStore()" aria-label="Compartilhar loja" title="Compartilhar loja">
+          <i data-lucide="share-2"></i>
+          <span class="share-btn-text">Compartilhar</span>
+        </button>
+
         <!-- Customer Account Button -->
         <button type="button" class="btn-header-account" id="btn-customer-account" aria-label="Área do cliente / Minha Conta">
           <i data-lucide="user" class="account-icon"></i>
@@ -376,6 +382,25 @@
         </span>
       </div>
 
+      <!-- Sorting & Counter Toolbar -->
+      <div class="catalog-toolbar" id="catalog-toolbar">
+        <span class="catalog-count-badge" id="catalog-count-badge">
+          <i data-lucide="package" style="width:14px;height:14px;color:var(--primary);"></i>
+          <span id="catalog-count-text">Carregando peças...</span>
+        </span>
+        <div class="catalog-toolbar-right">
+          <label for="catalog-sort-select" class="sort-label">
+            <i data-lucide="arrow-down-up" class="sort-icon"></i>
+            <span>Ordenar:</span>
+          </label>
+          <select id="catalog-sort-select" class="catalog-sort-select" aria-label="Ordenar produtos">
+            <option value="relevance">Mais relevantes</option>
+            <option value="price_asc">Menor preço</option>
+            <option value="price_desc">Maior preço</option>
+          </select>
+        </div>
+      </div>
+
     </div>
 
     <!-- Products Grid -->
@@ -396,6 +421,21 @@
       </button>
     </div>
 
+  </section>
+
+  <!-- 5. Seção de Peças Recomendadas (Controlável no Admin) -->
+  <section class="recommended-section container" id="recommended-section" aria-label="Produtos recomendados">
+    <div class="chic-section-header">
+      <div>
+        <div class="chic-badge-pill">
+          <i data-lucide="sparkles" style="width:13px;height:13px;color:#059669;"></i> Escolha Especial
+        </div>
+        <h2 class="chic-section-title" id="recommended-title">Recomendados para Você</h2>
+      </div>
+    </div>
+    <div class="products-grid" id="recommended-grid">
+      <!-- Populated dynamically by store.js based on admin settings -->
+    </div>
   </section>
 
   <!-- 6. Seção Curta Sobre a Loja (Apresentação Profissional e Elegante) -->
@@ -1780,6 +1820,12 @@
       </div>
     </div>
   </div>
+
+  <!-- Botão Flutuante de Contato WhatsApp (Configurável no Admin) -->
+  <a href="#" class="floating-whatsapp-btn" id="floating-whatsapp-btn" target="_blank" rel="noopener noreferrer" aria-label="Falar com a loja no WhatsApp" style="display:none;">
+    <i data-lucide="message-circle"></i>
+    <span id="floating-whatsapp-label">Falar com a Loja</span>
+  </a>
 
   <!-- Supabase SDK & App Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

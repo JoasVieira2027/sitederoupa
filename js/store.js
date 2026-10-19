@@ -224,9 +224,11 @@
     try { renderVisualCategories(); } catch(e) { console.warn('[init] renderVisualCategories:', e); }
     try { renderFeaturedCollection(); } catch(e) { console.warn('[init] renderFeaturedCollection:', e); }
     try { renderProducts(); } catch(e) { console.warn('[init] renderProducts:', e); }
+    try { renderRecommendedProducts(); } catch(e) { console.warn('[init] renderRecommendedProducts:', e); }
     try { renderAbout(); } catch(e) { console.warn('[init] renderAbout:', e); }
     try { renderInstagramFeed(); } catch(e) { console.warn('[init] renderInstagramFeed:', e); }
     try { renderFooter(); } catch(e) { console.warn('[init] renderFooter:', e); }
+    try { renderFloatingContact(); } catch(e) { console.warn('[init] renderFloatingContact:', e); }
     try { initInstantSearch(); } catch(e) { console.warn('[init] initInstantSearch:', e); }
     try { initHeroParallax(); } catch(e) { console.warn('[init] initHeroParallax:', e); }
     refreshIcons();
@@ -244,9 +246,11 @@
       renderVisualCategories();
       renderFeaturedCollection();
       renderProducts();
+      renderRecommendedProducts();
       renderAbout();
       renderInstagramFeed();
       renderFooter();
+      renderFloatingContact();
       updateCartUI();
       refreshIcons();
     } catch (err) {
@@ -265,7 +269,9 @@
       renderAbout();
       renderInstagramFeed();
       renderFooter();
+      renderFloatingContact();
       renderProducts();
+      renderRecommendedProducts();
       updateCartUI();
       refreshIcons();
     });
@@ -279,6 +285,7 @@
     document.addEventListener('products-updated', () => {
       renderFeaturedCollection();
       renderProducts();
+      renderRecommendedProducts();
       renderCategories();
       renderVisualCategories();
       refreshIcons();
@@ -449,6 +456,64 @@
         igEl.textContent = handle.startsWith('@') ? handle : `@${handle}`;
         igEl.href = `https://instagram.com/${handle.replace('@', '')}`;
       }
+    }
+  }
+
+  // ===== 8. BOTÃO FLUTUANTE DE CONTATO (WHATSAPP) =====
+  function renderFloatingContact() {
+    const btn = $('floating-whatsapp-btn');
+    if (!btn) return;
+    const s = DataStore.getSettings();
+    const cfg = s.floatingContactConfig || { active: true, whatsappNumber: '', message: 'Olá! Estou no site da Donna Fitness PE e gostaria de tirar uma dúvida.', label: 'Fale Conosco' };
+
+    if (cfg.active === false || cfg.active === 'false') {
+      btn.style.display = 'none';
+      return;
+    }
+
+    const rawNum = cfg.whatsappNumber || s.whatsappNumber || '';
+    const cleanNum = rawNum.replace(/\D/g, '');
+    if (!cleanNum || cleanNum.includes('999999999')) {
+      btn.style.display = 'none';
+      return;
+    }
+
+    const msg = encodeURIComponent(cfg.message || 'Olá! Gostaria de falar com o atendimento.');
+    btn.href = `https://wa.me/${cleanNum}?text=${msg}`;
+    const labelEl = $('floating-whatsapp-label');
+    if (labelEl) labelEl.textContent = cfg.label || 'Falar com a Loja';
+    btn.style.display = 'inline-flex';
+  }
+
+  // ===== 9. COMPARTILHAR LOJA (API Nativa ou Clipboard Fallback) =====
+  async function shareStore() {
+    const s = DataStore.getSettings();
+    const cfg = s.shareConfig || {};
+    const title = cfg.title || s.storeName || 'Donna Fitness PE';
+    const text = cfg.text || 'Conheça a Donna Fitness PE: moda fitness de alta performance com modelagem anatômica e zero transparência!';
+    const url = cfg.url || window.location.href;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text, url });
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+      }
+    }
+
+    // Fallback: clipboard sem alert()
+    try {
+      await navigator.clipboard.writeText(url);
+      Utils.showToast('Link da loja copiado com sucesso!', 'success');
+    } catch (e) {
+      const temp = document.createElement('input');
+      temp.value = url;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+      Utils.showToast('Link da loja copiado com sucesso!', 'success');
     }
   }
 
@@ -768,6 +833,37 @@
       }
     }
 
+    // Update catalog count text
+    const countTextEl = $('catalog-count-text');
+    if (countTextEl) {
+      countTextEl.textContent = `${products.length} ${products.length === 1 ? 'peça encontrada' : 'peças encontradas'}`;
+    }
+
+    // Apply Sorting ("Ordenar por")
+    const sortSelect = $('catalog-sort-select');
+    const sortVal = sortSelect ? sortSelect.value : 'relevance';
+
+    if (sortVal === 'price_asc') {
+      products.sort((a, b) => {
+        const pA = Utils.calcDiscountedPrice(a.price, a.promotion);
+        const pB = Utils.calcDiscountedPrice(b.price, b.promotion);
+        return pA - pB;
+      });
+    } else if (sortVal === 'price_desc') {
+      products.sort((a, b) => {
+        const pA = Utils.calcDiscountedPrice(a.price, a.promotion);
+        const pB = Utils.calcDiscountedPrice(b.price, b.promotion);
+        return pB - pA;
+      });
+    } else {
+      // "Mais relevantes": Relevância configurada pelo Admin, Destaques, Mais Vendidos, Promoção e Ordem Manual
+      products.sort((a, b) => {
+        const scoreA = (a.relevance || 0) * 10 + (a.featured ? 20 : 0) + (a.isBestSeller ? 15 : 0) + (a.isNew ? 10 : 0) + (a.promotion?.active ? 5 : 0) - (a.displayOrder || 0);
+        const scoreB = (b.relevance || 0) * 10 + (b.featured ? 20 : 0) + (b.isBestSeller ? 15 : 0) + (b.isNew ? 10 : 0) + (b.promotion?.active ? 5 : 0) - (b.displayOrder || 0);
+        return scoreB - scoreA;
+      });
+    }
+
     // 7. Handle Empty State
     if (!products.length) {
       productsGrid.innerHTML = '';
@@ -870,14 +966,25 @@
       ? `<img src="${Utils.sanitize(p.image)}" alt="${Utils.sanitize(p.name)}" loading="lazy">`
       : `<div class="product-no-image"><i data-lucide="sparkles"></i><span>${Utils.sanitize(p.category || 'Activewear')}</span></div>`;
 
-    // Badges (clean SVG / text)
+    // Badges (Hierarquia visual profissional)
     let badgeHtml = '';
+    const lowStockCfg = (settings && settings.lowStockConfig) || { active: true, threshold: 5, text: 'Últimas peças' };
+    const isLowStock = lowStockCfg.active !== false && totalStock > 0 && totalStock <= (lowStockCfg.threshold || 5);
+
     if (isOut) {
       badgeHtml = `<span class="product-badge badge-esgotado">Esgotado</span>`;
     } else if (hasPromo) {
       badgeHtml = `<span class="product-badge badge-promo">-${p.promotion.discountPercent}% OFF</span>`;
+    } else if (isLowStock) {
+      badgeHtml = `<span class="product-badge badge-low-stock">${Utils.sanitize(lowStockCfg.text || 'Últimas peças')}</span>`;
     } else if (isRanking && index < 3) {
       badgeHtml = `<span class="product-badge badge-ranking">★ TOP ${index + 1}</span>`;
+    } else if (p.isBestSeller) {
+      badgeHtml = `<span class="product-badge badge-bestseller">Mais Vendido</span>`;
+    } else if (p.isNew) {
+      badgeHtml = `<span class="product-badge badge-new">Novidade</span>`;
+    } else if (p.featured) {
+      badgeHtml = `<span class="product-badge badge-featured">Destaque</span>`;
     } else if (p.badge) {
       badgeHtml = `<span class="product-badge badge-custom">${Utils.sanitize(p.badge)}</span>`;
     }
@@ -984,6 +1091,69 @@
 
     // Bind card clicks in featured grid
     featuredGrid.querySelectorAll('.product-card').forEach(card => {
+      const id = card.dataset.id;
+      card.addEventListener('click', e => {
+        if (e.target.closest('.btn-add-cart') || e.target.closest('.color-swatch-mini')) return;
+        openProductModal(id);
+      });
+      card.querySelectorAll('.btn-add-cart').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          openProductModal(id);
+        });
+      });
+    });
+  }
+
+  // ===== 6. RECOMENDADOS SECTION (Configurável no Admin) =====
+  function renderRecommendedProducts() {
+    const recSection = $('recommended-section');
+    const recGrid = $('recommended-grid');
+    if (!recSection || !recGrid) return;
+
+    const s = DataStore.getSettings();
+    const cfg = s.recommendedConfig || { active: true, title: 'Recomendados para Você', productIds: [], maxItems: 4 };
+
+    if (cfg.active === false || cfg.active === 'false') {
+      recSection.classList.add('hidden');
+      recSection.style.display = 'none';
+      return;
+    }
+
+    const titleEl = $('recommended-title');
+    if (titleEl && cfg.title) titleEl.textContent = cfg.title;
+
+    const allLoaded = DataStore.getProducts({ includeInactive: false });
+    const activeProducts = allLoaded.filter(p => p && p.active !== false && p.active !== 'false' && p.inStock !== false);
+
+    let recList = [];
+    if (Array.isArray(cfg.productIds) && cfg.productIds.length > 0) {
+      recList = cfg.productIds.map(id => activeProducts.find(p => p.id === id)).filter(Boolean);
+    }
+
+    if (!recList.length) {
+      recList = activeProducts.filter(p => p.isRecommended || p.featured || (p.relevance || 0) > 0);
+    }
+    if (!recList.length) {
+      recList = activeProducts.slice(0, 4);
+    }
+
+    const maxItems = parseInt(cfg.maxItems || 4, 10);
+    recList = recList.slice(0, maxItems);
+
+    if (!recList.length) {
+      recSection.classList.add('hidden');
+      recSection.style.display = 'none';
+      return;
+    }
+
+    recSection.classList.remove('hidden');
+    recSection.style.display = '';
+    recGrid.innerHTML = recList.map((p, i) => renderProductCard(p, i, false)).join('');
+    refreshIcons();
+
+    // Bind card clicks in recommended grid
+    recGrid.querySelectorAll('.product-card').forEach(card => {
       const id = card.dataset.id;
       card.addEventListener('click', e => {
         if (e.target.closest('.btn-add-cart') || e.target.closest('.color-swatch-mini')) return;
@@ -2478,10 +2648,16 @@
     return msg;
   }
 
+  let isSubmittingOrder = false;
+
   async function submitOrder(e) {
     e.preventDefault();
 
+    if (isSubmittingOrder) return;
+    isSubmittingOrder = true;
+
     if (!currentCustomer || !currentCustomer.id) {
+      isSubmittingOrder = false;
       Utils.showToast('Faça login ou crie sua conta para finalizar o pedido.', 'error');
       pendingCheckoutAfterLogin = true;
       closeCheckout();
@@ -2496,6 +2672,7 @@
     const troco = $('customer-troco') ? $('customer-troco').value.trim() : '';
 
     if (!name || !phone) {
+      isSubmittingOrder = false;
       Utils.showToast('Por favor, informe seu nome completo e telefone!', 'error');
       return;
     }
@@ -2508,6 +2685,7 @@
     for (const item of cart) {
       const liveProd = DataStore.getProductById(item.id);
       if (!liveProd) {
+        isSubmittingOrder = false;
         Utils.showToast(`O produto "${item.name}" não está mais disponível no catálogo!`, 'error');
         return;
       }
@@ -2524,6 +2702,7 @@
       const activeNeighs = (d.neighborhoods || []).filter(n => n.active !== false);
 
       if (activeNeighs.length > 0 && !selectedNeighborhoodId) {
+        isSubmittingOrder = false;
         Utils.showToast('Por favor, selecione seu bairro de entrega!', 'error');
         const sel = $('customer-neighborhood');
         if (sel) sel.focus();
@@ -2536,6 +2715,7 @@
           neighborhoodName = n.name;
           finalAddress = `${rawAddress} (Bairro: ${n.name})`;
           if (n.minOrder && n.minOrder > 0 && subtotal < n.minOrder) {
+            isSubmittingOrder = false;
             Utils.showToast(`O pedido mínimo para entrega em ${n.name} é de ${Utils.formatCurrency(n.minOrder)}. Faltam ${Utils.formatCurrency(n.minOrder - subtotal)}.`, 'error');
             return;
           }
@@ -2543,6 +2723,7 @@
       }
 
       if (!rawAddress) {
+        isSubmittingOrder = false;
         Utils.showToast('Informe a rua, número e complemento do endereço de entrega!', 'error');
         $('customer-address')?.focus();
         return;
@@ -2550,6 +2731,7 @@
     }
 
     if (!selectedPayment) {
+      isSubmittingOrder = false;
       Utils.showToast('Selecione uma forma de pagamento!', 'error');
       return;
     }
@@ -2559,6 +2741,7 @@
       if (item.color && item.size) {
         const available = DataStore.getVariantStock(item.id, item.color, item.size);
         if (available < item.qty) {
+          isSubmittingOrder = false;
           Utils.showToast(`Estoque esgotado para "${item.name} (${item.color} - ${item.size})".`, 'error');
           return;
         }
@@ -2620,6 +2803,7 @@
       });
     } catch (err) {
       console.error('[Store] Falha crítica ao registrar pedido no backend:', err);
+      isSubmittingOrder = false;
       Utils.showToast(`Não foi possível confirmar o pedido no servidor: ${err.message || 'Erro de conexão'}. Seu carrinho foi mantido intacto.`, 'error');
       if (submitBtn) {
         submitBtn.disabled = false;
@@ -2667,6 +2851,7 @@
     updateCartUI();
     closeCheckout();
 
+    isSubmittingOrder = false;
     Utils.showToast('Redirecionando para o WhatsApp...', 'success');
     setTimeout(() => window.open(waUrl, '_blank'), 500);
   }
@@ -2682,6 +2867,12 @@
     // Mobile cart bar
     if (btnMobileCheckout) btnMobileCheckout.addEventListener('click', openCheckout);
     if (mobileCartInfo) mobileCartInfo.addEventListener('click', () => openCart(true));
+
+    // Catalog Sort Select
+    const catalogSort = $('catalog-sort-select');
+    if (catalogSort) {
+      catalogSort.addEventListener('change', () => renderProducts());
+    }
 
     // Mobile drawer menu
     if (btnMobileMenu) {
@@ -3792,19 +3983,35 @@
     }
   }
 
-  // Avaliação de Produtos (Reviews com Pontos)
-  function openReviewModal(productId) {
+  // Avaliação de Produtos (Reviews com Pontos - Apenas compras verificadas)
+  async function openReviewModal(productId) {
     if (!currentCustomer) {
-      Utils.showToast('Faça login ou crie sua conta para avaliar produtos e ganhar pontos.', 'info');
+      Utils.showToast('Faça login ou crie sua conta para avaliar os produtos que você comprou.', 'info');
       openCustomerAuthModal('login');
       return;
+    }
+
+    const activeProdId = productId || currentModalProductId;
+    if (!activeProdId) {
+      Utils.showToast('Produto não identificado para avaliação.', 'error');
+      return;
+    }
+
+    // REGRA OBRIGATÓRIA: O cliente só pode avaliar um produto que realmente tenha comprado
+    try {
+      const hasBought = await DataStore.hasCustomerPurchasedProduct(currentCustomer.id, activeProdId);
+      if (!hasBought) {
+        Utils.showToast('Você só pode avaliar produtos que realmente tenha comprado nesta loja.', 'warning');
+        return;
+      }
+    } catch (e) {
+      console.warn('[Store] Erro ao verificar histórico de compras:', e);
     }
 
     const modal = $('product-review-modal');
     const prodIdInput = $('review-product-id');
     if (modal) {
-      const activeProdId = productId || currentModalProductId;
-      if (prodIdInput && activeProdId) prodIdInput.value = activeProdId;
+      if (prodIdInput) prodIdInput.value = activeProdId;
       modal.classList.add('active');
       document.body.style.overflow = 'hidden';
       initInteractiveStars();
@@ -4691,6 +4898,7 @@
     handleCustomerLogout,
     openSearchModal,
     closeSearchModal,
+    shareStore,
     closeMobileMenu: () => {
       if (mobileDrawer) mobileDrawer.classList.remove('active');
       if (mobileDrawerOverlay) mobileDrawerOverlay.classList.remove('active');
