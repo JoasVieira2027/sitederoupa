@@ -1,6 +1,6 @@
 /**
- * store.js - Donna Fitness PE
- * E-commerce moderno de alta performance para moda fitness feminina.
+ * store.js - STUDIO FIT
+ * E-commerce moderno de alta performance para moda fitness & lifestyle.
  * Sem emojis, com Lucide Icons / SVG, navegação por categorias, compra por cor,
  * monte seu look, carrinho lateral e checkout via WhatsApp.
  */
@@ -296,53 +296,65 @@
   function applyBranding() {
     if (!settings) return;
 
-    const brandTitle = `${settings.storeName || 'Donna Fitness PE'} | ${settings.storeTagline || 'Moda Fitness Feminina & Alta Performance'}`;
-    document.title = brandTitle;
-    if (siteTitle) siteTitle.textContent = brandTitle;
+    const name    = settings.storeName    || 'STUDIO FIT';
+    const tagline = settings.storeTagline || 'Moda Fitness & Lifestyle';
+    const short   = settings.storeShortName || name.split(' ')[0];
 
-    if (navbarBrandName) {
-      if (!settings.storeName || settings.storeName === 'Donna Fitness PE' || settings.storeName === 'Fit Vibe Activewear') {
-        navbarBrandName.textContent = 'DONNA';
-      } else {
-        navbarBrandName.textContent = settings.storeName.toUpperCase();
-      }
-    }
-    if (navbarBrandTagline) {
-      if (!settings.storeTagline || settings.storeName === 'Donna Fitness PE' || settings.storeName === 'Fit Vibe Activewear') {
-        navbarBrandTagline.textContent = 'FITNESS PE';
-      } else {
-        navbarBrandTagline.textContent = settings.storeTagline.toUpperCase();
-      }
+    // ── Page title & meta ──────────────────────────────────────────
+    const seoTitle = settings.seoTitle || `${name} | ${tagline}`;
+    document.title = seoTitle;
+    if (siteTitle) siteTitle.textContent = seoTitle;
+
+    const descMeta = document.getElementById('meta-description');
+    if (descMeta && settings.seoDescription) descMeta.content = settings.seoDescription;
+
+    const ogTitle = document.getElementById('meta-og-title');
+    if (ogTitle) ogTitle.content = seoTitle;
+
+    const ogDesc = document.getElementById('meta-og-description');
+    if (ogDesc && settings.seoDescription) ogDesc.content = settings.seoDescription;
+
+    const ogImg = document.getElementById('meta-og-image');
+    if (ogImg && settings.shareImage) ogImg.content = settings.shareImage;
+
+    // ── Favicon override ──────────────────────────────────────────
+    if (settings.storeFavicon) {
+      const favEl = document.getElementById('favicon-link');
+      if (favEl) favEl.href = settings.storeFavicon;
     }
 
-    // Theme color override
+    // ── Navbar brand text ──────────────────────────────────────────
+    if (navbarBrandName)    navbarBrandName.textContent    = short.toUpperCase();
+    if (navbarBrandTagline) navbarBrandTagline.textContent = tagline.toUpperCase();
+
+    // ── Theme color ──────────────────────────────────────────────
     if (settings.themeColor) {
       document.documentElement.style.setProperty('--primary', settings.themeColor);
     }
 
-    // Logo image if configured in admin
-    const logoSrc = settings.storeLogoImage;
+    // ── Logo image (desktop or universal) ─────────────────────────
+    const logoSrc = settings.storeLogo || settings.storeLogoImage;
     if (logoSrc && navbarLogoIcon) {
-      navbarLogoIcon.innerHTML = `<img src="${logoSrc}" alt="${settings.storeName}" class="logo-img" onerror="this.style.display='none'">`;
+      navbarLogoIcon.innerHTML = `<img src="${logoSrc}" alt="${name}" class="logo-img" onerror="this.style.display='none'">`;
     }
 
-    // Hero content from settings
+    // ── Hero content ──────────────────────────────────────────────
     if (settings.hero) {
       const stripEmoji = (str) => (str || '').replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}]/gu, '').trim();
 
       const rawTitle = stripEmoji(settings.hero.title);
-      const cleanTitle = (!rawTitle || rawTitle.includes('Treine com Estilo')) ? 'Performance que acompanha seu ritmo.' : rawTitle;
+      const cleanTitle = rawTitle || 'Performance que acompanha seu ritmo.';
       if (heroTitle) heroTitle.innerHTML = cleanTitle;
 
       const rawSub = stripEmoji(settings.hero.subtitle);
-      const cleanSub = (!rawSub || rawSub.length < 10) ? 'Roupas fitness desenvolvidas para oferecer conforto, sustentação e liberdade em cada movimento.' : rawSub;
+      const cleanSub = (rawSub && rawSub.length >= 10) ? rawSub : 'Roupas fitness desenvolvidas para oferecer conforto, sustentação e liberdade em cada movimento.';
       if (heroSubtitle) heroSubtitle.textContent = cleanSub;
 
       const rawBadge = stripEmoji(settings.hero.badgeText);
       if (heroBadgeText) heroBadgeText.textContent = rawBadge || 'Coleção Activewear';
 
       const rawCta = stripEmoji(settings.hero.ctaText);
-      const cleanCta = (!rawCta || rawCta.includes('Coleção Fitness')) ? 'Ver coleção' : rawCta;
+      const cleanCta = rawCta || 'Ver coleção';
       if (heroCta) {
         const ctaSpan = heroCta.querySelector('span');
         if (ctaSpan) ctaSpan.textContent = cleanCta;
@@ -352,12 +364,13 @@
       }
     }
 
-    // WhatsApp links
-    const wa = settings.whatsappNumber ? `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent('Olá! Gostaria de tirar dúvidas sobre as peças da Donna Fitness PE.')}` : '#';
-    if (heroWhatsappBtn) heroWhatsappBtn.href = wa;
-    if (navbarWhatsappBtn) navbarWhatsappBtn.href = wa;
-    if (drawerWhatsappBtn) drawerWhatsappBtn.href = wa;
-    if (footerWhatsapp) footerWhatsapp.href = wa;
+    // ── WhatsApp links ────────────────────────────────────────────
+    const waMsg = encodeURIComponent(`Olá! Gostaria de tirar dúvidas sobre as peças da ${name}.`);
+    const wa = settings.whatsappNumber ? `https://wa.me/${settings.whatsappNumber}?text=${waMsg}` : '#';
+    if (heroWhatsappBtn)   heroWhatsappBtn.href   = wa;
+    if (navbarWhatsappBtn) navbarWhatsappBtn.href  = wa;
+    if (drawerWhatsappBtn) drawerWhatsappBtn.href  = wa;
+    if (footerWhatsapp)    footerWhatsapp.href     = wa;
   }
 
   function renderAnnouncementBar() {
@@ -412,7 +425,7 @@
     const copyrightEl = $('footer-copyright');
     if (copyrightEl) {
       const year = new Date().getFullYear();
-      copyrightEl.textContent = `© ${year} ${settings.storeName || 'Donna Fitness PE'}. Todos os direitos reservados.`;
+      copyrightEl.textContent = `© ${year} ${settings.storeName || 'STUDIO FIT'}. Todos os direitos reservados.`;
     }
 
     // Phone / Contact
@@ -464,7 +477,8 @@
     const btn = $('floating-whatsapp-btn');
     if (!btn) return;
     const s = DataStore.getSettings();
-    const cfg = s.floatingContactConfig || { active: true, whatsappNumber: '', message: 'Olá! Estou no site da Donna Fitness PE e gostaria de tirar uma dúvida.', label: 'Fale Conosco' };
+    const _storeName = s.storeName || 'STUDIO FIT';
+    const cfg = s.floatingContactConfig || { active: true, whatsappNumber: '', message: `Olá! Estou no site da ${_storeName} e gostaria de tirar uma dúvida.`, label: 'Fale Conosco' };
 
     if (cfg.active === false || cfg.active === 'false') {
       btn.style.display = 'none';
@@ -489,8 +503,9 @@
   async function shareStore() {
     const s = DataStore.getSettings();
     const cfg = s.shareConfig || {};
-    const title = cfg.title || s.storeName || 'Donna Fitness PE';
-    const text = cfg.text || 'Conheça a Donna Fitness PE: moda fitness de alta performance com modelagem anatômica e zero transparência!';
+    const _name = s.storeName || 'STUDIO FIT';
+    const title = cfg.title || _name;
+    const text = cfg.text || `Conheça a ${_name}: moda fitness com conforto, estilo e alta performance!`;
     const url = cfg.url || window.location.href;
 
     if (navigator.share) {
@@ -711,7 +726,7 @@
     try {
       const el = $('schema-structured-data');
       if (!el || !Array.isArray(products) || !products.length) return;
-      const storeName = (settings && settings.storeName) || 'Donna Fitness PE';
+      const storeName = (settings && settings.storeName) || 'STUDIO FIT';
       const items = products.slice(0, 30).map((p, idx) => ({
         "@type": "ListItem",
         "position": idx + 1,
@@ -1666,7 +1681,7 @@
     // WhatsApp (somente se configurado e real)
     if (waItem && waLink) {
       if (settings.whatsappNumber && !settings.whatsappNumber.includes('999999999')) {
-        waLink.href = `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent('Olá! Gostaria de mais informações sobre a Donna Fitness PE.')}`;
+        waLink.href = `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent(`Olá! Gostaria de mais informações sobre a ${settings.storeName || 'STUDIO FIT'}.`)}`;
         waItem.style.display = 'flex';
       } else {
         waItem.style.display = 'none';
@@ -1720,7 +1735,7 @@
 
     instagramGrid.innerHTML = posts.map(p => `
       <a href="${Utils.sanitize(p.postUrl || '#')}" target="_blank" rel="noopener noreferrer" class="instagram-post-card">
-        <img src="${Utils.sanitize(p.image)}" alt="${Utils.sanitize(p.caption || 'Donna Fitness PE')}" loading="lazy">
+        <img src="${Utils.sanitize(p.image)}" alt="${Utils.sanitize(p.caption || (settings && settings.storeName) || 'STUDIO FIT')}" loading="lazy">
         <div class="instagram-post-overlay">
           <i data-lucide="instagram"></i>
         </div>
@@ -3569,10 +3584,11 @@
       if (btnLabel) btnLabel.textContent = 'Processando...';
       const res = await DataStore.followStore(currentCustomer.id);
       if (res && res.success) {
-        Utils.showToast(res.message || 'Você agora está seguindo a Donna Fitness PE!', 'success');
+        const _sn = DataStore.getSettings().storeName || 'STUDIO FIT';
+        Utils.showToast(res.message || `Você agora está seguindo a ${_sn}!`, 'success');
         if (btnLabel) btnLabel.textContent = '✓ Seguindo loja';
       } else {
-        Utils.showToast(res?.message || 'Você já está seguindo a Donna Fitness PE.', 'info');
+        Utils.showToast(res?.message || `Você já está seguindo a ${DataStore.getSettings().storeName || 'STUDIO FIT'}.`, 'info');
         if (btnLabel) btnLabel.textContent = '✓ Seguindo loja';
       }
       const count = await DataStore.getStoreFollowersCount();
@@ -4144,7 +4160,7 @@
       const s = DataStore.getSettings();
       const waBtn = $('modal-about-wa-btn');
       if (waBtn && s.whatsappNumber) {
-        waBtn.href = `https://wa.me/${s.whatsappNumber}?text=${encodeURIComponent('Olá! Gostaria de mais informações sobre a Donna Fitness PE.')}`;
+        waBtn.href = `https://wa.me/${s.whatsappNumber}?text=${encodeURIComponent(`Olá! Gostaria de mais informações sobre a ${s.storeName || 'STUDIO FIT'}.`)}`;
       }
       refreshIcons();
     }

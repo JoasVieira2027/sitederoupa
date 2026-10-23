@@ -101,13 +101,9 @@
     const settings = DataStore.getSettings();
 
     // Apply branding to sidebar
-    if ($('admin-brand-icon') && !$('admin-brand-icon').querySelector('svg')) $('admin-brand-icon').textContent = settings.storeName?.charAt(0) || 'D';
+    if ($('admin-brand-icon') && !$('admin-brand-icon').querySelector('svg')) $('admin-brand-icon').textContent = settings.storeName?.charAt(0) || 'S';
     if ($('admin-brand-title')) {
-      if (!settings.storeName || settings.storeName === 'Donna Fitness PE' || settings.storeName === 'Fit Vibe Activewear') {
-        $('admin-brand-title').textContent = 'DONNA';
-      } else {
-        $('admin-brand-title').textContent = settings.storeName;
-      }
+      $('admin-brand-title').textContent = settings.storeName || 'STUDIO FIT';
     }
 
     // Mobile sidebar toggle & backdrop
@@ -2213,14 +2209,56 @@
   // ===== 12. VISUAL =====
   function renderVisual() {
     const s = DataStore.getSettings();
+    const hero = s.hero || {};
+    // Basic identity
     if ($('v-store-name')) $('v-store-name').value = s.storeName || '';
+    if ($('v-store-short-name')) $('v-store-short-name').value = s.storeShortName || '';
     if ($('v-store-tagline')) $('v-store-tagline').value = s.storeTagline || '';
+    if ($('v-store-desc')) $('v-store-desc').value = s.storeDescription || '';
     if ($('v-logo-emoji')) $('v-logo-emoji').value = s.storeLogoEmoji || '';
-    if ($('v-theme-color')) $('v-theme-color').value = s.themeColor || '#059669';
-    if ($('v-hero-title')) $('v-hero-title').value = (s.hero || {}).title || '';
-    if ($('v-hero-subtitle')) $('v-hero-subtitle').value = (s.hero || {}).subtitle || '';
-    if ($('v-hero-cta')) $('v-hero-cta').value = (s.hero || {}).ctaText || '';
-    if ($('v-hero-image')) $('v-hero-image').value = (s.hero || {}).image || '';
+    if ($('v-theme-color')) $('v-theme-color').value = s.themeColor || '#B98F98';
+    // Logos & images
+    if ($('v-store-logo')) $('v-store-logo').value = s.storeLogo || '';
+    if ($('v-store-logo-mobile')) $('v-store-logo-mobile').value = s.storeLogoMobile || '';
+    if ($('v-store-favicon')) $('v-store-favicon').value = s.storeFavicon || '';
+    if ($('v-share-image')) $('v-share-image').value = s.shareImage || '';
+    // SEO & email
+    if ($('v-store-email')) $('v-store-email').value = s.storeEmail || '';
+    if ($('v-seo-title')) $('v-seo-title').value = s.seoTitle || '';
+    if ($('v-seo-desc')) $('v-seo-desc').value = s.seoDescription || '';
+    // Hero
+    if ($('v-hero-title')) $('v-hero-title').value = hero.title || '';
+    if ($('v-hero-subtitle')) $('v-hero-subtitle').value = hero.subtitle || '';
+    if ($('v-hero-cta')) $('v-hero-cta').value = hero.ctaText || '';
+    if ($('v-hero-image')) $('v-hero-image').value = hero.image || '';
+
+    // Upload handlers for new identity images
+    ['v-store-logo-upload', 'v-store-logo-mobile-upload', 'v-store-favicon-upload', 'v-share-image-upload'].forEach(uploadId => {
+      const targetInputId = uploadId.replace('-upload', '').replace('v-', 'v-');
+      const uploadEl = $(uploadId);
+      if (!uploadEl) return;
+      uploadEl.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { Utils.showToast('Máx. 5MB.', 'error'); return; }
+        try {
+          Utils.showToast('Enviando...', 'info');
+          if (window.SupabaseService && window.SupabaseService.isConfigured()) {
+            const url = await window.SupabaseService.uploadImage(file, 'products');
+            const targetInput = $(uploadId.replace('-upload', ''));
+            if (targetInput) targetInput.value = url;
+            Utils.showToast('Enviada!', 'success');
+          } else {
+            const reader = new FileReader();
+            reader.onload = ev => {
+              const targetInput = $(uploadId.replace('-upload', ''));
+              if (targetInput) targetInput.value = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+          }
+        } catch (err) { Utils.showToast('Erro: ' + (err.message || ''), 'error'); }
+      };
+    });
     
     if ($('v-hero-image-upload')) {
       $('v-hero-image-upload').onchange = async (e) => {
@@ -2672,9 +2710,18 @@
 
         await DataStore.updateSettings({
           storeName: $('v-store-name').value.trim(),
+          storeShortName: $('v-store-short-name') ? $('v-store-short-name').value.trim() : '',
           storeTagline: $('v-store-tagline').value.trim(),
+          storeDescription: $('v-store-desc') ? $('v-store-desc').value.trim() : '',
           storeLogoEmoji: $('v-logo-emoji') ? $('v-logo-emoji').value.trim() : '',
           themeColor: $('v-theme-color').value,
+          storeLogo: $('v-store-logo') ? $('v-store-logo').value.trim() : '',
+          storeLogoMobile: $('v-store-logo-mobile') ? $('v-store-logo-mobile').value.trim() : '',
+          storeFavicon: $('v-store-favicon') ? $('v-store-favicon').value.trim() : '',
+          shareImage: $('v-share-image') ? $('v-share-image').value.trim() : '',
+          storeEmail: $('v-store-email') ? $('v-store-email').value.trim() : '',
+          seoTitle: $('v-seo-title') ? $('v-seo-title').value.trim() : '',
+          seoDescription: $('v-seo-desc') ? $('v-seo-desc').value.trim() : '',
           hero: {
             ...(DataStore.getSettings().hero || {}),
             title: $('v-hero-title').value.trim(),

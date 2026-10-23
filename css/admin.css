@@ -1,7 +1,7 @@
 /* ============================================================
-   DONNA FITNESS PE - ADMIN PANEL STYLESHEET
+   STUDIO FIT - ADMIN PANEL STYLESHEET
    Design: Painel Administrativo Moderno, Minimalista & Profissional
-   Paleta: Carbon #0B0F19, Grafite #1E293B, Branco, Emerald #059669
+   Paleta: Preto Suave #171717, Grafite #2B2B2B, Off-white #FAF9F7, Rosé #B98F98
    Zero Emojis | Lucide Icons & SVG | 100% Responsivo
    ============================================================ */
 
@@ -94,8 +94,8 @@
 }
 
 .admin-login-card .form-control:focus {
-  border-color: var(--primary, #059669);
-  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.25);
+  border-color: var(--primary, #B98F98);
+  box-shadow: 0 0 0 3px rgba(185, 143, 152, 0.25);
   background: #1F2937;
 }
 
@@ -105,7 +105,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: var(--primary, #059669);
+  background: var(--carbon, #171717);
   color: white;
   border: none;
   padding: 14px 24px;
@@ -115,11 +115,11 @@
   cursor: pointer;
   transition: all var(--transition, 0.25s ease);
   margin-top: 10px;
-  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.35);
+  box-shadow: 0 4px 16px rgba(23, 23, 23, 0.35);
 }
 
 .btn-login:hover {
-  background: var(--primary-light, #10B981);
+  background: var(--graphite, #2B2B2B);
   transform: translateY(-1px);
 }
 
@@ -258,9 +258,9 @@
 }
 
 .admin-nav-item.active {
-  background: var(--primary, #059669);
+  background: var(--carbon, #171717);
   color: white;
-  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
+  box-shadow: 0 4px 14px rgba(23, 23, 23, 0.35);
 }
 
 .admin-nav-item.active svg {
@@ -405,8 +405,8 @@
   width: 50px;
   height: 50px;
   border-radius: var(--radius, 12px);
-  background: #F0FDF4;
-  color: var(--primary, #059669);
+  background: var(--primary-50, #FAF4F5);
+  color: var(--primary, #B98F98);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -553,7 +553,7 @@
 
 .dash-order-total {
   font-weight: 700;
-  color: #059669;
+  color: var(--carbon, #171717);
 }
 
 .dash-order-time {
@@ -735,7 +735,7 @@
 }
 
 input:checked + .toggle-slider {
-  background-color: var(--primary, #059669);
+  background-color: var(--primary, #B98F98);
 }
 
 input:checked + .toggle-slider:before {
@@ -760,13 +760,13 @@ input:checked + .toggle-slider:before {
 }
 
 .btn-primary {
-  background: var(--primary, #059669);
+  background: var(--carbon, #171717);
   color: white;
-  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25);
+  box-shadow: 0 2px 8px rgba(23, 23, 23, 0.25);
 }
 
 .btn-primary:hover {
-  background: var(--primary-dark, #064E3B);
+  background: var(--graphite, #2B2B2B);
   transform: translateY(-1px);
 }
 
@@ -857,8 +857,8 @@ input:checked + .toggle-slider:before {
 }
 
 .img-upload-zone:hover {
-  border-color: var(--primary, #059669);
-  background: #F0FDF4;
+  border-color: var(--primary, #B98F98);
+  background: var(--primary-50, #FAF4F5);
 }
 
 .img-upload-zone input[type="file"] {
@@ -1063,7 +1063,7 @@ body.admin-sidebar-locked {
 .stock-price-tag {
   font-size: 0.7rem;
   font-weight: 700;
-  color: var(--primary, #059669);
+  color: var(--primary, #B98F98);
 }
 
 .stock-card-actions {
@@ -1195,8 +1195,8 @@ body.admin-sidebar-locked {
 
 .btn-stock-quick:hover {
   background: var(--surface-alt, #F1F5F9);
-  border-color: var(--primary, #059669);
-  color: var(--primary, #059669);
+  border-color: var(--primary, #B98F98);
+  color: var(--primary, #B98F98);
 }
 
 .btn-stock-quick.danger:hover {
@@ -1287,7 +1287,7 @@ body.admin-sidebar-locked {
 }
 
 .stock-step-btn:hover {
-  background: var(--primary, #059669);
+  background: var(--primary, #B98F98);
   color: white;
 }
 
@@ -1589,7 +1589,7 @@ body.admin-sidebar-locked {
 }
 
 .variant-step-btn:hover {
-  background: var(--primary, #059669);
+  background: var(--primary, #B98F98);
   color: white;
 }
 

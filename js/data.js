@@ -153,11 +153,19 @@ const DEFAULT_CATEGORIES = [
 
 // ===== DEFAULT SETTINGS (FITNESS) =====
 const DEFAULT_SETTINGS = {
-  storeName: 'Donna Fitness PE',
-  storeTagline: 'Moda Fitness Feminina & Alta Performance',
+  storeName: 'STUDIO FIT',
+  storeShortName: 'STUDIO FIT',
+  storeTagline: 'Moda Fitness & Lifestyle',
+  storeDescription: 'Peças desenvolvidas para oferecer conforto, sustentação e sofisticação em cada movimento. Modelagens anatômicas e tecidos tecnológicos com zero transparência.',
   storeLogoEmoji: '',
   storeLogoImage: '',
-  themeColor: '#059669',
+  storeLogoMobile: '',
+  storeFavicon: '',
+  shareImage: '',
+  storeEmail: '',
+  seoTitle: 'STUDIO FIT | Moda Fitness & Lifestyle',
+  seoDescription: 'Moda fitness contemporânea com modelagem anatômica, alta sustentação e zero transparência.',
+  themeColor: '#B98F98',
   announcementBar: { active: true, text: 'FRETE GRÁTIS nas compras acima de R$ 199 • Até 3x sem juros • Zero Transparência' },
   featuredCollection: {
     active: true,
@@ -166,14 +174,14 @@ const DEFAULT_SETTINGS = {
   },
   benefitsBar: [
     { id: 'b_security', icon: 'shield-check', title: 'Compra segura', desc: 'Ambiente criptografado com proteção SSL' },
-    { id: 'b_motoboy', icon: 'truck', title: 'Motoboy p/ região metropolitana', desc: 'Entrega expressa ou frete grátis acima de R$ 199' },
+    { id: 'b_motoboy', icon: 'truck', title: 'Entrega rápida', desc: 'Entrega expressa ou frete grátis acima de R$ 199' },
     { id: 'b_exchange', icon: 'refresh-cw', title: 'Troca facilitada', desc: '1ª troca sem burocracia em até 7 dias' },
     { id: 'b_wa', icon: 'message-circle', title: 'Atendimento humanizado', desc: 'Suporte exclusivo no WhatsApp' }
   ],
   banners: [
     {
       id: 'banner_1',
-      title: 'MODA FITNESS CHIC',
+      title: 'MODA FITNESS & LIFESTYLE',
       subtitle: 'Leve, confortável e cheia de estilo para todos os seus momentos.',
       badge: 'NOVA COLEÇÃO',
       image: 'assets/images/hero_fitness.jpg',
@@ -205,9 +213,9 @@ const DEFAULT_SETTINGS = {
   },
   about: {
     active: true,
-    title: 'Tecnologia, Conforto & Performance',
+    title: 'Tecnologia, Conforto & Estilo',
     subtitle: 'Criado para mover o seu melhor',
-    text: 'A Donna Fitness PE desenvolve peças esportivas com tecidos nobres e tecnologia têxtil de ponta. Modelagens exclusivas que valorizam a silhueta, oferecem sustentação máxima e acompanham cada movimento do seu dia com total segurança.',
+    text: 'A STUDIO FIT desenvolve peças esportivas contemporâneas com tecidos nobres e tecnologia têxtil de ponta. Modelagens exclusivas que valorizam a silhueta, oferecem sustentação máxima e acompanham cada movimento do seu dia a dia com total segurança e elegância.',
     features: [
       { icon: 'shield-check', title: 'Zero Transparência', desc: 'Gramatura reforçada para agachamentos com total segurança' },
       { icon: 'wind', title: 'Tecnologia Dry-Fit', desc: 'Respirabilidade máxima que evapora o suor rapidamente' },
@@ -286,11 +294,11 @@ const DEFAULT_SETTINGS = {
       }
     ]
   },
-  whatsappNumber: '5511999999999',
-  contactPhone: '(11) 99999-9999',
-  instagram: '@fitvibe.activewear',
-  address: 'Rua do Fitness, 120 - São Paulo, SP',
-  footerCopyright: '© 2026 Donna Fitness PE. Todos os direitos reservados.',
+  whatsappNumber: '',
+  contactPhone: '',
+  instagram: '',
+  address: '',
+  footerCopyright: '© 2026 STUDIO FIT. Todos os direitos reservados.',
   paymentMethods: [
     { id: 'pix', name: 'Pix (Aprovação Imediata)', icon: 'qr-code', active: true },
     { id: 'credito', name: 'Cartão de Crédito', icon: 'credit-card', active: true },
@@ -303,7 +311,7 @@ const DEFAULT_SETTINGS = {
     minInstallmentValue: 0,
     interestFree: true
   },
-  pixDetails: { key: '', keyType: 'Celular', receiverName: 'Donna Fitness PE', instructions: 'Faça o Pix e envie o comprovante pelo WhatsApp para envio imediato!' },
+  pixDetails: { key: '', keyType: 'Celular', receiverName: 'STUDIO FIT', instructions: 'Faça o Pix e envie o comprovante pelo WhatsApp para envio prioritário!' },
   storeOpen: true,
   closedCustomMessage: 'Estamos fora do horário de atendimento. Deixe sua mensagem no WhatsApp que responderemos rapidinho!',
   operatingHours: {
@@ -341,14 +349,14 @@ const DEFAULT_SETTINGS = {
   floatingContactConfig: {
     active: true,
     whatsappNumber: '',
-    message: 'Olá! Estou no site da Donna Fitness PE e gostaria de tirar uma dúvida.',
+    message: 'Olá! Estou no site da STUDIO FIT e gostaria de tirar uma dúvida.',
     label: 'Fale Conosco',
     position: 'bottom-right'
   },
   shareConfig: {
     active: true,
-    title: 'Donna Fitness PE | Moda Fitness de Alta Performance',
-    text: 'Conheça as melhores peças fitness com compressão e zero transparência!',
+    title: 'STUDIO FIT | Moda Fitness & Lifestyle',
+    text: 'Conheça as melhores peças fitness contemporâneas com modelagem anatômica e zero transparência!',
     url: ''
   },
   adminPassword: 'admin123',
@@ -533,15 +541,30 @@ const DataStore = (function () {
       if (val && typeof val === 'object') return val;
       try { return val ? JSON.parse(val) : def; } catch { return def; }
     };
+    const parsedHero = parseJsonField(row.hero, {});
+
+    let sName = row.store_name || parsedHero._storeName || DEFAULT_SETTINGS.storeName;
+    if (sName === 'Donna Fitness PE' || sName === 'Fit Vibe Activewear') sName = DEFAULT_SETTINGS.storeName;
+
+    let sTagline = row.store_tagline || parsedHero._storeTagline || DEFAULT_SETTINGS.storeTagline;
+    if (sTagline === 'Moda Fitness Feminina & Alta Performance') sTagline = DEFAULT_SETTINGS.storeTagline;
+
     return {
-      storeName: row.store_name || DEFAULT_SETTINGS.storeName,
-      storeTagline: row.store_tagline || DEFAULT_SETTINGS.storeTagline,
+      storeName: sName,
+      storeShortName: row.store_short_name || parsedHero._storeShortName || sName || DEFAULT_SETTINGS.storeShortName,
+      storeTagline: sTagline,
+      storeDescription: row.store_description || parsedHero._storeDescription || DEFAULT_SETTINGS.storeDescription,
       storeLogoEmoji: row.store_logo_emoji || DEFAULT_SETTINGS.storeLogoEmoji,
-      storeLogoImage: row.store_logo_image || '',
+      storeLogoImage: row.store_logo_image || parsedHero._storeLogoImage || '',
+      storeLogoMobile: row.store_logo_mobile || parsedHero._storeLogoMobile || '',
+      storeFavicon: row.store_favicon || parsedHero._storeFavicon || '',
+      shareImage: row.share_image || parsedHero._shareImage || '',
+      storeEmail: row.store_email || parsedHero._storeEmail || '',
+      seoTitle: row.seo_title || parsedHero._seoTitle || DEFAULT_SETTINGS.seoTitle,
+      seoDescription: row.seo_description || parsedHero._seoDescription || DEFAULT_SETTINGS.seoDescription,
       themeColor: row.theme_color || DEFAULT_SETTINGS.themeColor,
       announcementBar: parseJsonField(row.announcement_bar, DEFAULT_SETTINGS.announcementBar),
       featuredCollection: (function () {
-        const parsedHero = parseJsonField(row.hero, {});
         if (parsedHero && parsedHero._featuredCollection !== undefined) {
           return parsedHero._featuredCollection;
         }
@@ -1061,7 +1084,19 @@ const DataStore = (function () {
         _instagramFeed: _settings.instagramFeed,
         _benefitsBar: _settings.benefitsBar,
         _installmentsConfig: _settings.installmentsConfig,
-        _banners: _settings.banners
+        _banners: _settings.banners,
+        _recommendedConfig: _settings.recommendedConfig,
+        _lowStockConfig: _settings.lowStockConfig,
+        _floatingContactConfig: _settings.floatingContactConfig,
+        _shareConfig: _settings.shareConfig,
+        _storeShortName: _settings.storeShortName,
+        _storeDescription: _settings.storeDescription,
+        _storeLogoMobile: _settings.storeLogoMobile,
+        _storeFavicon: _settings.storeFavicon,
+        _shareImage: _settings.shareImage,
+        _storeEmail: _settings.storeEmail,
+        _seoTitle: _settings.seoTitle,
+        _seoDescription: _settings.seoDescription
       };
 
       const row = {
