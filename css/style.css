@@ -233,19 +233,9 @@ img, picture, video, canvas, svg {
   min-width: 0;
 }
 
+/* FASE 1: Ocultar badge pill do anúncio — manter apenas o texto limpo */
 .announcement-badge-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: var(--primary);
-  color: white;
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  flex-shrink: 0;
+  display: none !important;
 }
 
 .announcement-extra-links {
@@ -1542,12 +1532,13 @@ img, picture, video, canvas, svg {
 }
 
 /* ===== PRODUCT CARD ===== */
+/* FASE 2: Cards mais limpos — border-radius reduzido, sem borda visível, sombra sutil */
 .product-card {
   background: white;
-  border-radius: var(--radius-lg);
+  border-radius: 10px;
   overflow: hidden;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid transparent;
+  box-shadow: 0 1px 4px rgba(23, 23, 23, 0.06), 0 0 0 1px rgba(23,23,23,0.04);
   display: flex;
   flex-direction: column;
   transition: all var(--transition-smooth);
@@ -1556,9 +1547,8 @@ img, picture, video, canvas, svg {
 }
 
 .product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--border-strong);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(23, 23, 23, 0.10);
 }
 
 /* Image Wrapper */
@@ -1567,7 +1557,7 @@ img, picture, video, canvas, svg {
   width: 100%;
   padding-top: 125%; /* 4:5 Aspect Ratio */
   overflow: hidden;
-  background: var(--surface-alt);
+  background: #F0F0F0;
 }
 
 .product-card-image-wrapper img {
@@ -1633,10 +1623,11 @@ img, picture, video, canvas, svg {
   color: white;
 }
 
+/* FASE 2: Remover borda dourada do badge ranking */
 .badge-ranking {
   background: var(--carbon);
   color: #F8FAFC;
-  border: 1px solid rgba(255, 215, 0, 0.4);
+  border: none;
 }
 
 .badge-esgotado {
@@ -1812,30 +1803,31 @@ img, picture, video, canvas, svg {
   margin-top: 4px;
 }
 
+/* FASE 2: Botão adicionar ao carrinho — preto sólido (estilo editorial Essence) */
 .btn-add-cart {
   width: 100%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: var(--primary);
+  background: var(--carbon);
   color: #FFFFFF;
-  border: 1px solid var(--primary);
+  border: 1px solid var(--carbon);
   padding: 10px 14px;
   border-radius: var(--radius);
   font-size: 0.84rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
+  box-shadow: none;
   transition: all var(--transition-fast);
 }
 
 .btn-add-cart:hover:not(:disabled) {
-  background: var(--primary-dark);
-  border-color: var(--primary-dark);
+  background: var(--primary);
+  border-color: var(--primary);
   color: white;
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3);
+  box-shadow: 0 4px 14px rgba(185, 143, 152, 0.3);
 }
 
 .btn-add-cart:active:not(:disabled) {
@@ -3273,7 +3265,7 @@ img, picture, video, canvas, svg {
   font-size: 0.76rem;
   font-weight: 700;
   text-transform: uppercase;
-  color: #166534;
+  color: var(--carbon);
 }
 
 .pix-type {
@@ -3293,7 +3285,7 @@ img, picture, video, canvas, svg {
 .pix-key-input {
   flex: 1;
   background: white;
-  border: 1px solid #86EFAC;
+  border: 1px solid var(--border-strong);
   padding: 8px 12px;
   border-radius: var(--radius-sm);
   font-family: monospace;
@@ -3303,7 +3295,7 @@ img, picture, video, canvas, svg {
 }
 
 .btn-copy-pix {
-  background: #166534;
+  background: var(--carbon);
   color: white;
   border: none;
   padding: 8px 14px;
@@ -3315,13 +3307,13 @@ img, picture, video, canvas, svg {
 
 .pix-receiver-row {
   font-size: 0.78rem;
-  color: #166534;
+  color: var(--graphite);
   margin-bottom: 6px;
 }
 
 .pix-instructions-text {
   font-size: 0.74rem;
-  color: #15803D;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -6626,8 +6618,8 @@ body {
 }
 
 .order-status-badge.status-entregue {
-  background: #DCFCE7;
-  color: #15803D;
+  background: #F3F4F6;
+  color: var(--graphite);
 }
 
 .order-status-badge.status-cancelado {
@@ -8334,4 +8326,2391 @@ body {
 }
 
 
+/* ============================================================
+   AUDITORIA VISUAL — MELHORIAS EDITORIAIS (ESSENCE/CLONIFY)
+   Fases 1-5: Header, Cards, Responsividade, Seções, Polish
+   Apenas CSS — nenhuma lógica JS alterada.
+   ============================================================ */
 
+/* ===================================================================
+   FASE 1 — HEADER & ANÚNCIO: LIMPEZA VISUAL (Quick Wins)
+   =================================================================== */
+
+/* 1.1 — Ocultar badge de verificação na marca */
+.brand-verified-badge {
+  display: none !important;
+}
+
+/* 1.2 — Desktop: ocultar texto 'Compartilhar' no botão share */
+.share-btn-text {
+  display: none !important;
+}
+
+/* 1.3 — Mobile: ocultar botão compartilhar completamente */
+@media (max-width: 767px) {
+  .btn-share-store {
+    display: none !important;
+  }
+
+  /* 1.4 — Hero badge pill: ocultar no mobile para hero mais limpo */
+  .hero-badge-pill {
+    display: none !important;
+  }
+
+  /* 1.5 — Hero mini features: ocultar no mobile */
+  .hero-mini-features {
+    display: none !important;
+  }
+
+  /* 1.6 — Hero: altura adaptada para mobile */
+  .hero-slider-section {
+    min-height: 70vh;
+  }
+
+  .hero-slide {
+    min-height: 70vh;
+  }
+}
+
+/* 1.7 — Announcement bar: texto mais limpo e centrado */
+.announcement-bar {
+  font-size: 0.8rem;
+  letter-spacing: 0.3px;
+}
+
+.announcement-content {
+  font-size: 0.8rem;
+}
+
+/* 1.8 — Desktop nav: links com mais espaçamento e estilo editorial */
+@media (min-width: 1024px) {
+  .nav-list {
+    gap: 32px;
+  }
+
+  .nav-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+
+  /* Share button no desktop: só ícone (sem texto já oculto) */
+  .btn-share-store {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .btn-share-store:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  .btn-share-store svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+
+/* ===================================================================
+   FASE 2 — PRODUCT CARDS: REFINAMENTO VISUAL
+   =================================================================== */
+
+/* 2.1 — btn-add-cart no breakpoint tablet: manter preto */
+@media (min-width: 768px) {
+  .btn-add-cart {
+    background: var(--carbon) !important;
+    border-color: var(--carbon) !important;
+    color: #FFFFFF !important;
+    box-shadow: none !important;
+  }
+
+  .btn-add-cart:hover:not(:disabled) {
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 4px 14px rgba(185, 143, 152, 0.25) !important;
+  }
+
+  /* 2.2 — Cards no tablet: border-radius consistente */
+  .product-card {
+    border-radius: 10px !important;
+    border: 1px solid transparent !important;
+    box-shadow: 0 1px 4px rgba(23, 23, 23, 0.06), 0 0 0 1px rgba(23,23,23,0.04) !important;
+  }
+
+  .product-card:hover {
+    box-shadow: 0 8px 24px rgba(23, 23, 23, 0.10) !important;
+    transform: translateY(-3px) !important;
+    border-color: transparent !important;
+  }
+}
+
+/* 2.3 — Desktop: card com sombra sutil no hover (override o estilo anterior) */
+@media (min-width: 1024px) {
+  .product-card {
+    border-radius: 10px !important;
+    border: 1px solid transparent !important;
+    box-shadow: 0 2px 8px rgba(23,23,23,0.05) !important;
+  }
+
+  .product-card:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 12px 32px rgba(23, 23, 23, 0.10) !important;
+    border-color: transparent !important;
+  }
+
+  /* 2.4 — Quick view: mostrar só no desktop hover */
+  .product-card-quick-view {
+    display: inline-flex;
+  }
+}
+
+/* 2.5 — Mobile: ocultar quick view */
+@media (max-width: 1023px) {
+  .product-card-quick-view {
+    display: none !important;
+  }
+}
+
+/* 2.6 — product-card-meta: simplificar, apenas categoria visível */
+.product-card-category {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+
+/* ===================================================================
+   FASE 3 — RESPONSIVIDADE COMPLETA
+   Breakpoints: iPhone SE (375), iPhone 15 Pro Max (430),
+   iPad Air landscape (1024), MacBook (1280), Desktop largo (1440+)
+   =================================================================== */
+
+/* 3.1 — iPhone SE (375px): ajustes finos de header */
+@media (max-width: 375px) {
+  .header-inner {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    gap: 6px !important;
+  }
+
+  .brand-name {
+    font-size: 1.0rem !important;
+    letter-spacing: 1.5px !important;
+  }
+
+  .btn-cart {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .btn-header-account {
+    min-width: 38px !important;
+  }
+
+  /* Grid de produtos: 2 colunas com gap menor */
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .product-card-body {
+    padding: 10px !important;
+  }
+
+  .product-card-name {
+    font-size: 0.82rem !important;
+  }
+
+  .product-price {
+    font-size: 1rem !important;
+  }
+
+  .btn-add-cart {
+    padding: 9px 10px !important;
+    font-size: 0.78rem !important;
+  }
+}
+
+/* 3.2 — iPhone 15 Pro Max / Android grandes (431px - 479px) */
+@media (min-width: 431px) and (max-width: 479px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 14px !important;
+  }
+
+  .product-card-name {
+    font-size: 0.9rem !important;
+  }
+}
+
+/* 3.3 — iPad Mini/Air portrait (768px - 819px): 3 colunas */
+@media (min-width: 768px) and (max-width: 819px) {
+  .products-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 16px !important;
+  }
+}
+
+/* 3.4 — iPad Air landscape / iPad Pro portrait (820px - 1023px): 3-4 colunas */
+@media (min-width: 820px) and (max-width: 1023px) {
+  .products-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 18px !important;
+  }
+
+  .featured-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  .header-inner {
+    display: grid !important;
+    grid-template-columns: auto 1fr auto !important;
+    align-items: center !important;
+    gap: 24px !important;
+  }
+
+  .desktop-nav {
+    display: flex !important;
+    justify-content: center !important;
+  }
+
+  .btn-mobile-menu {
+    display: none !important;
+  }
+
+  .search-box-wrap {
+    display: block !important;
+    width: 180px !important;
+  }
+}
+
+/* 3.5 — MacBook Air 13" e similares (1280px - 1399px) */
+@media (min-width: 1280px) and (max-width: 1399px) {
+  .container {
+    max-width: 1260px;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .products-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 24px !important;
+  }
+
+  .featured-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+/* 3.6 — Telas largas (1440px+): container com mais espaço */
+@media (min-width: 1440px) {
+  .container {
+    max-width: 1400px;
+  }
+
+  .products-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 28px !important;
+  }
+
+  .product-card-body {
+    padding: 18px !important;
+  }
+}
+
+/* 3.7 — Touch targets mínimos de 44px em todos devices */
+.btn-cart,
+.btn-mobile-menu,
+.btn-header-account,
+.btn-share-store,
+.btn-close-drawer,
+.btn-close-cart,
+.btn-close-modal {
+  min-width: 44px;
+  min-height: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 3.8 — Melhoria de scroll no iOS */
+.cart-sidebar,
+.mobile-drawer,
+.modal-loyalty-body,
+.modal-body,
+.chic-categories-track {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+
+/* ===================================================================
+   FASE 4 — SEÇÕES: FEATURED, CATEGORIAS, ABOUT
+   =================================================================== */
+
+/* 4.1 — Featured section: header mais limpo, sem ícone flame */
+.chic-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-alt);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  margin-bottom: 8px;
+}
+
+.chic-badge-pill svg {
+  display: none !important;
+}
+
+/* 4.2 — Featured grid: 4 colunas no desktop */
+@media (min-width: 1024px) {
+  .featured-grid.products-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 24px !important;
+  }
+}
+
+/* 4.3 — Categorias: padding correto por breakpoint */
+.chic-categories-section {
+  padding: 32px 0 24px;
+}
+
+.section-label-chic {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+/* 4.4 — Category cards: tamanho melhor por device */
+@media (max-width: 767px) {
+  .chic-cat-card {
+    flex: 0 0 100px;
+    height: 120px;
+  }
+}
+
+@media (min-width: 768px) {
+  .chic-categories-section {
+    padding: 40px 0 28px;
+  }
+
+  .chic-cat-card {
+    height: 160px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .chic-cat-card {
+    height: 175px !important;
+  }
+}
+
+/* 4.5 — About section: 2 colunas no desktop */
+@media (min-width: 1024px) {
+  .about-store-card {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 48px;
+    align-items: start;
+  }
+
+  .about-store-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px;
+  }
+}
+
+/* 4.6 — Section headers: espaçamento vertical correto */
+.products-section {
+  padding-top: 40px;
+}
+
+.featured-section,
+.recommended-section {
+  padding-top: 32px;
+  padding-bottom: 8px;
+}
+
+/* 4.7 — chic-section-header: alinhamento estilo editorial */
+.chic-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+.chic-section-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2.5vw, 1.9rem);
+  font-weight: 800;
+  color: var(--carbon);
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.btn-link-viewall {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--carbon);
+  text-decoration: none;
+  white-space: nowrap;
+  padding-top: 4px;
+  transition: color var(--transition-fast);
+}
+
+.btn-link-viewall:hover {
+  color: var(--primary);
+}
+
+.btn-link-viewall svg {
+  width: 14px;
+  height: 14px;
+  transition: transform var(--transition-fast);
+}
+
+.btn-link-viewall:hover svg {
+  transform: translateX(3px);
+}
+
+
+/* ===================================================================
+   FASE 5 — POLISH FINAL: TIPOGRAFIA, ESPAÇAMENTOS, FIDELIDADE
+   =================================================================== */
+
+/* 5.1 — Section header h2: tipografia correta por breakpoint */
+@media (max-width: 767px) {
+  .section-header h2 {
+    font-size: 1.3rem !important;
+    letter-spacing: -0.2px !important;
+    line-height: 1.25 !important;
+    margin-bottom: 6px !important;
+  }
+
+  .section-header {
+    margin-bottom: 20px !important;
+  }
+}
+
+/* 5.2 — Corrigir banner de fidelidade na aba Minha Conta (dark/dourado → tema claro) */
+.account-loyalty-quick-card {
+  background: var(--surface-alt) !important;
+  border: 1.5px solid var(--border) !important;
+  border-radius: 14px !important;
+  padding: 14px 18px !important;
+  margin-bottom: 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  color: var(--carbon) !important;
+  background-image: none !important;
+}
+
+.account-loyalty-quick-card * {
+  color: var(--carbon) !important;
+  background-image: none !important;
+}
+
+.account-loyalty-quick-card button {
+  background: var(--carbon) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: var(--radius-full) !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  padding: 7px 14px !important;
+  cursor: pointer !important;
+  transition: background var(--transition-fast) !important;
+}
+
+.account-loyalty-quick-card button:hover {
+  background: var(--primary) !important;
+}
+
+/* Sobrescrever o inline style do círculo dourado com ícone */
+.account-loyalty-quick-card > div > div:first-child > div:first-child {
+  background: var(--primary-50) !important;
+  color: var(--primary) !important;
+  border-radius: 50% !important;
+}
+
+/* 5.3 — Espaçamento vertical entre seções (mobile) */
+@media (max-width: 767px) {
+  .featured-section,
+  .recommended-section,
+  .about-store-section {
+    padding-top: 24px !important;
+    padding-bottom: 8px !important;
+  }
+
+  .products-section {
+    padding-top: 24px !important;
+  }
+
+  .chic-categories-section {
+    padding: 20px 0 12px !important;
+  }
+}
+
+/* 5.4 — Benefits section: ícone com cor rosé (paleta correta) */
+.benefit-icon-wrapper {
+  background: rgba(185, 143, 152, 0.08) !important;
+  border: 1px solid rgba(185, 143, 152, 0.15) !important;
+  color: var(--primary) !important;
+}
+
+/* 5.5 — Filter chips: estilo neutro editorial */
+.filter-cat-btn {
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  font-size: 0.8rem;
+  transition: all var(--transition-fast);
+}
+
+.filter-cat-btn.active {
+  background: var(--carbon) !important;
+  color: white !important;
+  border-color: var(--carbon) !important;
+}
+
+/* 5.6 — Botão checkout: estilo consistente com CTA principal */
+.btn-checkout {
+  background: var(--carbon) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.btn-checkout:hover {
+  background: var(--primary) !important;
+}
+
+.btn-mobile-checkout {
+  background: var(--carbon) !important;
+}
+
+.btn-mobile-checkout:hover {
+  background: var(--primary) !important;
+}
+
+/* 5.7 — Hero slider: altura otimizada por device */
+.hero-slider-section,
+.hero-slider-container {
+  min-height: 72vh;
+  height: 72vh;
+}
+
+@media (min-width: 768px) {
+  .hero-slider-section,
+  .hero-slider-container {
+    min-height: 78vh;
+    height: 78vh;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-slider-section,
+  .hero-slider-container {
+    min-height: 86vh;
+    height: 86vh;
+  }
+}
+
+/* 5.8 — Toast: z-index garantido acima de tudo */
+.toast-container {
+  z-index: 999999;
+}
+
+/* 5.9 — Scroll suave nativo */
+html {
+  scroll-behavior: smooth;
+}
+
+/* 5.10 — Melhorar legibilidade do preço no card */
+.product-card-installment {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+/* FIM DAS MELHORIAS VISUAIS — Donna Fitness PE */
+
+
+/* ============================================================
+   ESSENCE VISUAL IDENTITY — REDESIGN EDITORIAL COMPLETO
+   Objetivo: Visual idêntico à referência Essence Store
+   Método: CSS-only, sem tocar em JS, IDs ou lógica funcional
+   ============================================================ */
+
+
+/* ===================================================================
+   E1. FOUNDATIONS — Fundo branco puro, tipografia editorial
+   =================================================================== */
+
+:root {
+  --bg: #FFFFFF;
+  --surface: #FFFFFF;
+  --surface-alt: #F5F5F5;
+  --surface-card: #FFFFFF;
+  --border: #EBEBEB;
+  --border-strong: #D4D4D4;
+  --text-secondary: #525252;
+  --text-muted: #9E9E9E;
+  --navbar-height: 60px;
+}
+
+body {
+  background-color: #FFFFFF !important;
+}
+
+/* ===================================================================
+   E2. ANNOUNCEMENT BAR — Estilo Essence: thin, dark, centered
+   =================================================================== */
+
+.announcement-bar {
+  background: #111111 !important;
+  padding: 9px 0 !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.5px !important;
+  border-bottom: none !important;
+}
+
+.announcement-inner {
+  justify-content: center !important;
+}
+
+.announcement-content {
+  justify-content: center !important;
+  color: rgba(255,255,255,0.9) !important;
+  gap: 0 !important;
+}
+
+.announcement-extra-links {
+  display: none !important;
+}
+
+/* ===================================================================
+   E3. HEADER — Essence style: branco, logo central no desktop
+   =================================================================== */
+
+.site-header {
+  background: #FFFFFF !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid #EBEBEB !important;
+  height: var(--navbar-height) !important;
+  box-shadow: none !important;
+}
+
+.site-header.scrolled {
+  background: #FFFFFF !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  border-bottom-color: #D4D4D4 !important;
+}
+
+/* Barra de acento rosa: ocultar — Essence não usa */
+.store-top-accent-bar {
+  display: none !important;
+}
+
+/* Brand: logo + nome lado a lado, compacto */
+.brand-name {
+  font-family: var(--font-display) !important;
+  font-size: 1.3rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 3.5px !important;
+  color: #111111 !important;
+  text-transform: uppercase !important;
+}
+
+.brand-tagline {
+  font-size: 0.52rem !important;
+  letter-spacing: 2.5px !important;
+  color: #9E9E9E !important;
+  margin-top: 1px !important;
+}
+
+/* Logo mark (SVG): tornar menor e mais sutil */
+.logo-mark svg {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+/* Header actions: ícones finos */
+.btn-cart {
+  background: transparent !important;
+  border: none !important;
+  color: #111111 !important;
+  box-shadow: none !important;
+  width: 40px !important;
+  height: 40px !important;
+}
+
+.btn-cart:hover {
+  background: #F5F5F5 !important;
+  color: var(--primary) !important;
+  transform: none !important;
+}
+
+.cart-count {
+  background: #111111 !important;
+  color: #FFFFFF !important;
+  font-size: 0.62rem !important;
+  border: 2px solid #FFFFFF !important;
+}
+
+.btn-header-account {
+  background: transparent !important;
+  border: none !important;
+  color: #111111 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  padding: 6px 8px !important;
+  border-radius: var(--radius) !important;
+  transition: background var(--transition-fast) !important;
+}
+
+.btn-header-account:hover {
+  background: #F5F5F5 !important;
+}
+
+.account-icon {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+/* Desktop: centralizar logo e nav */
+@media (min-width: 1024px) {
+  .header-inner {
+    grid-template-columns: 1fr auto 1fr !important;
+  }
+
+  /* Logo centralizado */
+  .navbar-brand {
+    justify-content: flex-start;
+    flex: 1;
+  }
+
+  /* Nav centralizada */
+  .desktop-nav {
+    order: 0;
+    justify-content: center;
+  }
+
+  /* Actions direita */
+  .header-actions {
+    justify-content: flex-end;
+    flex: 1;
+  }
+}
+
+/* ===================================================================
+   E4. HERO — Essence style: full-width, texto à esquerda, grande
+   =================================================================== */
+
+/* Hero slide */
+.hero-slide {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: opacity 0.6s ease, visibility 0.6s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  overflow: hidden !important;
+  pointer-events: none;
+}
+
+.hero-slide.active {
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 1 !important;
+  pointer-events: auto;
+}
+
+.hero-slide-bg {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-size: cover !important;
+  background-position: center right !important;
+  filter: brightness(0.88) !important;
+  transform: scale(1.02);
+  transition: transform 6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.hero-slide.active .hero-slide-bg {
+  transform: scale(1);
+}
+
+.hero-slide-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: linear-gradient(
+    90deg,
+    rgba(0,0,0,0.50) 0%,
+    rgba(0,0,0,0.22) 50%,
+    transparent 100%
+  ) !important;
+  pointer-events: none;
+}
+
+.hero-slide-content {
+  position: relative !important;
+  z-index: 2 !important;
+  padding: 80px 24px !important;
+  max-width: 620px !important;
+  margin: 0 !important;
+}
+
+/* Título hero: massive, editorial, all-caps */
+.hero-slide-title {
+  font-family: var(--font-display) !important;
+  font-size: clamp(2.6rem, 6vw, 5.2rem) !important;
+  font-weight: 900 !important;
+  color: #FFFFFF !important;
+  line-height: 1.05 !important;
+  letter-spacing: -1px !important;
+  text-transform: uppercase !important;
+  margin-bottom: 16px !important;
+  text-shadow: none !important;
+}
+
+/* Subtítulo hero: pequeno, limpo */
+.hero-slide-subtitle {
+  font-size: 0.95rem !important;
+  color: rgba(255,255,255,0.88) !important;
+  font-weight: 400 !important;
+  line-height: 1.6 !important;
+  margin-bottom: 28px !important;
+  max-width: 360px !important;
+  text-shadow: none !important;
+}
+
+/* Actions row: two buttons side by side */
+.hero-slide-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+/* CTA do hero: outlined — estilo Essence pill/rect */
+.hero-slide-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: #FFFFFF !important;
+  color: #111111 !important;
+  border: 2px solid #FFFFFF !important;
+  padding: 11px 26px !important;
+  border-radius: 30px !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+}
+
+.hero-slide-btn:hover {
+  background: transparent !important;
+  color: #FFFFFF !important;
+}
+
+/* Secondary CTA: ghost/outlined */
+.hero-slide-btn-secondary {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: transparent !important;
+  color: #FFFFFF !important;
+  border: 2px solid rgba(255,255,255,0.75) !important;
+  padding: 11px 26px !important;
+  border-radius: 30px !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+}
+
+.hero-slide-btn-secondary:hover {
+  background: rgba(255,255,255,0.15) !important;
+  border-color: #FFFFFF !important;
+}
+
+/* Controles hero: menores e mais sutis */
+.hero-slider-arrow {
+  background: rgba(255,255,255,0.15) !important;
+  border: 1px solid rgba(255,255,255,0.25) !important;
+  backdrop-filter: blur(8px) !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+}
+
+.hero-slider-arrow:hover {
+  background: rgba(255,255,255,0.95) !important;
+  color: #111111 !important;
+}
+
+/* Dots hero: estilo Essence */
+.hero-slider-dots .dot,
+.hero-slider-dot,
+.hero-dot {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: rgba(255,255,255,0.45) !important;
+  border: none !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  transition: all 0.3s ease !important;
+}
+
+.hero-slider-dots .dot.active,
+.hero-slider-dot.active,
+.hero-dot.active {
+  background: #FFFFFF !important;
+  width: 24px !important;
+  border-radius: 4px !important;
+}
+
+/* ===================================================================
+   E5. BENEFITS BAR — Estilo Essence: strip horizontal limpo
+   =================================================================== */
+
+.benefits-section {
+  background: #FFFFFF !important;
+  border-top: 1px solid #EBEBEB !important;
+  border-bottom: 1px solid #EBEBEB !important;
+  padding: 18px 0 !important;
+}
+
+.benefit-card {
+  border-radius: 0 !important;
+  justify-content: center !important;
+  text-align: center !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  padding: 8px 12px !important;
+}
+
+.benefit-icon-wrapper {
+  width: 32px !important;
+  height: 32px !important;
+  background: transparent !important;
+  border: none !important;
+  color: #111111 !important;
+  margin: 0 auto !important;
+}
+
+.benefit-content h3 {
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: #111111 !important;
+}
+
+.benefit-content p {
+  font-size: 0.7rem !important;
+  color: #9E9E9E !important;
+  display: block !important;
+}
+
+
+/* ===================================================================
+   E6. SECTION HEADERS — Essence: uppercase, bold, left-aligned
+   =================================================================== */
+
+.section-header {
+  text-align: left !important;
+  max-width: none !important;
+  margin-bottom: 24px !important;
+}
+
+.section-label {
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2.5px !important;
+  color: #9E9E9E !important;
+  display: block !important;
+  margin-bottom: 6px !important;
+}
+
+.section-header h2 {
+  font-family: var(--font-display) !important;
+  font-size: clamp(1.4rem, 3vw, 2.2rem) !important;
+  font-weight: 900 !important;
+  color: #111111 !important;
+  letter-spacing: -0.5px !important;
+  line-height: 1.15 !important;
+  text-transform: uppercase !important;
+  margin-bottom: 0 !important;
+}
+
+.section-header p {
+  font-size: 0.88rem !important;
+  color: #525252 !important;
+  margin-top: 8px !important;
+  display: block !important;
+}
+
+/* chic-section-header: estilo editorial Essence */
+.chic-section-title {
+  font-size: clamp(1.2rem, 2.8vw, 1.8rem) !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: -0.3px !important;
+  color: #111111 !important;
+}
+
+.chic-badge-pill {
+  display: none !important;
+}
+
+.btn-link-viewall {
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.8px !important;
+  text-transform: uppercase !important;
+  color: #111111 !important;
+}
+
+/* ===================================================================
+   E7. CATEGORIES — Essence "SHOP THE ESSENTIALS": 3 colunas, editorial
+   =================================================================== */
+
+/* Seção de categorias visual: 3 colunas lado a lado, sem scroll */
+.visual-categories-section {
+  padding: 48px 0 40px !important;
+}
+
+.visual-categories-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 12px !important;
+}
+
+/* Cards de categoria: proporção alta, texto na base */
+.visual-category-card {
+  height: 420px !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+}
+
+@media (max-width: 767px) {
+  .visual-categories-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .visual-category-card {
+    height: 260px !important;
+    border-radius: 4px !important;
+  }
+}
+
+/* Seção chic categories: na vitrine principal */
+.chic-categories-section {
+  padding: 32px 0 20px !important;
+}
+
+/* Chic category cards: mais altos */
+@media (min-width: 1024px) {
+  .chic-cat-card {
+    height: 190px !important;
+  }
+}
+
+/* ===================================================================
+   E8. PRODUCT CARDS — Essence style: minimal, circular add-to-cart
+   =================================================================== */
+
+/* Card base: sem border, fundo branco puro */
+.product-card {
+  background: #FFFFFF !important;
+  border-radius: 4px !important;
+  border: none !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  position: relative !important;
+}
+
+.product-card:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Imagem: sem border-radius (estilo Essence) */
+.product-card-image-wrapper {
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  background: #F5F5F5 !important;
+  position: relative !important;
+}
+
+/* Zoom suave na imagem no hover */
+.product-card:hover .product-card-image-wrapper img {
+  transform: scale(1.04) !important;
+}
+
+/* ===================================
+   ESSENCE TRICK: Botão circular flutuante sobre a imagem
+   Usa margin-top negativo para sobrepor o card body sobre a imagem
+   sem quebrar o posicionamento do grid
+   =================================== */
+
+/* Botão sacolinha flutuante: CIRCULAR, elegante, perfeitamente ancorado na imagem */
+.btn-card-bag,
+.btn-add-cart {
+  position: absolute !important;
+  bottom: 10px !important;
+  right: 10px !important;
+  top: auto !important;
+  left: auto !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  background: #111111 !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  color: #FFFFFF !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.30) !important;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, box-shadow 0.2s ease !important;
+  opacity: 1 !important;
+  transform: scale(1) !important;
+  cursor: pointer !important;
+  z-index: 6 !important;
+  min-width: unset !important;
+  min-height: unset !important;
+}
+
+/* Hover e Active */
+.btn-card-bag:hover:not(:disabled),
+.btn-add-cart:hover:not(:disabled) {
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: #FFFFFF !important;
+  transform: scale(1.12) !important;
+  box-shadow: 0 6px 20px rgba(185,143,152,0.65) !important;
+}
+
+.btn-card-bag:active:not(:disabled),
+.btn-add-cart:active:not(:disabled) {
+  transform: scale(0.92) !important;
+}
+
+.btn-card-bag:disabled,
+.btn-add-cart:disabled {
+  background: #71717A !important;
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+}
+
+/* Ocultar texto dentro do botão de sacola, manter apenas ícone */
+.btn-card-bag span,
+.btn-add-cart span {
+  display: none !important;
+}
+
+.btn-card-bag svg,
+.btn-add-cart svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke: #FFFFFF !important;
+  stroke-width: 2 !important;
+  flex-shrink: 0 !important;
+}
+
+/* Desabilitar wrapper antigo com coordenadas quebradas */
+.product-card-footer {
+  display: none !important;
+}
+
+/* Card body: compacto e limpo */
+.product-card-body {
+  padding: 12px 4px 8px 4px !important;
+  gap: 4px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Categoria: muted, pequena */
+.product-card-category {
+  font-size: 0.67rem !important;
+  color: #9E9E9E !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.8px !important;
+  font-weight: 600 !important;
+}
+
+/* Meta do card */
+.product-card-meta {
+  margin-bottom: 4px !important;
+}
+
+/* Nome do produto: leve, não bold demais */
+.product-card-name {
+  font-family: var(--font-display) !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: #111111 !important;
+  line-height: 1.3 !important;
+  margin-bottom: 6px !important;
+}
+
+/* Preço: bold e proeminente */
+.product-price {
+  font-family: var(--font-display) !important;
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+  color: #111111 !important;
+}
+
+.product-price-original {
+  font-size: 0.8rem !important;
+  color: #9E9E9E !important;
+  text-decoration: line-through !important;
+}
+
+/* Chips de tamanho: mais sutis */
+.product-size-pill {
+  font-size: 0.6rem !important;
+  padding: 1px 4px !important;
+  background: transparent !important;
+  border: 1px solid #D4D4D4 !important;
+  color: #525252 !important;
+  border-radius: 2px !important;
+}
+
+/* Color swatches: menores */
+.product-colors-preview {
+  background: rgba(255,255,255,0.95) !important;
+  padding: 3px 6px !important;
+  border-radius: 4px !important;
+  bottom: 10px !important;
+  left: 10px !important;
+}
+
+.color-swatch-mini {
+  width: 11px !important;
+  height: 11px !important;
+}
+
+/* Badges: estilo Essence — mais compactos */
+.product-badge {
+  top: 8px !important;
+  left: 8px !important;
+  padding: 3px 8px !important;
+  font-size: 0.62rem !important;
+  letter-spacing: 0.5px !important;
+  border-radius: 3px !important;
+}
+
+.badge-custom {
+  background: #111111 !important;
+}
+
+.badge-promo {
+  background: #DC2626 !important;
+}
+
+/* Product card: sem overflow visible para quick view */
+.product-card-quick-view {
+  display: none !important;
+}
+
+/* ===================================================================
+   E9. PRODUCTS GRID — Essence: 4 colunas, sem gaps grandes
+   =================================================================== */
+
+.products-grid {
+  gap: 12px !important;
+}
+
+@media (min-width: 768px) {
+  .products-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 16px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .products-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 20px !important;
+  }
+}
+
+/* Featured: scroll horizontal no mobile (estilo Essence "HOT RIGHT NOW") */
+@media (max-width: 767px) {
+  .featured-grid.products-grid {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    gap: 12px !important;
+    padding-bottom: 8px !important;
+  }
+
+  .featured-grid.products-grid::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .featured-grid.products-grid .product-card {
+    flex: 0 0 56vw !important;
+    max-width: 240px !important;
+    scroll-snap-align: start !important;
+  }
+}
+
+/* ===================================================================
+   E10. CATALOG CONTROLS — Filtros estilo Essence
+   =================================================================== */
+
+.catalog-controls {
+  border-bottom: 1px solid #EBEBEB !important;
+  padding-bottom: 16px !important;
+  margin-bottom: 24px !important;
+}
+
+.filter-cat-btn {
+  background: transparent !important;
+  border: 1px solid #EBEBEB !important;
+  color: #525252 !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  padding: 7px 16px !important;
+  border-radius: 3px !important;
+  letter-spacing: 0.3px !important;
+  transition: all 0.15s ease !important;
+}
+
+.filter-cat-btn:hover {
+  border-color: #111111 !important;
+  color: #111111 !important;
+  background: transparent !important;
+}
+
+.filter-cat-btn.active {
+  background: #111111 !important;
+  border-color: #111111 !important;
+  color: #FFFFFF !important;
+}
+
+/* ===================================================================
+   E11. CART SIDEBAR — Estilo limpo e profissional
+   =================================================================== */
+
+.cart-sidebar {
+  border-left: 1px solid #EBEBEB !important;
+}
+
+.cart-header {
+  border-bottom: 1px solid #EBEBEB !important;
+}
+
+.cart-header h3 {
+  font-family: var(--font-display) !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  font-size: 0.95rem !important;
+}
+
+.shipping-progress-fill {
+  background: #111111 !important;
+}
+
+/* ===================================================================
+   E12. MODAIS — Bordas mais sutis, texto limpo
+   =================================================================== */
+
+.modal {
+  border-radius: 8px !important;
+}
+
+.modal-header {
+  border-bottom: 1px solid #EBEBEB !important;
+}
+
+/* ===================================================================
+   E13. FOOTER — Escuro como Essence, limpo
+   =================================================================== */
+
+/* Footer já é escuro, apenas ajustes */
+.footer-col-title {
+  text-transform: uppercase !important;
+  letter-spacing: 1.5px !important;
+  font-size: 0.78rem !important;
+}
+
+.footer-menu a {
+  font-size: 0.82rem !important;
+  color: rgba(255,255,255,0.65) !important;
+}
+
+.footer-menu a:hover {
+  color: #FFFFFF !important;
+}
+
+/* ===================================================================
+   E14. EMPTY STATE & LOADING — Mais minimalistas
+   =================================================================== */
+
+.empty-state {
+  border: 1px solid #EBEBEB !important;
+  border-radius: 4px !important;
+  background: #FAFAFA !important;
+}
+
+/* Skeleton loading: mais clean */
+.skeleton {
+  background: linear-gradient(90deg, #F0F0F0 25%, #E8E8E8 50%, #F0F0F0 75%) !important;
+  background-size: 200% 100% !important;
+}
+
+/* ===================================================================
+   E15. MOBILE CART BAR — Essence style: dark bottom bar
+   =================================================================== */
+
+.mobile-cart-bar {
+  border-top: 1px solid #EBEBEB !important;
+  background: #FFFFFF !important;
+}
+
+.btn-mobile-checkout {
+  background: #111111 !important;
+  border-radius: 4px !important;
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.8px !important;
+  text-transform: uppercase !important;
+}
+
+/* ===================================================================
+   E16. MOBILE DRAWER — Mais limpo
+   =================================================================== */
+
+.mobile-drawer {
+  box-shadow: 4px 0 24px rgba(0,0,0,0.12) !important;
+}
+
+.mobile-nav-link svg:first-child {
+  color: #111111 !important;
+}
+
+.mobile-nav-link:hover,
+.mobile-nav-link:active {
+  background: #F5F5F5 !important;
+  color: #111111 !important;
+}
+
+/* ===================================================================
+   E17. SEARCH INPUT — Estilo Essence
+   =================================================================== */
+
+.search-input-inner {
+  background: #F5F5F5 !important;
+  border: 1px solid transparent !important;
+  border-radius: 4px !important;
+}
+
+.search-input-inner:focus-within {
+  background: #FFFFFF !important;
+  border-color: #111111 !important;
+  box-shadow: none !important;
+}
+
+/* ===================================================================
+   E18. BOTÕES GERAIS — Consistência editorial
+   =================================================================== */
+
+.btn-checkout {
+  background: #111111 !important;
+  border-radius: 4px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.8px !important;
+  text-transform: uppercase !important;
+  font-size: 0.82rem !important;
+}
+
+.btn-checkout:hover {
+  background: var(--primary) !important;
+}
+
+.btn-reset-filter {
+  background: #111111 !important;
+  color: #FFFFFF !important;
+  border-radius: 4px !important;
+}
+
+/* ===================================================================
+   E19. ABOUT STORE SECTION — Cartões limpos
+   =================================================================== */
+
+.about-store-card {
+  background: #FAFAFA !important;
+  border: 1px solid #EBEBEB !important;
+  border-radius: 8px !important;
+}
+
+.about-store-icon {
+  color: var(--primary) !important;
+}
+
+/* ===================================================================
+   E20. VISUAL CATEGORY OVERLAY — Estilo editorial Essence
+   =================================================================== */
+
+.cat-card-overlay {
+  background: linear-gradient(
+    180deg,
+    transparent 40%,
+    rgba(0,0,0,0.6) 100%
+  ) !important;
+}
+
+.cat-card-label {
+  font-family: var(--font-display) !important;
+  font-size: 1.1rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+}
+
+/* ===================================================================
+   E21. HERO SLIDER SECTION — Sem borda rosa no topo
+   =================================================================== */
+
+.hero-slider-section {
+  border-top: none !important;
+}
+
+/* ===================================================================
+   E22. RESPONSIVIDADE ESSENCE — Ajustes específicos por device
+   =================================================================== */
+
+/* Mobile */
+@media (max-width: 767px) {
+  /* Hero: mais compacto no mobile */
+  .hero-slide-title {
+    font-size: clamp(2rem, 8vw, 2.8rem) !important;
+    letter-spacing: -0.5px !important;
+  }
+
+  .hero-slide-content {
+    padding: 60px 20px 80px 20px !important;
+  }
+
+  /* Section header: esquerda no mobile */
+  .section-header {
+    text-align: left !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* Product card: mais compacto */
+  .product-card-body {
+    padding: 10px 2px 6px 2px !important;
+  }
+
+  .product-card-name {
+    font-size: 0.82rem !important;
+  }
+
+  .product-price {
+    font-size: 0.95rem !important;
+  }
+}
+
+/* Tablet */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .visual-categories-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .visual-category-card {
+    height: 320px !important;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  /* Hero: texto maior */
+  .hero-slide-content {
+    padding: 100px 0 100px max(24px, calc((100vw - 1240px) / 2)) !important;
+  }
+
+  /* Category cards: mais altos no desktop */
+  .visual-category-card {
+    height: 460px !important;
+  }
+
+  /* Product body: padding adequado */
+  .product-card-body {
+    padding: 14px 4px 10px 4px !important;
+  }
+
+  /* Variável CSS para calcular posição do botão flutuante */
+  .product-card {
+    --card-body-height: 158px;
+  }
+}
+
+/* Large desktop */
+@media (min-width: 1400px) {
+  .hero-slide-title {
+    font-size: 5.4rem !important;
+  }
+}
+
+/* FIM — ESSENCE VISUAL IDENTITY */
+
+/* ===================================================================
+   E23. SHOP THE ESSENTIALS — Editorial 3-column category section
+   Inspired by Essence reference. Full-bleed images, text overlay.
+   =================================================================== */
+
+.essentials-section {
+  background: var(--surface);
+  padding: 48px 0 40px;
+}
+
+.essentials-header {
+  margin-bottom: 20px;
+}
+
+.essentials-title {
+  font-family: var(--font-display) !important;
+  font-size: 1.45rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.5px !important;
+  color: var(--carbon) !important;
+  text-transform: uppercase !important;
+  line-height: 1.1 !important;
+}
+
+/* 3-column grid on desktop, 1-column stacked on mobile */
+.essentials-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 600px) {
+  .essentials-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .essentials-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+}
+
+/* Essentials Category Card */
+.essentials-card {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  display: block;
+  text-decoration: none;
+  background: var(--surface-alt);
+  aspect-ratio: 3/4;
+}
+
+@media (min-width: 900px) {
+  .essentials-card {
+    aspect-ratio: 3/4;
+    height: 460px;
+  }
+}
+
+/* Image fills card */
+.essentials-card-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  z-index: 1;
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.essentials-card:hover .essentials-card-img {
+  transform: scale(1.05);
+}
+
+/* Gradient overlay at bottom */
+.essentials-card-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(
+    180deg,
+    transparent 40%,
+    rgba(0,0,0,0.52) 100%
+  );
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.essentials-card:hover .essentials-card-overlay {
+  opacity: 0.85;
+}
+
+/* Text label */
+.essentials-card-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  padding: 20px 20px 22px;
+  color: #FFFFFF;
+  pointer-events: none;
+}
+
+.essentials-card-name {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  display: block;
+  line-height: 1.1;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+.essentials-card-count {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.78);
+  display: block;
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+
+/* If no image: fallback background */
+.essentials-card-placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(135deg, var(--carbon) 0%, var(--graphite) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.essentials-card-placeholder i {
+  color: rgba(255,255,255,0.15);
+  width: 48px;
+  height: 48px;
+}
+
+/* ===================================================================
+   E24. BENEFITS BAR — Clean strip after hero
+   =================================================================== */
+
+.benefits-bar-section {
+  background: var(--carbon);
+  padding: 0;
+  overflow: hidden;
+}
+
+.benefits-bar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0;
+}
+
+.benefit-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 24px;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  flex: 1;
+  min-width: 180px;
+  justify-content: center;
+}
+
+.benefit-item:last-child {
+  border-right: none;
+}
+
+.benefit-item i {
+  width: 16px;
+  height: 16px;
+  color: var(--primary-light);
+  flex-shrink: 0;
+}
+
+.benefit-item-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.benefit-item-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+}
+
+.benefit-item-desc {
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.3;
+}
+
+@media (max-width: 767px) {
+  .benefits-bar-inner {
+    flex-direction: row;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .benefits-bar-inner::-webkit-scrollbar { display: none; }
+
+  .benefit-item {
+    flex: 0 0 auto;
+    min-width: 160px;
+    border-right: 1px solid rgba(255,255,255,0.1);
+    padding: 12px 20px;
+  }
+}
+
+/* ===================================================================
+   E25. EDITORIAL NOVA COLEÇÃO — Split editorial block
+   Left: Image, Right: Text + CTA
+   =================================================================== */
+
+.editorial-split-section {
+  background: var(--surface);
+  padding: 0;
+  overflow: hidden;
+}
+
+.editorial-split-inner {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 400px;
+}
+
+@media (min-width: 768px) {
+  .editorial-split-inner {
+    grid-template-columns: 1fr 1fr;
+    min-height: 500px;
+  }
+}
+
+.editorial-split-image {
+  position: relative;
+  overflow: hidden;
+  min-height: 320px;
+}
+
+@media (min-width: 768px) {
+  .editorial-split-image {
+    min-height: 500px;
+  }
+}
+
+.editorial-split-image img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  transition: transform 0.6s ease;
+}
+
+.editorial-split-section:hover .editorial-split-image img {
+  transform: scale(1.03);
+}
+
+.editorial-split-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px 40px;
+  background: var(--bg);
+}
+
+@media (max-width: 767px) {
+  .editorial-split-content {
+    padding: 32px 24px;
+  }
+}
+
+.editorial-split-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 12px;
+  display: block;
+}
+
+.editorial-split-title {
+  font-family: var(--font-display) !important;
+  font-size: clamp(1.8rem, 4vw, 2.8rem) !important;
+  font-weight: 900 !important;
+  color: var(--carbon) !important;
+  line-height: 1.05 !important;
+  letter-spacing: -1px !important;
+  text-transform: uppercase !important;
+  margin-bottom: 16px !important;
+}
+
+.editorial-split-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 28px;
+  max-width: 380px;
+}
+
+.editorial-split-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--carbon);
+  color: #FFFFFF;
+  border: 2px solid var(--carbon);
+  padding: 13px 28px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  width: fit-content;
+}
+
+.editorial-split-cta:hover {
+  background: transparent;
+  color: var(--carbon);
+}
+
+/* ===================================================================
+   E26. CHIC CATEGORIES — Fix desktop grid to show all items in 1 row
+   =================================================================== */
+
+/* Desktop: use auto-fit to accommodate any number of categories */
+@media (min-width: 1024px) {
+  .chic-categories-track {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)) !important;
+    overflow-x: visible !important;
+    gap: 10px !important;
+  }
+
+  .chic-cat-card {
+    flex: initial !important;
+    height: 175px !important;
+  }
+}
+
+/* ===================================================================
+   E27. SECTION SPACING — Consistent sections
+   =================================================================== */
+
+.featured-section.container {
+  padding-top: 56px !important;
+  padding-bottom: 24px !important;
+}
+
+.products-section.container {
+  padding-top: 48px !important;
+}
+
+.recommended-section.container {
+  padding-top: 48px !important;
+}
+
+.about-store-section.container {
+  padding-top: 48px !important;
+  padding-bottom: 48px !important;
+}
+
+/* Section titles: stronger editorial feel */
+.chic-section-title {
+  font-family: var(--font-display) !important;
+  font-size: clamp(1.5rem, 3vw, 2.2rem) !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.5px !important;
+  color: var(--carbon) !important;
+  line-height: 1.1 !important;
+  text-transform: uppercase !important;
+  margin-top: 6px !important;
+}
+
+#products-section-title {
+  font-family: var(--font-display) !important;
+  font-size: clamp(1.6rem, 3vw, 2.4rem) !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.5px !important;
+  text-transform: uppercase !important;
+  color: var(--carbon) !important;
+}
+
+/* Chic section header: strong left-aligned layout */
+.chic-section-header {
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: space-between !important;
+  margin-bottom: 24px !important;
+}
+
+/* "View all" link: clean editorial style */
+.btn-link-viewall {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  color: var(--carbon) !important;
+  text-decoration: none !important;
+  border-bottom: 1px solid var(--carbon) !important;
+  padding-bottom: 1px !important;
+  transition: color 0.15s, border-color 0.15s !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.btn-link-viewall:hover {
+  color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+/* Hero badge pill: editorial style */
+.hero-badge-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  background: rgba(255,255,255,0.18) !important;
+  backdrop-filter: blur(6px) !important;
+  border: 1px solid rgba(255,255,255,0.35) !important;
+  color: #FFFFFF !important;
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  padding: 5px 12px !important;
+  border-radius: 2px !important;
+  margin-bottom: 16px !important;
+}
+
+/* ===================================================================
+   E28. ANNOUNCEMENT BAR — Cleaner, matching Essence
+   =================================================================== */
+
+.announcement-bar {
+  background: var(--carbon) !important;
+  color: rgba(255,255,255,0.9) !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.5px !important;
+  text-align: center !important;
+}
+
+/* ===================================================================
+   E29. HEADER — Clean, premium, Essence-like
+   =================================================================== */
+
+.site-header {
+  background: rgba(255,255,255,0.96) !important;
+  backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid var(--border) !important;
+  box-shadow: none !important;
+}
+
+.nav-link {
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.8px !important;
+  text-transform: uppercase !important;
+  color: var(--graphite) !important;
+  transition: color 0.15s !important;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: var(--carbon) !important;
+}
+
+/* Remove underline accent from nav unless scrolled */
+.nav-link.active::after {
+  background: var(--carbon) !important;
+}
+
+/* Cart button: cleaner */
+.btn-cart {
+  position: relative !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 6px !important;
+  color: var(--carbon) !important;
+  cursor: pointer !important;
+}
+
+/* ===================================================================
+   E30. MOBILE BOTTOM NAV — Premium dark bar
+   =================================================================== */
+
+.mobile-bottom-nav {
+  background: rgba(255,255,255,0.97) !important;
+  border-top: 1px solid var(--border) !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+.bottom-nav-btn {
+  color: var(--text-muted) !important;
+  font-size: 0.6rem !important;
+  letter-spacing: 0.5px !important;
+}
+
+.bottom-nav-btn.active,
+.bottom-nav-btn:hover {
+  color: var(--carbon) !important;
+}
+
+/* ===================================================================
+   E31. PRODUCT CARD FOOTER — Fix floating cart button position
+   =================================================================== */
+
+/* Use CSS variable to make position dynamic */
+.product-card {
+  --img-ratio: 125%; /* 4:5 aspect ratio */
+}
+
+.product-card-footer {
+  top: calc(var(--img-ratio) - 52px) !important;
+}
+
+@media (max-width: 1023px) {
+  .product-card-footer {
+    top: calc(var(--img-ratio) - 48px) !important;
+  }
+}
+
+/* ===================================================================
+   E32. CHIC SECTION HEADER — responsive
+   =================================================================== */
+
+@media (max-width: 640px) {
+  .chic-section-header {
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+
+  .essentials-title {
+    font-size: 1.1rem !important;
+  }
+
+  .essentials-section {
+    padding: 32px 0 24px !important;
+  }
+}
+
+/* ===================================================================
+   FIM TRANSFORMAÇÃO VISUAL COMPLETA — STUDIO FIT ESSENCE EDITION
+   =================================================================== */
+
+/* ===================================================================
+   E33. TESTIMONIALS
+   =================================================================== */
+
+.testimonials-section {
+  background: var(--bg);
+  padding: 64px 0;
+  border-top: 1px solid var(--border);
+}
+
+.testimonials-header {
+  margin-bottom: 40px;
+}
+
+.testimonials-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 10px;
+}
+
+.testimonials-title {
+  font-family: var(--font-display) !important;
+  font-size: clamp(1.6rem, 3.5vw, 2.6rem) !important;
+  font-weight: 900 !important;
+  color: var(--carbon) !important;
+  letter-spacing: -0.5px !important;
+  line-height: 1.1 !important;
+  text-transform: uppercase !important;
+}
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+@media (max-width: 767px) {
+  .testimonials-grid { grid-template-columns: 1fr; gap: 16px; }
+}
+
+@media (min-width: 600px) and (max-width: 767px) {
+  .testimonials-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.testimonial-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 28px 24px;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: box-shadow 0.2s ease;
+}
+
+.testimonial-card:hover { box-shadow: var(--shadow-md); }
+
+.testimonial-stars {
+  font-size: 1rem;
+  color: #F59E0B;
+  letter-spacing: 2px;
+}
+
+.testimonial-text {
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--graphite);
+  font-style: italic;
+  flex: 1;
+  margin: 0;
+}
+
+.testimonial-author {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  margin-top: auto;
+}
+
+.testimonial-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--carbon);
+}
+
+.testimonial-product {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* E34. Editorial Split Mobile */
+.editorial-split-section { border-top: 1px solid var(--border); }
+
+@media (max-width: 767px) {
+  .editorial-split-inner { grid-template-columns: 1fr !important; }
+  .editorial-split-image { order: 0; min-height: 260px; }
+  .editorial-split-content { order: 1; }
+}
+
+/* E35. Hero Mobile */
+@media (max-width: 480px) {
+  .hero-slide-title { font-size: 1.9rem !important; }
+  .hero-slide-subtitle { font-size: 0.85rem !important; }
+  .hero-slide-actions { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
+  .hero-slide-btn, .hero-slide-btn-secondary { padding: 10px 20px !important; font-size: 0.7rem !important; }
+  .hero-slide-content { padding: 60px 20px !important; }
+}
+
+/* E36. Recommended section */
+.recommended-section.container { border-top: 1px solid var(--border) !important; padding-top: 56px !important; }
+
+/* E37. Category filter mobile */
+.categories-filter { display: flex !important; flex-wrap: wrap !important; gap: 6px !important; }
+
+@media (max-width: 480px) {
+  .categories-filter { overflow-x: auto !important; flex-wrap: nowrap !important; padding-bottom: 4px !important; scrollbar-width: none !important; -webkit-overflow-scrolling: touch !important; }
+  .categories-filter::-webkit-scrollbar { display: none !important; }
+  .filter-cat-btn { flex-shrink: 0 !important; white-space: nowrap !important; }
+}
+
+/* E38. iOS zoom prevention - inputs must be >= 16px */
+input[type="text"], input[type="email"], input[type="tel"],
+input[type="password"], input[type="search"], select, textarea {
+  font-size: 16px !important;
+}

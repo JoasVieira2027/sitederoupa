@@ -2459,7 +2459,11 @@
     window.AdminPanel.updateBanner = function(idx, field, val) {
       if (!bannersList[idx]) return;
       bannersList[idx][field] = val;
-      if (field === 'image' || field === 'mobileImage') AdminPanel.renderBannersManager();
+      if (field === 'image') bannersList[idx].imageDesktop = val;
+      if (field === 'imageDesktop') bannersList[idx].image = val;
+      if (field === 'mobileImage') bannersList[idx].imageMobile = val;
+      if (field === 'imageMobile') bannersList[idx].mobileImage = val;
+      if (field === 'image' || field === 'mobileImage' || field === 'imageDesktop' || field === 'imageMobile') AdminPanel.renderBannersManager();
     };
 
     window.AdminPanel.removeBanner = function(idx) {
@@ -2486,11 +2490,18 @@
         if (window.SupabaseService && window.SupabaseService.isConfigured()) {
           const url = await window.SupabaseService.uploadImage(file, 'products');
           bannersList[idx][field] = url;
+          if (field === 'image') bannersList[idx].imageDesktop = url;
+          if (field === 'mobileImage') bannersList[idx].imageMobile = url;
           AdminPanel.renderBannersManager();
           Utils.showToast('Imagem do banner enviada!', 'success');
         } else {
           const reader = new FileReader();
-          reader.onload = e => { bannersList[idx][field] = e.target.result; AdminPanel.renderBannersManager(); };
+          reader.onload = e => {
+            bannersList[idx][field] = e.target.result;
+            if (field === 'image') bannersList[idx].imageDesktop = e.target.result;
+            if (field === 'mobileImage') bannersList[idx].imageMobile = e.target.result;
+            AdminPanel.renderBannersManager();
+          };
           reader.readAsDataURL(file);
         }
       } catch (err) { Utils.showToast('Erro: ' + (err.message || ''), 'error'); }
@@ -2506,6 +2517,8 @@
           badge: 'NOVIDADE',
           image: 'assets/images/hero_fitness.jpg',
           mobileImage: 'assets/images/hero_fitness.jpg',
+          imageDesktop: 'assets/images/hero_fitness.jpg',
+          imageMobile: 'assets/images/hero_fitness.jpg',
           ctaText: 'Ver Peças',
           ctaLink: '#products',
           active: true,

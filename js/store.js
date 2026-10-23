@@ -222,12 +222,15 @@
     try { renderHeroBanners(); } catch(e) { console.warn('[init] renderHeroBanners:', e); }
     try { renderCategories(); } catch(e) { console.warn('[init] renderCategories:', e); }
     try { renderVisualCategories(); } catch(e) { console.warn('[init] renderVisualCategories:', e); }
+    try { renderEssentialsGrid(); } catch(e) { console.warn('[init] renderEssentialsGrid:', e); }
     try { renderFeaturedCollection(); } catch(e) { console.warn('[init] renderFeaturedCollection:', e); }
     try { renderProducts(); } catch(e) { console.warn('[init] renderProducts:', e); }
     try { renderRecommendedProducts(); } catch(e) { console.warn('[init] renderRecommendedProducts:', e); }
     try { renderAbout(); } catch(e) { console.warn('[init] renderAbout:', e); }
+    try { renderEditorialSplit(); } catch(e) { console.warn('[init] renderEditorialSplit:', e); }
     try { renderInstagramFeed(); } catch(e) { console.warn('[init] renderInstagramFeed:', e); }
     try { renderFooter(); } catch(e) { console.warn('[init] renderFooter:', e); }
+    try { renderTestimonials(); } catch(e) { console.warn('[init] renderTestimonials:', e); }
     try { renderFloatingContact(); } catch(e) { console.warn('[init] renderFloatingContact:', e); }
     try { initInstantSearch(); } catch(e) { console.warn('[init] initInstantSearch:', e); }
     try { initHeroParallax(); } catch(e) { console.warn('[init] initHeroParallax:', e); }
@@ -244,12 +247,15 @@
       renderHeroBanners();
       renderCategories();
       renderVisualCategories();
+      renderEssentialsGrid();
       renderFeaturedCollection();
       renderProducts();
       renderRecommendedProducts();
       renderAbout();
+      renderEditorialSplit();
       renderInstagramFeed();
       renderFooter();
+      renderTestimonials();
       renderFloatingContact();
       updateCartUI();
       refreshIcons();
@@ -267,8 +273,10 @@
       renderHeroBanners();
       renderFeaturedCollection();
       renderAbout();
+      renderEditorialSplit();
       renderInstagramFeed();
       renderFooter();
+      renderTestimonials();
       renderFloatingContact();
       renderProducts();
       renderRecommendedProducts();
@@ -279,6 +287,7 @@
     document.addEventListener('categories-updated', () => {
       renderCategories();
       renderVisualCategories();
+      renderEssentialsGrid();
       refreshIcons();
     });
 
@@ -288,6 +297,7 @@
       renderRecommendedProducts();
       renderCategories();
       renderVisualCategories();
+      renderEssentialsGrid();
       refreshIcons();
     });
   }
@@ -371,6 +381,14 @@
     if (navbarWhatsappBtn) navbarWhatsappBtn.href  = wa;
     if (drawerWhatsappBtn) drawerWhatsappBtn.href  = wa;
     if (footerWhatsapp)    footerWhatsapp.href     = wa;
+
+    // ── Loyalty program name in drawer ────────────────────────────
+    const loyaltyNameEl = $('drawer-loyalty-program-name');
+    if (loyaltyNameEl) loyaltyNameEl.textContent = `Fidelidade ${short}`;
+
+    // ── Catalog section label ─────────────────────────────────────
+    const catalogLabelEl = $('catalog-section-label');
+    if (catalogLabelEl) catalogLabelEl.textContent = `Coleção ${name}`;
   }
 
   function renderAnnouncementBar() {
@@ -394,29 +412,46 @@
   // ===== BENEFITS BAR =====
   function renderBenefitsBar() {
     const grid = $('benefits-grid');
-    if (!grid) return;
     const bList = (settings && Array.isArray(settings.benefitsBar) && settings.benefitsBar.length > 0)
       ? settings.benefitsBar
       : [
           { icon: 'truck', title: 'Frete grátis acima de R$199', desc: 'Entrega rápida e segura para todo o Brasil' },
           { icon: 'shield-check', title: 'Pagamento seguro', desc: 'Ambiente protegido com confirmação imediata' },
           { icon: 'refresh-cw', title: 'Troca facilitada', desc: 'Primeira troca sem custo e sem burocracia' },
-          { icon: 'zap', title: 'Envio rápido', desc: 'Despacho ágil com código de rastreamento' }
+          { icon: 'message-circle', title: 'Atendimento', desc: 'Suporte exclusivo no WhatsApp' }
         ];
 
-    grid.innerHTML = bList.map(b => `
-      <div class="benefit-card">
-        <div class="benefit-icon-wrapper">
+    if (grid) {
+      grid.innerHTML = bList.map(b => `
+        <div class="benefit-card">
+          <div class="benefit-icon-wrapper">
+            <i data-lucide="${b.icon || 'check-circle'}"></i>
+          </div>
+          <div class="benefit-content">
+            <h3>${Utils.sanitize(b.title)}</h3>
+            <p>${Utils.sanitize(b.desc)}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Also populate the new Essence-style dark benefits strip
+    const darkStrip = $('benefits-bar-inner');
+    if (darkStrip) {
+      darkStrip.innerHTML = bList.map(b => `
+        <div class="benefit-item">
           <i data-lucide="${b.icon || 'check-circle'}"></i>
+          <div class="benefit-item-text">
+            <span class="benefit-item-title">${Utils.sanitize(b.title)}</span>
+            <span class="benefit-item-desc">${Utils.sanitize(b.desc || '')}</span>
+          </div>
         </div>
-        <div class="benefit-content">
-          <h3>${Utils.sanitize(b.title)}</h3>
-          <p>${Utils.sanitize(b.desc)}</p>
-        </div>
-      </div>
-    `).join('');
+      `).join('');
+    }
+
     refreshIcons();
   }
+
 
   // ===== FOOTER RENDERING =====
   function renderFooter() {
@@ -809,14 +844,15 @@
         const nameMatch = p.name && p.name.toLowerCase().includes(q);
         const catMatch = p.category && p.category.toLowerCase().includes(q);
         const descMatch = p.description && p.description.toLowerCase().includes(q);
-        return nameMatch || catMatch || descMatch;
+        const colorMatch = (p.variants || []).some(v => v.color && v.color.toLowerCase().includes(q));
+        return nameMatch || catMatch || descMatch || colorMatch;
       });
     }
 
     // 6. Update Section Header dynamically
     if (productsSectionTitle) {
       if (searchQuery) {
-        productsSectionTitle.textContent = `Resultados para "${searchQuery}"`;
+        productsSectionTitle.textContent = `Resultados para "${searchQuery}" (${products.length} ${products.length === 1 ? 'peça encontrada' : 'peças encontradas'})`;
       } else if (currentColorFilter) {
         productsSectionTitle.textContent = `Peças na Cor: ${currentColorFilter}`;
       } else if (currentNorm && currentNorm !== 'all') {
@@ -924,7 +960,7 @@
 
       // Click on card body opens details modal
       card.addEventListener('click', e => {
-        if (e.target.closest('.btn-add-cart') || e.target.closest('.color-swatch-mini')) return;
+        if (e.target.closest('.btn-card-bag') || e.target.closest('.btn-add-cart') || e.target.closest('.color-swatch-mini')) return;
         openProductModal(id);
       });
 
@@ -952,16 +988,52 @@
           }
         });
       });
-    });
 
-    // Add to cart buttons
-    productsGrid.querySelectorAll('.btn-add-cart').forEach(btn => {
-      btn.addEventListener('click', e => {
-        e.stopPropagation();
-        const id = btn.dataset.id;
-        openProductModal(id);
+      // Quick Bag Button click
+      card.querySelectorAll('.btn-card-bag, .btn-add-cart').forEach(btn => {
+        btn.addEventListener('click', e => handleCardBagClick(id, e));
       });
     });
+  }
+
+  // Quick Cart Bag Button click handler
+  function handleCardBagClick(id, e) {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    const product = DataStore.getProductById(id);
+    if (!product) return;
+
+    if (!DataStore.isStoreOpen()) {
+      Utils.showToast('A loja está fechada no momento.', 'warning');
+      return;
+    }
+    const totalStock = DataStore.getProductTotalStock(id);
+    if (!product.inStock || totalStock === 0) {
+      Utils.showToast('Este produto está esgotado.', 'warning');
+      return;
+    }
+
+    const variants = product.variants || [];
+    const hasMultipleColors = variants.length > 1;
+    const hasMultipleSizes = variants.some(v => (v.sizes || []).filter(s => (s.qty || 0) > 0).length > 1) || (product.sizes && product.sizes.length > 1);
+
+    // Se tiver múltiplas cores ou tamanhos, abre o modal para o cliente escolher a opção exata
+    if (hasMultipleColors || hasMultipleSizes) {
+      openProductModal(id);
+    } else {
+      // Produto simples ou tamanho único: adiciona diretamente à sacola com aviso de sucesso
+      const success = addToCart(product, null, null, null, 1);
+      if (success) {
+        Utils.showToast(`${product.name} adicionado à sacola!`, 'success');
+        const cartBtn = $('btn-open-cart');
+        if (cartBtn) {
+          cartBtn.classList.add('pulse');
+          setTimeout(() => cartBtn.classList.remove('pulse'), 600);
+        }
+      }
+    }
   }
 
   // ===== PRODUCT CARD TEMPLATE (SEM EMOJIS) =====
@@ -1044,6 +1116,9 @@
           ${imageHtml}
           ${badgeHtml}
           ${colorSwatches ? `<div class="product-colors-preview">${colorSwatches}</div>` : ''}
+          <button type="button" class="btn-card-bag" data-id="${p.id}" ${(isOut || isClosed) ? 'disabled' : ''} aria-label="Adicionar ${Utils.sanitize(p.name)} à sacola" title="${isClosed ? 'Loja Fechada' : (isOut ? 'Esgotado' : 'Adicionar à Sacola')}">
+            <i data-lucide="shopping-bag"></i>
+          </button>
           <div class="product-card-quick-view">
             <i data-lucide="eye"></i>
             <span>Ver Detalhes</span>
@@ -1061,13 +1136,6 @@
           <div class="product-card-pricing">
             ${priceHtml}
             ${installmentText ? `<span class="product-card-installment">${installmentText}</span>` : ''}
-          </div>
-
-          <div class="product-card-footer">
-            <button type="button" class="btn-add-cart" data-id="${p.id}" ${(isOut || isClosed) ? 'disabled' : ''} aria-label="Adicionar ${Utils.sanitize(p.name)} ao carrinho">
-              <i data-lucide="shopping-bag"></i>
-              <span>${isClosed ? 'Loja Fechada' : (isOut ? 'Esgotado' : 'Adicionar à Sacola')}</span>
-            </button>
           </div>
         </div>
       </article>
@@ -1108,14 +1176,11 @@
     featuredGrid.querySelectorAll('.product-card').forEach(card => {
       const id = card.dataset.id;
       card.addEventListener('click', e => {
-        if (e.target.closest('.btn-add-cart') || e.target.closest('.color-swatch-mini')) return;
+        if (e.target.closest('.btn-card-bag') || e.target.closest('.btn-add-cart') || e.target.closest('.color-swatch-mini')) return;
         openProductModal(id);
       });
-      card.querySelectorAll('.btn-add-cart').forEach(btn => {
-        btn.addEventListener('click', e => {
-          e.stopPropagation();
-          openProductModal(id);
-        });
+      card.querySelectorAll('.btn-card-bag, .btn-add-cart').forEach(btn => {
+        btn.addEventListener('click', e => handleCardBagClick(id, e));
       });
     });
   }
@@ -1171,14 +1236,11 @@
     recGrid.querySelectorAll('.product-card').forEach(card => {
       const id = card.dataset.id;
       card.addEventListener('click', e => {
-        if (e.target.closest('.btn-add-cart') || e.target.closest('.color-swatch-mini')) return;
+        if (e.target.closest('.btn-card-bag') || e.target.closest('.btn-add-cart') || e.target.closest('.color-swatch-mini')) return;
         openProductModal(id);
       });
-      card.querySelectorAll('.btn-add-cart').forEach(btn => {
-        btn.addEventListener('click', e => {
-          e.stopPropagation();
-          openProductModal(id);
-        });
+      card.querySelectorAll('.btn-card-bag, .btn-add-cart').forEach(btn => {
+        btn.addEventListener('click', e => handleCardBagClick(id, e));
       });
     });
   }
@@ -1715,6 +1777,72 @@
   }
 
   // ===== INSTAGRAM FEED =====
+  // ===== TESTIMONIALS — "O QUE NOSSAS CLIENTES DIZEM?" =====
+  async function renderTestimonials() {
+    const grid = $('testimonials-grid');
+    if (!grid) return;
+
+    let reviews = [];
+    try {
+      if (DataStore && typeof DataStore.getAllReviews === 'function') {
+        reviews = await DataStore.getAllReviews({ limit: 6, verified: true }) || [];
+      } else if (DataStore && typeof DataStore.getProductReviews === 'function') {
+        reviews = await DataStore.getProductReviews(null, { limit: 6 }) || [];
+      }
+    } catch (e) { /* use fallback */ }
+
+    const fallback = [
+      { stars: 5, text: '"Tecido incrível, caimento perfeito. Zero transparência mesmo no agachamento!"', author: 'Ana S.', product: 'Legging de Alta Compressão' },
+      { stars: 5, text: '"Meu conjunto favorito para treino. Cós alto que não escorrega — amei!"', author: 'Carla M.', product: 'Conjunto Fitness' },
+      { stars: 5, text: '"Estiloso e funcional. Ideal para academia e para o dia a dia!"', author: 'Juliana R.', product: 'Top Cropped' }
+    ];
+
+    const toRender = (reviews.length >= 3 ? reviews.slice(0, 3).map(r => {
+      const nameParts = (r.customerName || r.customer_name || r.name || 'Cliente').trim().split(' ');
+      const abbrev = nameParts.length > 1 ? `${nameParts[0]} ${nameParts[nameParts.length-1][0]}.` : nameParts[0];
+      return { stars: r.rating || 5, text: `"${Utils.sanitize(r.comment || r.text || '...')}"`, author: Utils.sanitize(abbrev), product: Utils.sanitize(r.productName || r.product_name || '') };
+    }) : fallback);
+
+    const starsHtml = n => '★'.repeat(Math.min(n, 5)) + (n < 5 ? '☆'.repeat(5 - n) : '');
+    grid.innerHTML = toRender.map(r => `
+      <div class="testimonial-card">
+        <div class="testimonial-stars">${starsHtml(r.stars)}</div>
+        <p class="testimonial-text">${r.text}</p>
+        <div class="testimonial-author">
+          <span class="testimonial-name">${r.author}</span>
+          ${r.product ? `<span class="testimonial-product">${r.product}</span>` : ''}
+        </div>
+      </div>
+    `).join('');
+
+    const titleEl = $('testimonials-title');
+    if (titleEl && settings?.testimonialsConfig?.title) titleEl.textContent = settings.testimonialsConfig.title;
+  }
+
+  // ===== EDITORIAL SPLIT =====
+  function renderEditorialSplit() {
+    const section = $('editorial-split-section');
+    if (!section) return;
+
+    const config = settings?.editorialBanner || settings?.editorialSplit || {};
+    if (config.active === false || config.active === 'false') { section.style.display = 'none'; return; }
+    section.style.display = '';
+
+    const imgEl = $('editorial-split-img');
+    const labelEl = $('editorial-split-label');
+    const titleEl = $('editorial-split-title');
+    const descEl = $('editorial-split-desc');
+    const ctaEl = $('editorial-split-cta');
+    const ctaTextEl = $('editorial-split-cta-text');
+
+    if (imgEl && config.image) imgEl.src = config.image;
+    if (labelEl && config.label) labelEl.textContent = config.label;
+    if (titleEl && config.title) titleEl.textContent = config.title;
+    if (descEl && config.description) descEl.textContent = config.description;
+    if (ctaEl && config.ctaLink) ctaEl.href = config.ctaLink;
+    if (ctaTextEl && config.ctaText) ctaTextEl.textContent = config.ctaText;
+  }
+
   function renderInstagramFeed() {
     if (!instagramSection || !instagramGrid) return;
     const feed = settings?.instagramFeed;
@@ -3108,26 +3236,57 @@
     }
 
     // Live Search Handlers
-    const handleSearch = Utils.debounce(val => {
-      searchQuery = val.trim();
+    const executeSearch = (val, shouldScroll = true) => {
+      searchQuery = (val || '').trim();
       if (btnClearSearch) {
         if (searchQuery) btnClearSearch.classList.remove('hidden');
         else btnClearSearch.classList.add('hidden');
       }
+      if (searchQuery) {
+        currentCategory = 'all'; // Reseta filtro para buscar em todo o catálogo
+        currentColorFilter = null;
+        renderCategories();
+      }
       renderProducts();
-    }, 200);
+      if (shouldScroll && searchQuery.length > 0) {
+        const prodSection = $('products');
+        if (prodSection) {
+          const rect = prodSection.getBoundingClientRect();
+          if (rect.top > 250 || rect.top < -50) {
+            prodSection.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      }
+    };
+
+    const handleSearch = Utils.debounce(val => {
+      executeSearch(val, true);
+    }, 250);
 
     if (quickSearchInput) {
       quickSearchInput.addEventListener('input', e => handleSearch(e.target.value));
+      quickSearchInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          executeSearch(quickSearchInput.value, true);
+        }
+      });
     }
 
     if (mobileSearchInput) {
       mobileSearchInput.addEventListener('input', e => {
-        handleSearch(e.target.value);
-        if (e.target.value.length > 2) {
+        executeSearch(e.target.value, false);
+        if (e.target.value.length > 1) {
           closeMobileMenu();
           const prodSection = $('products');
           if (prodSection) prodSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+      mobileSearchInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          closeMobileMenu();
+          executeSearch(mobileSearchInput.value, true);
         }
       });
     }
@@ -3138,6 +3297,7 @@
         if (mobileSearchInput) mobileSearchInput.value = '';
         searchQuery = '';
         btnClearSearch.classList.add('hidden');
+        renderCategories();
         renderProducts();
       });
     }
@@ -3382,6 +3542,8 @@
         subtitle: heroSub,
         ctaText: heroC,
         ctaLink: '#products',
+        image: heroBgImg,
+        mobileImage: heroBgImg,
         imageDesktop: heroBgImg,
         imageMobile: heroBgImg
       }];
@@ -3389,23 +3551,40 @@
 
     container.innerHTML = banners.map((b, idx) => {
       const isMobile = window.innerWidth <= 640;
-      const bgImg = (isMobile && b.imageMobile) ? b.imageMobile : (b.imageDesktop || 'assets/images/hero_fitness.jpg');
+      const desktopImg = b.image || b.imageDesktop || (s.hero && s.hero.image) || 'assets/images/hero_fitness.jpg';
+      const mobileImg = b.mobileImage || b.imageMobile || desktopImg;
+      const bgImg = (isMobile && mobileImg) ? mobileImg : desktopImg;
       const ctaLink = b.ctaLink || '#products';
       const ctaText = b.ctaText || 'Ver Coleção';
       const badge = b.badge || 'Coleção 2026';
 
+      // Pre-test background image to prevent black screen if external image fails
+      if (bgImg && bgImg !== 'assets/images/hero_fitness.jpg') {
+        const testImg = new Image();
+        testImg.onerror = () => {
+          const slideBg = container.querySelector(`.hero-slide[data-index="${idx}"] .hero-slide-bg`);
+          if (slideBg) slideBg.style.backgroundImage = "url('assets/images/hero_fitness.jpg')";
+        };
+        testImg.src = bgImg;
+      }
+
       return `
-        <div class="hero-slide ${idx === 0 ? 'active' : ''}" data-index="${idx}" style="background-image: url('${Utils.sanitize(bgImg)}');">
+        <div class="hero-slide ${idx === 0 ? 'active' : ''}" data-index="${idx}">
           <div class="hero-slide-bg" style="background-image: url('${Utils.sanitize(bgImg)}');"></div>
           <div class="hero-slide-overlay"></div>
           <div class="hero-slide-content container">
             <span class="hero-badge-pill"><i data-lucide="sparkles"></i> ${Utils.sanitize(badge)}</span>
             <h1 class="hero-slide-title">${Utils.sanitize(b.title || 'MODA FITNESS')}</h1>
             <p class="hero-slide-subtitle">${Utils.sanitize(b.subtitle || '')}</p>
-            <a href="${Utils.sanitize(ctaLink)}" class="hero-slide-btn" onclick="if('${ctaLink}'==='#products') window.StoreApp?.selectCategory('all');">
-              <span>${Utils.sanitize(ctaText)}</span>
-              <i data-lucide="arrow-right"></i>
-            </a>
+            <div class="hero-slide-actions">
+              <a href="${Utils.sanitize(ctaLink)}" class="hero-slide-btn" onclick="if('${ctaLink}'==='#products') window.StoreApp?.selectCategory('all');">
+                <span>${Utils.sanitize(ctaText)}</span>
+                <i data-lucide="arrow-right"></i>
+              </a>
+              <a href="#essentials-section" class="hero-slide-btn-secondary">
+                <span>Ver Categorias</span>
+              </a>
+            </div>
           </div>
         </div>
       `;
@@ -3567,6 +3746,97 @@
         card.classList.add('active');
       });
     });
+  }
+
+  // ===== SHOP THE ESSENTIALS — Editorial 3-column grid (Essence-style) =====
+  function renderEssentialsGrid() {
+    const grid = $('essentials-grid');
+    if (!grid) return;
+
+    const categories = DataStore.getCategories().filter(c => c.active !== false && c.active !== 'false');
+    const allProducts = DataStore.getProducts({ includeInactive: false });
+
+    if (!categories.length) {
+      grid.style.display = 'none';
+      const section = $('essentials-section');
+      if (section) section.style.display = 'none';
+      return;
+    }
+
+    // Default category images map for fallback
+    const defaultCatImages = {
+      'leggings': 'assets/images/legging_fitness.jpg',
+      'tops': 'assets/images/top_fitness.jpg',
+      'tops & croppeds': 'assets/images/top_fitness.jpg',
+      'croppeds': 'assets/images/top_fitness.jpg',
+      'conjuntos': 'assets/images/conjunto_fitness.jpg',
+      'shorts': 'assets/images/short_fitness.jpg',
+      'shorts & bermudas': 'assets/images/short_fitness.jpg',
+      'bermudas': 'assets/images/short_fitness.jpg',
+      'macacões': 'assets/images/hero_fitness.jpg',
+      'macacoes': 'assets/images/hero_fitness.jpg',
+      'acessórios': 'assets/images/conjunto_fitness.jpg',
+      'acessorios': 'assets/images/conjunto_fitness.jpg'
+    };
+
+    // Take first 3 categories (or all if less than 3)
+    const topCats = categories.slice(0, 3);
+
+    grid.innerHTML = topCats.map(cat => {
+      const catNorm = Utils.normalizeCategory(cat.name);
+      const catProducts = allProducts.filter(p => {
+        if (!p.category) return false;
+        const pNorm = Utils.normalizeCategory(p.category);
+        return pNorm === catNorm || pNorm.includes(catNorm) || catNorm.includes(pNorm);
+      });
+      const count = catProducts.length;
+
+      const displayName = Utils.decodeHtml(cat.name);
+      const countLabel = count > 0 ? `${count} ${count === 1 ? 'peça' : 'peças'}` : 'Novidades';
+
+      // Smart image fallback:
+      let imgSrc = cat.image || cat.imageDesktop || '';
+      if (!imgSrc && catProducts.length > 0) {
+        const prodWithImg = catProducts.find(p => p.images && p.images.length > 0 && p.images[0]);
+        if (prodWithImg) imgSrc = prodWithImg.images[0];
+      }
+      if (!imgSrc) {
+        imgSrc = defaultCatImages[catNorm] || defaultCatImages[cat.name.toLowerCase().trim()] || 'assets/images/hero_fitness.jpg';
+      }
+
+      const catEncoded = Utils.sanitize(cat.name);
+
+      return `
+        <div class="essentials-card" data-cat="${catEncoded}" role="button" tabindex="0"
+             aria-label="Ver categoria ${displayName}"
+             onclick="window.StoreApp?.selectCategory('${catEncoded}'); document.getElementById('products')?.scrollIntoView({behavior:'smooth'});"
+             onkeydown="if(event.key==='Enter'||event.key===' '){this.click();}">
+          <div class="essentials-card-placeholder"><i data-lucide="image"></i></div>
+          <img class="essentials-card-img"
+               src="${Utils.sanitize(imgSrc)}"
+               alt="${Utils.sanitize(displayName)}"
+               loading="lazy"
+               onerror="this.onerror=null; this.src='assets/images/hero_fitness.jpg';">
+          <div class="essentials-card-overlay"></div>
+          <div class="essentials-card-label">
+            <span class="essentials-card-name">${Utils.sanitize(displayName)}</span>
+            <span class="essentials-card-count">${countLabel}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Update section title from settings if configured
+    const titleEl = $('essentials-title');
+    if (titleEl) {
+      if (settings && settings.featuredCollection && settings.featuredCollection.essentialsTitle) {
+        titleEl.textContent = settings.featuredCollection.essentialsTitle;
+      } else {
+        titleEl.textContent = 'CATEGORIAS EM DESTAQUE';
+      }
+    }
+
+    refreshIcons();
   }
 
   // ===== 3. PROGRAMA DE FIDELIDADE & SEGUIR LOJA (OFICIAL SUPABASE) =====
@@ -4857,7 +5127,7 @@
 
     if (navCats) {
       navCats.onclick = () => {
-        const catSec = $('visual-categories') || $('categories-scroll-wrapper') || $('products');
+        const catSec = $('essentials-section') || $('products');
         if (catSec) catSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
       };
     }
@@ -4886,7 +5156,7 @@
   window.StoreApp = {
     goToHome: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
     scrollToCategories: () => {
-      const catSec = $('visual-categories') || $('categories-scroll-wrapper') || $('products');
+      const catSec = $('essentials-section') || $('products');
       if (catSec) catSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
     },
     selectCategory,

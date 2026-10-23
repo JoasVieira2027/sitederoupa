@@ -128,7 +128,7 @@
       <nav class="desktop-nav" aria-label="Navegação principal">
         <ul class="nav-list">
           <li><a href="#products" class="nav-link nav-cat-link active" onclick="window.StoreApp?.selectCategory('all')">Produtos</a></li>
-          <li><a href="#visual-categories" class="nav-link">Categorias</a></li>
+          <li><a href="#essentials-section" class="nav-link">Categorias</a></li>
           <li><a href="#featured-section" class="nav-link">Ofertas</a></li>
         </ul>
       </nav>
@@ -223,7 +223,7 @@
       </button>
       <button type="button" class="drawer-loyalty-btn" onclick="window.StoreApp?.openLoyaltyModal(); window.StoreApp?.closeMobileMenu();">
         <div class="drawer-loyalty-left">
-          <span class="drawer-loyalty-badge"><i data-lucide="award" style="width:14px;height:14px;"></i> Fidelidade Donna PE</span>
+          <span class="drawer-loyalty-badge"><i data-lucide="award" style="width:14px;height:14px;"></i> <span id="drawer-loyalty-program-name">Programa Fidelidade</span></span>
           <span class="drawer-loyalty-pts" id="drawer-loyalty-pts">Ver Meus Pontos & Cupons</span>
         </div>
         <i data-lucide="chevron-right" class="nav-arrow"></i>
@@ -242,7 +242,7 @@
           </a>
         </li>
         <li>
-          <a href="#visual-categories" class="mobile-nav-link" data-close-drawer>
+          <a href="#essentials-section" class="mobile-nav-link" data-close-drawer>
             <i data-lucide="grid"></i>
             <span>Categorias</span>
             <i data-lucide="chevron-right" class="nav-arrow"></i>
@@ -326,13 +326,18 @@
         <div class="hero-slide-bg" style="background-image: url('assets/images/hero_fitness.jpg');"></div>
         <div class="hero-slide-overlay"></div>
         <div class="hero-slide-content container">
-          <span class="hero-badge-pill"><i data-lucide="sparkles"></i> Nova Coleção 2026</span>
+          <span class="hero-badge-pill"><i data-lucide="sparkles"></i> <span id="hero-badge-text">Nova Coleção 2026</span></span>
           <h1 class="hero-slide-title" id="hero-title">MODA FITNESS CHIC</h1>
           <p class="hero-slide-subtitle" id="hero-subtitle">Leve, confortável e cheia de estilo. Modelagem anatômica e zero transparência para todos os seus momentos.</p>
-          <a href="#products" class="hero-slide-btn" id="hero-cta" onclick="window.StoreApp?.selectCategory('all')">
-            <span>Ver Coleção</span>
-            <i data-lucide="arrow-right"></i>
-          </a>
+          <div class="hero-slide-actions">
+            <a href="#products" class="hero-slide-btn" id="hero-cta" onclick="window.StoreApp?.selectCategory('all')">
+              <span>Ver Coleção</span>
+              <i data-lucide="arrow-right"></i>
+            </a>
+            <a href="#essentials-section" class="hero-slide-btn-secondary" id="hero-cta-secondary">
+              <span>Ver Categorias</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -347,12 +352,49 @@
     <div class="hero-slider-dots" id="hero-slider-dots"></div>
   </section>
 
-  <!-- 2. Seção Visual de Categorias (Scroll Horizontal Suave no Mobile) -->
-  <section class="chic-categories-section container" id="visual-categories" aria-label="Navegação por categorias">
-    <span class="section-label-chic">Categorias</span>
-    <div class="chic-categories-scroll-wrap">
-      <div class="chic-categories-track" id="chic-categories-track">
-        <!-- Rendered dynamically by store.js based on Supabase / DataStore categories -->
+  <!-- Benefits Bar — Dark strip with trust signals (Essence-style) -->
+  <div class="benefits-bar-section" id="benefits-bar-section">
+    <div class="benefits-bar-inner container" id="benefits-bar-inner">
+      <!-- Populated by store.js from settings.benefitsBar -->
+      <div class="benefit-item">
+        <i data-lucide="truck"></i>
+        <div class="benefit-item-text">
+          <span class="benefit-item-title">Frete Grátis</span>
+          <span class="benefit-item-desc">Compras acima de R$ 199</span>
+        </div>
+      </div>
+      <div class="benefit-item">
+        <i data-lucide="shield-check"></i>
+        <div class="benefit-item-text">
+          <span class="benefit-item-title">Compra Segura</span>
+          <span class="benefit-item-desc">Ambiente criptografado SSL</span>
+        </div>
+      </div>
+      <div class="benefit-item">
+        <i data-lucide="refresh-cw"></i>
+        <div class="benefit-item-text">
+          <span class="benefit-item-title">Troca Fácil</span>
+          <span class="benefit-item-desc">1ª troca grátis em até 7 dias</span>
+        </div>
+      </div>
+      <div class="benefit-item">
+        <i data-lucide="message-circle"></i>
+        <div class="benefit-item-text">
+          <span class="benefit-item-title">Atendimento</span>
+          <span class="benefit-item-desc">Suporte exclusivo no WhatsApp</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Categorias em Destaque — Editorial 3-column categories (Essence-style) -->
+  <section class="essentials-section" id="essentials-section" aria-label="Categorias em destaque">
+    <div class="container">
+      <div class="essentials-header">
+        <h2 class="essentials-title" id="essentials-title">CATEGORIAS EM DESTAQUE</h2>
+      </div>
+      <div class="essentials-grid" id="essentials-grid">
+        <!-- Rendered dynamically by store.js with top categories -->
       </div>
     </div>
   </section>
@@ -522,6 +564,61 @@
           <div>
             <strong>Formas de Pagamento</strong>
             <span>Pix com aprovação imediata e cartões de crédito em até 3x sem juros.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Editorial Split Section (Essence "DISCOVER FLEXFIT FREEDOM" equivalent — Admin configurável) -->
+  <section class="editorial-split-section" id="editorial-split-section" aria-label="Banner editorial">
+    <div class="editorial-split-inner">
+      <div class="editorial-split-image" id="editorial-split-image-wrap">
+        <img id="editorial-split-img" src="assets/images/hero_fitness.jpg" alt="Coleção fitness" loading="lazy">
+      </div>
+      <div class="editorial-split-content">
+        <span class="editorial-split-label" id="editorial-split-label">Performance. Estilo. Resultado.</span>
+        <h2 class="editorial-split-title" id="editorial-split-title">DESCUBRA A LIBERDADE DE MOVER</h2>
+        <p class="editorial-split-desc" id="editorial-split-desc">Peças desenvolvidas para cada fase do treino. Tecidos que acompanham, sustentam e respiram com você — do aquecimento à conquista.</p>
+        <a href="#products" class="editorial-split-cta" id="editorial-split-cta" onclick="window.StoreApp?.selectCategory('all')">
+          <span id="editorial-split-cta-text">Ver Coleção</span>
+          <i data-lucide="arrow-right" style="width:14px;height:14px;"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section (Essence "WHAT DO OUR CUSTOMERS SAY?" — dados reais) -->
+  <section class="testimonials-section" id="testimonials-section" aria-label="Avaliações de clientes">
+    <div class="container">
+      <div class="testimonials-header">
+        <span class="testimonials-label">AVALIAÇÕES</span>
+        <h2 class="testimonials-title" id="testimonials-title">O QUE NOSSAS CLIENTES DIZEM?</h2>
+      </div>
+      <div class="testimonials-grid" id="testimonials-grid">
+        <!-- Populated dynamically by store.js from real reviews -->
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"Tecido incrível, caimento perfeito. Zero transparência mesmo no agachamento!"</p>
+          <div class="testimonial-author">
+            <span class="testimonial-name">Ana S.</span>
+            <span class="testimonial-product">Legging de Alta Compressão</span>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"Meu conjunto favorito para treino. Cós alto que não escorrega, amei!"</p>
+          <div class="testimonial-author">
+            <span class="testimonial-name">Carla M.</span>
+            <span class="testimonial-product">Conjunto Fitness</span>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"Estiloso e funcional. Ideal para academia e para o dia a dia também!"</p>
+          <div class="testimonial-author">
+            <span class="testimonial-name">Juliana R.</span>
+            <span class="testimonial-product">Top Cropped</span>
           </div>
         </div>
       </div>
@@ -879,7 +976,7 @@
     <div class="modal modal-product-details">
       <div class="modal-header">
         <div class="product-modal-title-area">
-          <span class="product-modal-category" id="modal-product-category">Fitness Activewear</span>
+          <span class="product-modal-category" id="modal-product-category">Moda Fitness</span>
           <h3 id="modal-product-name" class="product-modal-name">Nome do Produto</h3>
         </div>
         <button type="button" class="btn-close-modal" id="btn-close-product-modal" aria-label="Fechar detalhes">
