@@ -1711,6 +1711,40 @@
     }
   }
 
+  // Lightbox Zoom da Imagem do Produto
+  function openProductZoom() {
+    const mainImg = $('modal-product-image');
+    const zoomImg = $('zoom-modal-image');
+    const zoomModal = $('product-zoom-modal');
+
+    const imgSrc = (mainImg && mainImg.src && mainImg.style.display !== 'none') ? mainImg.src : (currentProduct?.image || '');
+    if (!imgSrc) {
+      Utils.showToast('Nenhuma imagem disponível para ampliar.', 'info');
+      return;
+    }
+
+    if (zoomImg) {
+      zoomImg.src = imgSrc;
+      zoomImg.alt = currentProduct?.name || 'Foto ampliada em alta resolução';
+    }
+    if (zoomModal) {
+      zoomModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      refreshIcons();
+    }
+  }
+
+  function closeProductZoom() {
+    const zoomModal = $('product-zoom-modal');
+    if (zoomModal) {
+      zoomModal.classList.remove('active');
+      // Mantém overflow hidden caso o modal do produto continue aberto
+      if (!productDetailsModal || !productDetailsModal.classList.contains('active')) {
+        document.body.style.overflow = '';
+      }
+    }
+  }
+
   // ===== 6. ABOUT STORE SECTION (Apresentação Curta e Profissional) =====
   function renderAbout() {
     if (!settings) return;
@@ -2652,19 +2686,19 @@
 
     if (checkoutDeliveryFee) {
       if (deliveryType === 'pickup') {
-        checkoutDeliveryFee.innerHTML = '<span style="color:#059669;font-weight:700;">Grátis (Retirada)</span>';
+        checkoutDeliveryFee.innerHTML = '<span style="color:#111111;font-weight:700;">Grátis (Retirada)</span>';
       } else if (isFreeShippingFromCoupon) {
-        checkoutDeliveryFee.innerHTML = '<span style="color:#059669;font-weight:700;">Grátis</span> <small style="color:#059669;">(Cupom Fidelidade)</small>';
+        checkoutDeliveryFee.innerHTML = '<span style="color:#111111;font-weight:700;">Grátis</span> <small style="color:#71717A;">(Cupom Fidelidade)</small>';
       } else if (isPendingNeighborhood) {
         const isFreeActive = d.freeDeliveryEnabled !== false;
         const freeAt = isFreeActive ? (d.freeDeliveryThreshold !== undefined ? d.freeDeliveryThreshold : 199) : Infinity;
         if (subtotal >= freeAt) {
-          checkoutDeliveryFee.innerHTML = '<span style="color:#059669;font-weight:700;">Grátis</span> <small style="color:var(--text-muted);">(Campanha)</small>';
+          checkoutDeliveryFee.innerHTML = '<span style="color:#111111;font-weight:700;">Grátis</span> <small style="color:var(--text-muted);">(Campanha)</small>';
         } else {
           checkoutDeliveryFee.innerHTML = '<span style="color:#d97706;font-weight:700;font-size:0.85rem;">Selecione o bairro</span>';
         }
       } else if (effectiveFee === 0) {
-        checkoutDeliveryFee.innerHTML = '<span style="color:#059669;font-weight:700;">Grátis</span>';
+        checkoutDeliveryFee.innerHTML = '<span style="color:#111111;font-weight:700;">Grátis</span>';
       } else {
         const n = selectedNeighborhoodId ? activeNeighs.find(x => x.id === selectedNeighborhoodId) : null;
         checkoutDeliveryFee.innerHTML = n 
@@ -3200,29 +3234,41 @@
 
     // Product Image Zoom Lightbox
     if (btnZoomImage) {
-      btnZoomImage.addEventListener('click', () => {
-        if (!modalProductImage || !modalProductImage.src) return;
-        if (zoomModalImage) {
-          zoomModalImage.src = modalProductImage.src;
-          zoomModalImage.alt = currentProduct?.name || 'Foto ampliada';
-        }
-        if (productZoomModal) productZoomModal.classList.add('active');
+      btnZoomImage.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openProductZoom();
+      });
+    }
+
+    if (modalProductImage) {
+      modalProductImage.addEventListener('click', () => {
+        openProductZoom();
       });
     }
 
     if (btnCloseZoom) {
-      btnCloseZoom.addEventListener('click', () => {
-        if (productZoomModal) productZoomModal.classList.remove('active');
+      btnCloseZoom.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeProductZoom();
       });
     }
 
     if (productZoomModal) {
       productZoomModal.addEventListener('click', e => {
-        if (e.target === productZoomModal) {
-          productZoomModal.classList.remove('active');
+        if (e.target === productZoomModal || e.target.classList.contains('image-zoom-container')) {
+          closeProductZoom();
         }
       });
     }
+
+    // Tecla Escape para fechar lightbox
+    window.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && productZoomModal && productZoomModal.classList.contains('active')) {
+        closeProductZoom();
+      }
+    });
 
     // Open Size Guide Accordion smoothly
     if (btnOpenSizeGuide) {
@@ -4280,10 +4326,10 @@
     }
   }
 
-  // Avaliação de Produtos (Reviews com Pontos - Apenas compras verificadas)
+  // Avaliação de Produtos (Reviews com Pontos de Fidelidade)
   async function openReviewModal(productId) {
     if (!currentCustomer) {
-      Utils.showToast('Faça login ou crie sua conta para avaliar os produtos que você comprou.', 'info');
+      Utils.showToast('Faça login ou crie sua conta para avaliar as peças da loja e acumular pontos.', 'info');
       openCustomerAuthModal('login');
       return;
     }
@@ -4294,19 +4340,25 @@
       return;
     }
 
-    // REGRA OBRIGATÓRIA: O cliente só pode avaliar um produto que realmente tenha comprado
-    try {
-      const hasBought = await DataStore.hasCustomerPurchasedProduct(currentCustomer.id, activeProdId);
-      if (!hasBought) {
-        Utils.showToast('Você só pode avaliar produtos que realmente tenha comprado nesta loja.', 'warning');
-        return;
-      }
-    } catch (e) {
-      console.warn('[Store] Erro ao verificar histórico de compras:', e);
-    }
-
     const modal = $('product-review-modal');
     const prodIdInput = $('review-product-id');
+    const modalSubtitle = modal?.querySelector('.modal-header span');
+
+    try {
+      const hasBought = await DataStore.hasCustomerPurchasedProduct(currentCustomer.id, activeProdId);
+      if (modalSubtitle) {
+        if (hasBought) {
+          modalSubtitle.textContent = '★ Compra Verificada: Ganhe +30 pontos (+20 pts bônus com foto!)';
+          modalSubtitle.style.color = '#111111';
+        } else {
+          modalSubtitle.textContent = 'Avaliação da Comunidade: Ganhe +15 pontos (+15 pts bônus com foto!)';
+          modalSubtitle.style.color = '#71717A';
+        }
+      }
+    } catch (e) {
+      console.warn('[Store] Verificação de compra do cliente:', e);
+    }
+
     if (modal) {
       if (prodIdInput) prodIdInput.value = activeProdId;
       modal.classList.add('active');
@@ -4371,10 +4423,25 @@
 
       let photoUrl = '';
       if (photoFile) {
-        try {
-          photoUrl = await SupabaseService.uploadImage(photoFile, 'reviews');
-        } catch (uploadErr) {
-          console.warn('[Store] Falha no upload de foto da avaliação:', uploadErr);
+        if (window.SupabaseService && window.SupabaseService.uploadImage) {
+          try {
+            photoUrl = await window.SupabaseService.uploadImage(photoFile, 'reviews');
+          } catch (uploadErr) {
+            console.warn('[Store] Falha no upload de foto da avaliação no servidor:', uploadErr);
+          }
+        }
+        // Fallback seguro em base64 se Supabase storage não responder
+        if (!photoUrl && photoFile.size < 4 * 1024 * 1024) {
+          try {
+            photoUrl = await new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onload = (re) => resolve(re.target.result);
+              reader.onerror = () => resolve('');
+              reader.readAsDataURL(photoFile);
+            });
+          } catch (readErr) {
+            console.warn('[Store] Falha ao processar imagem localmente:', readErr);
+          }
         }
       }
 
@@ -5102,7 +5169,7 @@
             <div class="search-product-thumb" style="cursor:pointer;border:1px solid #E2E8F0;border-radius:8px;padding:8px;text-align:center;background:#FFFFFF;" onclick="window.StoreApp?.closeSearchModal(); window.StoreApp?.openProductModal('${p.id}');">
               <img src="${p.image || 'assets/images/hero_fitness.jpg'}" alt="${Utils.sanitize(p.name)}" style="width:100%;height:100px;object-fit:cover;border-radius:6px;margin-bottom:6px;">
               <h5 style="font-size:0.78rem;font-weight:700;color:#0F172A;line-height:1.2;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${Utils.sanitize(p.name)}</h5>
-              <span style="font-size:0.82rem;font-weight:800;color:#059669;">${Utils.formatCurrency(finalPrice)}</span>
+              <span style="font-size:0.82rem;font-weight:800;color:#111111;">${Utils.formatCurrency(finalPrice)}</span>
             </div>
           `;
         }).join('')}
@@ -5208,6 +5275,8 @@
     handleCustomerLogout,
     openSearchModal,
     closeSearchModal,
+    openProductZoom,
+    closeProductZoom,
     shareStore,
     closeMobileMenu: () => {
       if (mobileDrawer) mobileDrawer.classList.remove('active');

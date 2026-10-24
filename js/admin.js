@@ -2216,7 +2216,7 @@
     if ($('v-store-tagline')) $('v-store-tagline').value = s.storeTagline || '';
     if ($('v-store-desc')) $('v-store-desc').value = s.storeDescription || '';
     if ($('v-logo-emoji')) $('v-logo-emoji').value = s.storeLogoEmoji || '';
-    if ($('v-theme-color')) $('v-theme-color').value = s.themeColor || '#B98F98';
+    if ($('v-theme-color')) $('v-theme-color').value = s.themeColor || '#171717';
     // Logos & images
     if ($('v-store-logo')) $('v-store-logo').value = s.storeLogo || '';
     if ($('v-store-logo-mobile')) $('v-store-logo-mobile').value = s.storeLogoMobile || '';
