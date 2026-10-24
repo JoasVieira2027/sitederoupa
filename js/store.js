@@ -415,10 +415,10 @@
     const bList = (settings && Array.isArray(settings.benefitsBar) && settings.benefitsBar.length > 0)
       ? settings.benefitsBar
       : [
-          { icon: 'truck', title: 'Frete grátis acima de R$199', desc: 'Entrega rápida e segura para todo o Brasil' },
-          { icon: 'shield-check', title: 'Pagamento seguro', desc: 'Ambiente protegido com confirmação imediata' },
-          { icon: 'refresh-cw', title: 'Troca facilitada', desc: 'Primeira troca sem custo e sem burocracia' },
-          { icon: 'message-circle', title: 'Atendimento', desc: 'Suporte exclusivo no WhatsApp' }
+          { icon: 'truck', title: 'Frete Grátis', desc: 'Acima de R$ 199 para todo o Brasil' },
+          { icon: 'shield-check', title: 'Pagamento Seguro', desc: 'PIX e cartão com proteção SSL' },
+          { icon: 'refresh-cw', title: 'Troca Facilitada', desc: 'Primeira troca sem burocracia' },
+          { icon: 'package-check', title: 'Envio Rápido', desc: 'Despacho com rastreamento' }
         ];
 
     if (grid) {
@@ -435,19 +435,22 @@
       `).join('');
     }
 
-    // Also populate the new Essence-style dark benefits strip
+    // Also populate the continuous marquee dark strip
     const darkStrip = $('benefits-bar-inner');
-    if (darkStrip) {
-      darkStrip.innerHTML = bList.map(b => `
-        <div class="benefit-item">
-          <i data-lucide="${b.icon || 'check-circle'}"></i>
-          <div class="benefit-item-text">
-            <span class="benefit-item-title">${Utils.sanitize(b.title)}</span>
-            <span class="benefit-item-desc">${Utils.sanitize(b.desc || '')}</span>
-          </div>
+    const darkStripClone = $('benefits-bar-inner-clone');
+
+    const itemsHtml = bList.map(b => `
+      <div class="benefit-item">
+        <i data-lucide="${b.icon || 'check-circle'}"></i>
+        <div class="benefit-item-text">
+          <span class="benefit-item-title">${Utils.sanitize(b.title)}</span>
+          <span class="benefit-item-desc">${Utils.sanitize(b.desc || '')}</span>
         </div>
-      `).join('');
-    }
+      </div>
+    `).join('');
+
+    if (darkStrip) darkStrip.innerHTML = itemsHtml;
+    if (darkStripClone) darkStripClone.innerHTML = itemsHtml;
 
     refreshIcons();
   }

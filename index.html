@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -352,36 +352,69 @@
     <div class="hero-slider-dots" id="hero-slider-dots"></div>
   </section>
 
-  <!-- Benefits Bar — Dark strip with trust signals (Essence-style) -->
-  <div class="benefits-bar-section" id="benefits-bar-section">
-    <div class="benefits-bar-inner container" id="benefits-bar-inner">
-      <!-- Populated by store.js from settings.benefitsBar -->
-      <div class="benefit-item">
-        <i data-lucide="truck"></i>
-        <div class="benefit-item-text">
-          <span class="benefit-item-title">Frete Grátis</span>
-          <span class="benefit-item-desc">Compras acima de R$ 199</span>
+  <!-- Benefits Bar — Continuous Infinite Marquee Strip -->
+  <div class="benefits-bar-section" id="benefits-bar-section" aria-label="Benefícios da Loja">
+    <div class="benefits-bar-track" id="benefits-bar-track">
+      <div class="benefits-bar-inner" id="benefits-bar-inner">
+        <!-- Grupo 1 -->
+        <div class="benefit-item">
+          <i data-lucide="truck"></i>
+          <div class="benefit-item-text">
+            <span class="benefit-item-title">Frete Grátis</span>
+            <span class="benefit-item-desc">Acima de R$ 199 para todo o Brasil</span>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <i data-lucide="shield-check"></i>
+          <div class="benefit-item-text">
+            <span class="benefit-item-title">Pagamento Seguro</span>
+            <span class="benefit-item-desc">PIX e cartão com proteção SSL</span>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <i data-lucide="refresh-cw"></i>
+          <div class="benefit-item-text">
+            <span class="benefit-item-title">Troca Facilitada</span>
+            <span class="benefit-item-desc">Primeira troca sem burocracia</span>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <i data-lucide="package-check"></i>
+          <div class="benefit-item-text">
+            <span class="benefit-item-title">Envio Rápido</span>
+            <span class="benefit-item-desc">Despacho com rastreamento</span>
+          </div>
         </div>
       </div>
-      <div class="benefit-item">
-        <i data-lucide="shield-check"></i>
-        <div class="benefit-item-text">
-          <span class="benefit-item-title">Compra Segura</span>
-          <span class="benefit-item-desc">Ambiente criptografado SSL</span>
+      <div class="benefits-bar-inner benefits-bar-clone" id="benefits-bar-inner-clone" aria-hidden="true">
+        <!-- Grupo 2 (Clone idêntico para loop 100% contínuo) -->
+        <div class="benefit-item">
+          <i data-lucide="truck"></i>
+          <div class="benefit-item-text">
+            <span class="benefit-item-title">Frete Grátis</span>
+            <span class="benefit-item-desc">Acima de R$ 199 para todo o Brasil</span>
+          </div>
         </div>
-      </div>
-      <div class="benefit-item">
-        <i data-lucide="refresh-cw"></i>
-        <div class="benefit-item-text">
-          <span class="benefit-item-title">Troca Fácil</span>
-          <span class="benefit-item-desc">1ª troca grátis em até 7 dias</span>
+        <div class="benefit-item">
+          <i data-lucide="shield-check"></i>
+          <div class="benefit-item-text">
+            <span class="benefit-item-title">Pagamento Seguro</span>
+            <span class="benefit-item-desc">PIX e cartão com proteção SSL</span>
+          </div>
         </div>
-      </div>
-      <div class="benefit-item">
-        <i data-lucide="message-circle"></i>
-        <div class="benefit-item-text">
-          <span class="benefit-item-title">Atendimento</span>
-          <span class="benefit-item-desc">Suporte exclusivo no WhatsApp</span>
+        <div class="benefit-item">
+          <i data-lucide="refresh-cw"></i>
+          <div class="benefit-item-text">
+            <span class="benefit-item-title">Troca Facilitada</span>
+            <span class="benefit-item-desc">Primeira troca sem burocracia</span>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <i data-lucide="package-check"></i>
+          <div class="benefit-item-text">
+            <span class="benefit-item-title">Envio Rápido</span>
+            <span class="benefit-item-desc">Despacho com rastreamento</span>
+          </div>
         </div>
       </div>
     </div>
