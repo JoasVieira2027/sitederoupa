@@ -1385,6 +1385,20 @@
     if (productDetailsModal) productDetailsModal.classList.add('active');
     document.body.style.overflow = 'hidden';
     refreshIcons();
+
+    // Reset e carrega avaliações do produto
+    const reviewsListEl = $('product-reviews-list');
+    if (reviewsListEl) {
+      reviewsListEl.innerHTML = '<p style="color:#94A3B8;font-size:0.82rem;">Carregando avaliações...</p>';
+    }
+    // Carrega async sem bloquear abertura do modal
+    if (product && product.id) {
+      loadProductReviews(product.id).catch(() => {
+        if (reviewsListEl) {
+          reviewsListEl.innerHTML = '<p style="color:#94A3B8;font-size:0.82rem;">Avaliações disponíveis em breve.</p>';
+        }
+      });
+    }
   }
 
   function renderGalleryThumbs(product, activeColor = null) {
@@ -1717,7 +1731,17 @@
     const zoomImg = $('zoom-modal-image');
     const zoomModal = $('product-zoom-modal');
 
-    const imgSrc = (mainImg && mainImg.src && mainImg.style.display !== 'none') ? mainImg.src : (currentProduct?.image || '');
+    // Tenta pegar a imagem ativa da galeria (thumb ativa) antes de usar a principal
+    let imgSrc = '';
+    const activeThumb = document.querySelector('.gallery-thumb.active img, .gallery-thumb-active img');
+    if (activeThumb && activeThumb.src) {
+      imgSrc = activeThumb.src;
+    } else if (mainImg && mainImg.src && mainImg.style.display !== 'none' && !mainImg.src.endsWith('/')) {
+      imgSrc = mainImg.src;
+    } else {
+      imgSrc = currentProduct?.image || '';
+    }
+
     if (!imgSrc) {
       Utils.showToast('Nenhuma imagem disponível para ampliar.', 'info');
       return;

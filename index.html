@@ -993,8 +993,8 @@
             <div class="product-modal-image-placeholder" id="modal-product-placeholder">
               <i data-lucide="sparkles"></i>
             </div>
-            <img id="modal-product-image" src="" alt="Foto do produto selecionado" loading="lazy" style="display:none;">
-            <button type="button" class="btn-zoom-image" id="btn-zoom-image" aria-label="Visualizar imagem ampliada" title="Ver foto ampliada">
+            <img id="modal-product-image" src="" alt="Foto do produto selecionado" loading="lazy" style="display:none;" onclick="window.StoreApp?.openProductZoom()">
+            <button type="button" class="btn-zoom-image" id="btn-zoom-image" aria-label="Visualizar imagem ampliada" title="Ver foto ampliada" onclick="event.stopPropagation();window.StoreApp?.openProductZoom()">
               <i data-lucide="maximize-2"></i>
             </button>
           </div>
