@@ -1261,13 +1261,39 @@
     </div>
   </div>
 
-  <!-- Product Image Lightbox Zoom Modal -->
+  <!-- Product Image Lightbox Zoom Modal (Pinch, Pan & Double-tap) -->
   <div class="modal-overlay image-zoom-overlay" id="product-zoom-modal" role="dialog" aria-modal="true" aria-label="Foto ampliada do produto">
-    <div class="image-zoom-container">
+    <!-- Top Floating Toolbar -->
+    <div class="image-zoom-header">
+      <div class="image-zoom-controls">
+        <button type="button" class="btn-zoom-ctrl" id="btn-zoom-out" aria-label="Diminuir zoom" title="Diminuir zoom">
+          <i data-lucide="minus"></i>
+        </button>
+        <span class="zoom-level-badge" id="zoom-level-badge">100%</span>
+        <button type="button" class="btn-zoom-ctrl" id="btn-zoom-in" aria-label="Aumentar zoom" title="Aumentar zoom">
+          <i data-lucide="plus"></i>
+        </button>
+        <button type="button" class="btn-zoom-ctrl" id="btn-zoom-reset" aria-label="Redefinir zoom" title="Tamanho normal">
+          <i data-lucide="rotate-ccw"></i>
+        </button>
+      </div>
       <button type="button" class="btn-close-zoom" id="btn-close-zoom" aria-label="Fechar visualização ampliada">
         <i data-lucide="x"></i>
       </button>
-      <img id="zoom-modal-image" src="" alt="Foto ampliada em alta resolução">
+    </div>
+
+    <!-- Zoom Viewport & Stage -->
+    <div class="image-zoom-viewport" id="image-zoom-viewport">
+      <div class="image-zoom-stage" id="image-zoom-stage">
+        <img id="zoom-modal-image" src="" alt="Foto ampliada em alta resolução" draggable="false">
+      </div>
+    </div>
+
+    <!-- Mobile Hint Footer -->
+    <div class="image-zoom-bottom-bar" id="image-zoom-hint">
+      <span class="image-zoom-hint-text">
+        <i data-lucide="sparkles"></i> Toque duplo ou use pinça com 2 dedos para aproximar
+      </span>
     </div>
   </div>
 

@@ -1728,6 +1728,238 @@
     }
   }
 
+  // ===== PRODUCT IMAGE LIGHTBOX & INTERACTIVE ZOOM ENGINE =====
+  let zoomState = {
+    scale: 1,
+    minScale: 1,
+    maxScale: 3.5,
+    posX: 0,
+    posY: 0,
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    initialDistance: 0,
+    lastTapTime: 0,
+    isPinching: false,
+    swipeStartY: null,
+    isInitialized: false
+  };
+
+  function updateZoomTransform(animate = true) {
+    const stage = $('image-zoom-stage');
+    const badge = $('zoom-level-badge');
+    const viewport = $('image-zoom-viewport');
+    if (!stage) return;
+
+    stage.style.transition = animate ? 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)' : 'none';
+    stage.style.transform = `translate3d(${zoomState.posX}px, ${zoomState.posY}px, 0) scale(${zoomState.scale})`;
+
+    if (badge) {
+      badge.textContent = `${Math.round(zoomState.scale * 100)}%`;
+    }
+
+    if (viewport) {
+      viewport.style.cursor = zoomState.scale > 1 ? (zoomState.isDragging ? 'grabbing' : 'grab') : 'zoom-in';
+    }
+
+    const hint = $('image-zoom-hint');
+    if (hint) {
+      hint.style.opacity = zoomState.scale > 1.05 ? '0' : '1';
+    }
+  }
+
+  function resetZoomState(animate = true) {
+    zoomState.scale = 1;
+    zoomState.posX = 0;
+    zoomState.posY = 0;
+    zoomState.isDragging = false;
+    zoomState.isPinching = false;
+    updateZoomTransform(animate);
+  }
+
+  function setZoomScale(targetScale, centerX = 0, centerY = 0) {
+    const prevScale = zoomState.scale;
+    const newScale = Math.min(Math.max(targetScale, zoomState.minScale), zoomState.maxScale);
+
+    if (newScale === 1) {
+      resetZoomState(true);
+      return;
+    }
+
+    if (centerX !== 0 || centerY !== 0) {
+      const factor = (newScale - prevScale) / prevScale;
+      zoomState.posX -= (centerX * factor);
+      zoomState.posY -= (centerY * factor);
+    }
+
+    zoomState.scale = newScale;
+    clampZoomPosition();
+    updateZoomTransform(true);
+  }
+
+  function clampZoomPosition() {
+    if (zoomState.scale <= 1) {
+      zoomState.posX = 0;
+      zoomState.posY = 0;
+      return;
+    }
+    const viewport = $('image-zoom-viewport');
+    if (!viewport) return;
+    const rect = viewport.getBoundingClientRect();
+    const maxDragX = (rect.width * (zoomState.scale - 1)) / 2;
+    const maxDragY = (rect.height * (zoomState.scale - 1)) / 2;
+
+    zoomState.posX = Math.max(-maxDragX, Math.min(maxDragX, zoomState.posX));
+    zoomState.posY = Math.max(-maxDragY, Math.min(maxDragY, zoomState.posY));
+  }
+
+  function initInteractiveZoomEngine() {
+    if (zoomState.isInitialized) return;
+    zoomState.isInitialized = true;
+
+    const viewport = $('image-zoom-viewport');
+    const btnIn = $('btn-zoom-in');
+    const btnOut = $('btn-zoom-out');
+    const btnReset = $('btn-zoom-reset');
+
+    if (btnIn) btnIn.addEventListener('click', (e) => { e.stopPropagation(); setZoomScale(zoomState.scale + 0.5); });
+    if (btnOut) btnOut.addEventListener('click', (e) => { e.stopPropagation(); setZoomScale(zoomState.scale - 0.5); });
+    if (btnReset) btnReset.addEventListener('click', (e) => { e.stopPropagation(); resetZoomState(true); });
+
+    if (!viewport) return;
+
+    // Toque Mobile (Double Tap, Pinch com 2 dedos, Drag/Pan)
+    viewport.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        zoomState.isPinching = true;
+        zoomState.isDragging = false;
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        zoomState.initialDistance = Math.hypot(dx, dy);
+      } else if (e.touches.length === 1) {
+        const now = Date.now();
+        const touch = e.touches[0];
+
+        // Toque duplo (< 300ms) alterna zoom 2.3x
+        if (now - zoomState.lastTapTime < 300) {
+          e.preventDefault();
+          const rect = viewport.getBoundingClientRect();
+          const clickX = touch.clientX - (rect.left + rect.width / 2);
+          const clickY = touch.clientY - (rect.top + rect.height / 2);
+
+          if (zoomState.scale > 1.2) {
+            resetZoomState(true);
+          } else {
+            setZoomScale(2.3, clickX, clickY);
+          }
+          zoomState.lastTapTime = 0;
+          return;
+        }
+        zoomState.lastTapTime = now;
+
+        if (zoomState.scale > 1) {
+          zoomState.isDragging = true;
+          zoomState.startX = touch.clientX - zoomState.posX;
+          zoomState.startY = touch.clientY - zoomState.posY;
+        } else {
+          zoomState.swipeStartY = touch.clientY;
+        }
+      }
+    }, { passive: false });
+
+    viewport.addEventListener('touchmove', (e) => {
+      if (zoomState.isPinching && e.touches.length === 2) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const currentDist = Math.hypot(dx, dy);
+        if (zoomState.initialDistance > 0) {
+          const factor = currentDist / zoomState.initialDistance;
+          zoomState.scale = Math.min(Math.max(zoomState.scale * factor, zoomState.minScale), zoomState.maxScale);
+          zoomState.initialDistance = currentDist;
+          clampZoomPosition();
+          updateZoomTransform(false);
+        }
+      } else if (zoomState.isDragging && e.touches.length === 1 && zoomState.scale > 1) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        zoomState.posX = touch.clientX - zoomState.startX;
+        zoomState.posY = touch.clientY - zoomState.startY;
+        clampZoomPosition();
+        updateZoomTransform(false);
+      }
+    }, { passive: false });
+
+    viewport.addEventListener('touchend', (e) => {
+      if (e.touches.length < 2) {
+        zoomState.isPinching = false;
+      }
+      if (e.touches.length === 0) {
+        if (zoomState.isDragging) {
+          zoomState.isDragging = false;
+          clampZoomPosition();
+          updateZoomTransform(true);
+        } else if (zoomState.scale === 1 && zoomState.swipeStartY) {
+          const touch = e.changedTouches[0];
+          if (touch && touch.clientY - zoomState.swipeStartY > 110) {
+            closeProductZoom();
+          }
+          zoomState.swipeStartY = null;
+        }
+      }
+    });
+
+    // Mouse Drag no Desktop
+    viewport.addEventListener('mousedown', (e) => {
+      if (zoomState.scale > 1) {
+        zoomState.isDragging = true;
+        zoomState.startX = e.clientX - zoomState.posX;
+        zoomState.startY = e.clientY - zoomState.posY;
+        viewport.style.cursor = 'grabbing';
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (zoomState.isDragging && zoomState.scale > 1) {
+        zoomState.posX = e.clientX - zoomState.startX;
+        zoomState.posY = e.clientY - zoomState.startY;
+        clampZoomPosition();
+        updateZoomTransform(false);
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (zoomState.isDragging) {
+        zoomState.isDragging = false;
+        if (viewport) viewport.style.cursor = zoomState.scale > 1 ? 'grab' : 'zoom-in';
+        clampZoomPosition();
+        updateZoomTransform(true);
+      }
+    });
+
+    // Roda do mouse amplia/afasta
+    viewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 0.35 : -0.35;
+      const rect = viewport.getBoundingClientRect();
+      const clickX = e.clientX - (rect.left + rect.width / 2);
+      const clickY = e.clientY - (rect.top + rect.height / 2);
+      setZoomScale(zoomState.scale + delta, clickX, clickY);
+    }, { passive: false });
+
+    // Duplo clique no Desktop
+    viewport.addEventListener('dblclick', (e) => {
+      const rect = viewport.getBoundingClientRect();
+      const clickX = e.clientX - (rect.left + rect.width / 2);
+      const clickY = e.clientY - (rect.top + rect.height / 2);
+      if (zoomState.scale > 1.2) {
+        resetZoomState(true);
+      } else {
+        setZoomScale(2.3, clickX, clickY);
+      }
+    });
+  }
+
   // Lightbox Zoom da Imagem do Produto
   function openProductZoom() {
     const mainImg = $('modal-product-image');
@@ -1754,6 +1986,10 @@
       zoomImg.src = imgSrc;
       zoomImg.alt = currentProduct?.name || 'Foto ampliada em alta resolução';
     }
+
+    initInteractiveZoomEngine();
+    resetZoomState(false);
+
     if (zoomModal) {
       zoomModal.classList.add('active');
       document.body.style.overflow = 'hidden';
@@ -1763,9 +1999,9 @@
 
   function closeProductZoom() {
     const zoomModal = $('product-zoom-modal');
+    resetZoomState(false);
     if (zoomModal) {
       zoomModal.classList.remove('active');
-      // Mantém overflow hidden caso o modal do produto continue aberto
       if (!productDetailsModal || !productDetailsModal.classList.contains('active')) {
         document.body.style.overflow = '';
       }
