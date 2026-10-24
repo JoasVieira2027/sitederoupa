@@ -2292,6 +2292,41 @@
     document.body.style.overflow = '';
   }
 
+  function toggleCheckoutObs() {
+    const content = $('checkout-obs-content');
+    const chevron = $('obs-chevron');
+    const label = $('obs-toggle-label');
+    if (!content) return;
+    const isHidden = content.classList.contains('hidden');
+    if (isHidden) {
+      content.classList.remove('hidden');
+      if (chevron) chevron.style.transform = 'rotate(180deg)';
+      if (label) label.textContent = 'Observação do pedido';
+      const txt = $('customer-obs');
+      if (txt) txt.focus();
+    } else {
+      content.classList.add('hidden');
+      if (chevron) chevron.style.transform = '';
+      if (label) label.textContent = '+ Adicionar observação ao pedido';
+    }
+  }
+
+  function toggleCheckoutCoupon() {
+    const sec = $('checkout-coupon-section');
+    const chevron = $('coupon-chevron');
+    if (!sec) return;
+    const isHidden = sec.classList.contains('hidden');
+    if (isHidden) {
+      sec.classList.remove('hidden');
+      if (chevron) chevron.style.transform = 'rotate(180deg)';
+      const inp = $('checkout-coupon-input');
+      if (inp) inp.focus();
+    } else {
+      sec.classList.add('hidden');
+      if (chevron) chevron.style.transform = '';
+    }
+  }
+
   function renderDeliveryTabs() {
     const s = DataStore.getSettings();
     const d = s.delivery || {};
@@ -2751,11 +2786,23 @@
 
     if (checkoutItemsEl) {
       checkoutItemsEl.innerHTML = cart.map(item => `
-        <div class="checkout-item-line">
-          <span class="chk-item-title">${item.qty}x ${Utils.sanitize(item.name)} ${item.color ? `(${item.color}${item.size ? ` - ${item.size}` : ''})` : ''}</span>
-          <span class="chk-item-val">${Utils.formatCurrency(item.price * item.qty)}</span>
+        <div class="checkout-product-row">
+          <div class="checkout-product-thumb-wrap">
+            ${item.image ? `<img src="${item.image}" alt="${Utils.sanitize(item.name)}" class="checkout-product-thumb" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'checkout-thumb-fallback\\'><i data-lucide=\\'package\\'></i></div>';if(window.lucide)lucide.createIcons();">` : '<div class="checkout-thumb-fallback"><i data-lucide="package"></i></div>'}
+          </div>
+          <div class="checkout-product-info">
+            <span class="checkout-product-name">${Utils.sanitize(item.name)}</span>
+            <div class="checkout-product-meta">
+              <span class="checkout-product-qty">${item.qty}x</span>
+              <span class="checkout-product-unit">${Utils.formatCurrency(item.price)}</span>
+              ${item.color ? `<span class="checkout-product-tag">${Utils.sanitize(item.color)}</span>` : ''}
+              ${item.size ? `<span class="checkout-product-tag">${Utils.sanitize(item.size)}</span>` : ''}
+            </div>
+          </div>
+          <span class="checkout-product-total">${Utils.formatCurrency(item.price * item.qty)}</span>
         </div>
       `).join('');
+      refreshIcons();
     }
 
     if (selectedPayment === 'credito') {
@@ -4232,6 +4279,10 @@
     closeLoyaltyModal();
     const chkInput = $('checkout-coupon-input');
     if (chkInput) chkInput.value = code;
+    const sec = $('checkout-coupon-section');
+    if (sec) sec.classList.remove('hidden');
+    const chevron = $('coupon-chevron');
+    if (chevron) chevron.style.transform = 'rotate(180deg)';
     openCart(true);
     Utils.showToast(`Cupom ${code} pronto para aplicação no checkout!`, 'info');
   }
@@ -5275,6 +5326,8 @@
     copyCouponCode,
     useCouponInCheckout,
     applyCheckoutCoupon,
+    toggleCheckoutObs,
+    toggleCheckoutCoupon,
     openReviewModal,
     closeReviewModal,
     handleSubmitReview,

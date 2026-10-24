@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -722,215 +722,248 @@
   <!-- Checkout Modal (WhatsApp Flow) -->
   <div class="modal-overlay" id="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="modal-checkout-title">
     <div class="modal modal-checkout">
-      <div class="modal-header">
+      <div class="modal-header checkout-modal-header">
         <div class="checkout-modal-title-wrap">
-          <i data-lucide="clipboard-check" class="icon-inline"></i>
-          <h3 id="modal-checkout-title">Finalizar Pedido</h3>
+          <i data-lucide="shield-check" class="icon-inline"></i>
+          <div>
+            <h3 id="modal-checkout-title">Finalização do Pedido</h3>
+            <span class="checkout-modal-subtitle">Preencha seus dados para receber o pedido com agilidade</span>
+          </div>
         </div>
         <button type="button" class="btn-close-modal" id="btn-close-checkout" aria-label="Fechar janela">
           <i data-lucide="x"></i>
         </button>
       </div>
 
-      <div class="modal-body">
-        
-        <!-- Form Organizado por Etapas Claras (Mobile-First) -->
+      <div class="modal-body checkout-modal-body">
         <form id="checkout-form" novalidate>
-          
-          <!-- ETAPA 1: Dados do Cliente -->
-          <div class="checkout-step-block">
-            <div class="checkout-step-header">
-              <span class="step-badge">1</span>
-              <h4>Seus Dados</h4>
-            </div>
+          <div class="checkout-grid-layout">
             
-            <div class="form-group">
-              <label for="customer-name">Nome Completo <span class="required">*</span></label>
-              <input type="text" id="customer-name" class="form-control" placeholder="Ex: Ana Souza" required autocomplete="name">
-            </div>
-
-            <div class="form-group">
-              <label for="customer-phone">Telefone / WhatsApp <span class="required">*</span></label>
-              <input type="tel" id="customer-phone" class="form-control" placeholder="(11) 99999-9999" required autocomplete="tel">
-            </div>
-          </div>
-
-          <!-- ETAPA 2: Entrega ou Retirada -->
-          <div class="checkout-step-block">
-            <div class="checkout-step-header">
-              <span class="step-badge">2</span>
-              <h4>Entrega ou Retirada</h4>
-            </div>
-
-            <div class="delivery-tabs-container">
-              <div class="delivery-tabs">
-                <button type="button" class="delivery-tab-btn active" id="tab-delivery" data-type="delivery">
-                  <i data-lucide="truck" class="tab-icon-svg"></i>
-                  <div>
-                    <strong>Entrega</strong>
-                    <small id="tab-delivery-info">No seu endereço</small>
-                  </div>
-                </button>
-                <button type="button" class="delivery-tab-btn" id="tab-pickup" data-type="pickup">
-                  <i data-lucide="store" class="tab-icon-svg"></i>
-                  <div>
-                    <strong>Retirada</strong>
-                    <small id="tab-pickup-info">Grátis no ponto</small>
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            <!-- Endereço para Entrega -->
-            <div class="form-group" id="group-delivery-address">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                <label for="customer-neighborhood" style="margin-bottom:0;font-weight:600;font-size:0.875rem;">Bairro de Entrega <span class="required">*</span></label>
-                <button type="button" class="btn-link-neighborhoods" id="btn-open-neighborhoods-rates" onclick="window.StoreApp?.openNeighborhoodModal()" style="background:none;border:none;color:var(--primary);font-size:0.8rem;font-weight:600;display:inline-flex;align-items:center;gap:4px;cursor:pointer;padding:0;">
-                  <i data-lucide="map-pin" style="width:13px;height:13px;"></i>
-                  <span>Ver taxas</span>
-                </button>
-              </div>
+            <!-- COLUNA ESQUERDA: DADOS + ENTREGA + PAGAMENTO + OBS (60% Desktop) -->
+            <div class="checkout-left-col">
               
-              <div style="position:relative;margin-bottom:10px;">
-                <select id="customer-neighborhood" class="form-control" style="cursor:pointer;" onchange="window.StoreApp?.onSelectNeighborhood(this.value)">
-                  <option value="">Selecione seu bairro para calcular o frete...</option>
-                </select>
-              </div>
-              
-              <div id="neighborhood-alert-box" style="display:none;margin-bottom:12px;padding:10px 14px;border-radius:10px;font-size:0.82rem;line-height:1.4;"></div>
+              <!-- 1. CONTATO -->
+              <section class="checkout-card-box">
+                <div class="checkout-card-head">
+                  <div class="checkout-card-title">
+                    <i data-lucide="user"></i>
+                    <span>Contato</span>
+                  </div>
+                </div>
+                <div class="checkout-fields-row">
+                  <div class="form-group flex-1">
+                    <label for="customer-name">Nome completo <span class="required">*</span></label>
+                    <input type="text" id="customer-name" class="form-control" placeholder="Seu nome completo" required autocomplete="name">
+                  </div>
+                  <div class="form-group flex-1">
+                    <label for="customer-phone">WhatsApp <span class="required">*</span></label>
+                    <input type="tel" id="customer-phone" class="form-control" placeholder="(00) 00000-0000" required autocomplete="tel">
+                  </div>
+                </div>
+              </section>
 
-              <label for="customer-address" style="margin-bottom:6px;display:block;font-weight:600;font-size:0.875rem;">Rua, Número e Complemento <span class="required">*</span></label>
-              <input type="text" id="customer-address" class="form-control" placeholder="Ex: Rua das Flores, 123, Apto 101" required autocomplete="street-address">
+              <!-- 2. ENTREGA OU RETIRADA -->
+              <section class="checkout-card-box">
+                <div class="checkout-card-head">
+                  <div class="checkout-card-title">
+                    <i data-lucide="map-pin"></i>
+                    <span>Entrega</span>
+                  </div>
+                  <button type="button" class="btn-link-neighborhoods" id="btn-open-neighborhoods-rates" onclick="window.StoreApp?.openNeighborhoodModal()">
+                    <i data-lucide="help-circle"></i>
+                    <span>Consultar taxas</span>
+                  </button>
+                </div>
+
+                <div class="delivery-tabs-container">
+                  <div class="delivery-tabs">
+                    <button type="button" class="delivery-tab-btn active" id="tab-delivery" data-type="delivery">
+                      <i data-lucide="truck" class="tab-icon-svg"></i>
+                      <div class="tab-text-wrap">
+                        <strong>Receber em casa</strong>
+                        <small id="tab-delivery-info">Entrega no endereço</small>
+                      </div>
+                    </button>
+                    <button type="button" class="delivery-tab-btn" id="tab-pickup" data-type="pickup">
+                      <i data-lucide="store" class="tab-icon-svg"></i>
+                      <div class="tab-text-wrap">
+                        <strong>Retirar na loja</strong>
+                        <small id="tab-pickup-info">Grátis no ponto</small>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Endereço para Entrega -->
+                <div class="delivery-address-group" id="group-delivery-address">
+                  <div class="form-group">
+                    <label for="customer-neighborhood">Bairro <span class="required">*</span></label>
+                    <select id="customer-neighborhood" class="form-control" onchange="window.StoreApp?.onSelectNeighborhood(this.value)">
+                      <option value="">Selecione seu bairro para calcular o frete...</option>
+                    </select>
+                  </div>
+                  
+                  <div id="neighborhood-alert-box" style="display:none;" class="neighborhood-alert-box"></div>
+
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label for="customer-address">Rua, número e complemento <span class="required">*</span></label>
+                    <input type="text" id="customer-address" class="form-control" placeholder="Ex: Av. Brasil, 450, Apto 32" required autocomplete="street-address">
+                  </div>
+                </div>
+
+                <!-- Informações do Ponto de Retirada -->
+                <div class="pickup-info-box hidden" id="pickup-info-box">
+                  <div class="pickup-info-header">
+                    <i data-lucide="store"></i>
+                    <strong>Ponto de Retirada</strong>
+                  </div>
+                  <p id="pickup-store-address">Consulte o ponto de retirada pelo WhatsApp</p>
+                  <small id="pickup-store-time">Pronto para retirada em até 2 horas após a confirmação</small>
+                </div>
+              </section>
+
+              <!-- 3. FORMA DE PAGAMENTO -->
+              <section class="checkout-card-box">
+                <div class="checkout-card-head">
+                  <div class="checkout-card-title">
+                    <i data-lucide="credit-card"></i>
+                    <span>Pagamento</span>
+                  </div>
+                </div>
+
+                <div class="payment-options" id="payment-options">
+                  <!-- Populated by JS -->
+                </div>
+
+                <!-- Parcelamento Cartão -->
+                <div class="card-installments-box hidden" id="card-installments-box">
+                  <label for="checkout-card-installments" class="installments-label">Opção de Parcelamento <span class="required">*</span></label>
+                  <select id="checkout-card-installments" class="form-control card-installments-select">
+                    <!-- Dynamically populated by JS -->
+                  </select>
+                  <small class="card-installments-hint" id="card-installments-hint">O pagamento no cartão será efetuado na entrega ou via link seguro.</small>
+                </div>
+
+                <!-- Pix Key Box Compacto -->
+                <div class="pix-checkout-box hidden" id="pix-checkout-box">
+                  <div class="pix-box-header">
+                    <span class="pix-badge">Chave Pix</span>
+                    <span class="pix-type" id="pix-key-type">Celular</span>
+                  </div>
+                  <div class="pix-key-wrapper">
+                    <input type="text" readonly id="pix-key-val" value="" class="pix-key-input" aria-label="Chave Pix para copiar">
+                    <button type="button" class="btn-copy-pix" id="btn-copy-pix">
+                      <i data-lucide="copy"></i> Copiar
+                    </button>
+                  </div>
+                  <div class="pix-receiver-row">
+                    <span>Titular: <strong id="pix-receiver-name">STUDIO FIT</strong></span>
+                  </div>
+                  <p class="pix-instructions-text" id="pix-instructions-text">Faça o Pix e envie o comprovante pelo WhatsApp para separação prioritária!</p>
+                </div>
+
+                <!-- Troco em Dinheiro -->
+                <div class="cash-change-box hidden" id="cash-change-box">
+                  <div class="form-group" style="margin-bottom:0">
+                    <label for="customer-troco">Troco para quanto? (opcional)</label>
+                    <input type="text" id="customer-troco" class="form-control" placeholder="Ex: Para R$ 150,00">
+                  </div>
+                </div>
+              </section>
+
+              <!-- 4. OBSERVAÇÕES OPCIONAIS (Colapsada por padrão) -->
+              <div class="checkout-obs-accordion">
+                <button type="button" class="btn-toggle-obs" id="btn-toggle-obs" onclick="window.StoreApp?.toggleCheckoutObs()">
+                  <span class="obs-toggle-text">
+                    <i data-lucide="message-square-plus"></i>
+                    <span id="obs-toggle-label">+ Adicionar observação ao pedido</span>
+                  </span>
+                  <i data-lucide="chevron-down" class="obs-chevron-icon" id="obs-chevron"></i>
+                </button>
+                <div class="checkout-obs-content hidden" id="checkout-obs-content">
+                  <textarea id="customer-obs" class="form-control" rows="2" placeholder="Dúvidas sobre tamanho, ponto de referência, etc. (opcional)"></textarea>
+                </div>
+              </div>
+
             </div>
 
-            <!-- Informações do Ponto de Retirada -->
-            <div class="pickup-info-box hidden" id="pickup-info-box">
-              <div class="pickup-info-header">
-                <i data-lucide="map-pin"></i>
-                <strong>Local para Retirada:</strong>
-              </div>
-              <p id="pickup-store-address">Consulte o ponto de retirada pelo WhatsApp</p>
-              <small id="pickup-store-time">Pronto para retirada em até 2 horas após a confirmação</small>
+            <!-- COLUNA DIREITA: RESUMO + CUPOM + TOTAL + BOTÃO WHATSAPP (40% Desktop) -->
+            <div class="checkout-right-col">
+              <aside class="checkout-summary-sticky" id="checkout-summary">
+                <div class="summary-head">
+                  <div class="summary-head-title">
+                    <i data-lucide="shopping-bag"></i>
+                    <span>Seu pedido</span>
+                  </div>
+                </div>
+
+                <!-- Lista Compacta de Produtos -->
+                <div class="checkout-items-list" id="checkout-items">
+                  <!-- Populated by JS -->
+                </div>
+
+                <!-- Cupom de Desconto Colapsável -->
+                <div class="checkout-coupon-wrap">
+                  <button type="button" class="btn-toggle-coupon" id="btn-toggle-coupon" onclick="window.StoreApp?.toggleCheckoutCoupon()">
+                    <span class="coupon-toggle-label">
+                      <i data-lucide="ticket"></i>
+                      <span>Possui cupom de desconto?</span>
+                    </span>
+                    <i data-lucide="chevron-down" class="coupon-chevron-icon" id="coupon-chevron"></i>
+                  </button>
+                  <div class="checkout-coupon-section hidden" id="checkout-coupon-section">
+                    <div class="checkout-coupon-input-group">
+                      <input type="text" id="checkout-coupon-input" class="form-control" placeholder="Código do cupom" autocomplete="off" style="text-transform:uppercase;">
+                      <button type="button" class="btn-apply-coupon" id="btn-apply-coupon" onclick="window.StoreApp?.applyCheckoutCoupon()">Aplicar</button>
+                    </div>
+                    <div id="checkout-coupon-feedback" class="coupon-feedback hidden"></div>
+                  </div>
+                </div>
+
+                <!-- Resumo Financeiro -->
+                <div class="checkout-breakdown">
+                  <div class="checkout-row">
+                    <span>Subtotal</span>
+                    <span id="checkout-subtotal">R$ 0,00</span>
+                  </div>
+                  <div class="checkout-row" id="checkout-delivery-row">
+                    <span>Taxa de entrega</span>
+                    <span id="checkout-delivery-fee">R$ 0,00</span>
+                  </div>
+                  <div class="checkout-row discount-row hidden" id="checkout-discount-row">
+                    <span id="checkout-discount-label">Desconto</span>
+                    <span id="checkout-discount-val">- R$ 0,00</span>
+                  </div>
+                  <div class="checkout-total-row">
+                    <div class="checkout-total-label">
+                      <strong>Total</strong>
+                      <small>com frete e descontos</small>
+                    </div>
+                    <span id="checkout-total" class="checkout-total-val">R$ 0,00</span>
+                  </div>
+                </div>
+
+                <!-- Botão de Finalização pelo WhatsApp -->
+                <div class="checkout-action-area">
+                  <button type="submit" class="btn-whatsapp-submit" id="btn-send-whatsapp">
+                    <i data-lucide="message-circle"></i>
+                    <span id="btn-send-whatsapp-text">Finalizar Pedido pelo WhatsApp</span>
+                  </button>
+                  <div class="checkout-trust-badge">
+                    <i data-lucide="lock"></i>
+                    <span>Checkout Seguro • Atendimento WhatsApp</span>
+                  </div>
+                </div>
+
+              </aside>
             </div>
+
           </div>
-
-          <!-- ETAPA 3: Forma de Pagamento -->
-          <div class="checkout-step-block">
-            <div class="checkout-step-header">
-              <span class="step-badge">3</span>
-              <h4>Forma de Pagamento</h4>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 8px;">
-              <div class="payment-options" id="payment-options">
-                <!-- Populated by JS -->
-              </div>
-            </div>
-
-            <!-- Parcelamento Cartão -->
-            <div class="card-installments-box hidden" id="card-installments-box">
-              <div class="card-installments-header">
-                <i data-lucide="credit-card"></i>
-                <strong>Opções de Parcelamento no Cartão</strong>
-              </div>
-              <div class="form-group" style="margin-bottom:0;">
-                <label for="checkout-card-installments">Escolha o número de parcelas: <span class="required">*</span></label>
-                <select id="checkout-card-installments" class="form-control card-installments-select">
-                  <!-- Dynamically populated by JS -->
-                </select>
-                <small class="card-installments-hint" id="card-installments-hint">O pagamento com cartão será efetuado na entrega ou via link seguro.</small>
-              </div>
-            </div>
-
-            <!-- Pix Key Box -->
-            <div class="pix-checkout-box hidden" id="pix-checkout-box">
-              <div class="pix-box-header">
-                <span class="pix-badge">Chave Pix da Loja</span>
-                <span class="pix-type" id="pix-key-type">Celular</span>
-              </div>
-              <div class="pix-key-wrapper">
-                <input type="text" readonly id="pix-key-val" value="" class="pix-key-input" aria-label="Chave Pix para copiar">
-                <button type="button" class="btn-copy-pix" id="btn-copy-pix">Copiar Chave</button>
-              </div>
-              <div class="pix-receiver-row">
-                <span>Titular: <strong id="pix-receiver-name">STUDIO FIT</strong></span>
-              </div>
-              <p class="pix-instructions-text" id="pix-instructions-text">Faça o Pix e envie o comprovante pelo WhatsApp para separação prioritária!</p>
-            </div>
-
-            <!-- Troco em Dinheiro -->
-            <div class="cash-change-box hidden" id="cash-change-box">
-              <div class="form-group" style="margin-bottom:0">
-                <label for="customer-troco">Precisa de troco para quanto? (opcional)</label>
-                <input type="text" id="customer-troco" class="form-control" placeholder="Ex: Para R$ 150,00">
-              </div>
-            </div>
-          </div>
-
-          <!-- ETAPA 4: Observações Opcionais -->
-          <div class="checkout-step-block">
-            <div class="checkout-step-header">
-              <span class="step-badge">4</span>
-              <h4>Observações</h4>
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <textarea id="customer-obs" class="form-control" rows="2" placeholder="Dúvidas sobre tamanho, ponto de referência... (opcional)"></textarea>
-            </div>
-          </div>
-
-          <!-- ETAPA 5: Resumo Transparente do Pedido -->
-          <div class="checkout-step-block checkout-summary-block">
-            <div class="checkout-step-header">
-              <span class="step-badge">5</span>
-              <h4>Resumo do Pedido</h4>
-            </div>
-            <div class="checkout-summary" id="checkout-summary">
-              <div id="checkout-items"></div>
-
-              <!-- Cupom de Desconto / Recompensa Fidelidade -->
-              <div class="checkout-coupon-section" id="checkout-coupon-section">
-                <label for="checkout-coupon-input" class="checkout-coupon-label">
-                  <i data-lucide="ticket" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>
-                  Cupom de Desconto ou Recompensa
-                </label>
-                <div class="checkout-coupon-input-group">
-                  <input type="text" id="checkout-coupon-input" class="form-control" placeholder="Ex: LOY-8K3F92" autocomplete="off" style="text-transform:uppercase;">
-                  <button type="button" class="btn-apply-coupon" id="btn-apply-coupon" onclick="window.StoreApp?.applyCheckoutCoupon()">Aplicar</button>
-                </div>
-                <div id="checkout-coupon-feedback" class="coupon-feedback hidden"></div>
-              </div>
-
-              <div class="checkout-breakdown">
-                <div class="checkout-row">
-                  <span>Subtotal:</span>
-                  <span id="checkout-subtotal">R$ 0,00</span>
-                </div>
-                <div class="checkout-row" id="checkout-delivery-row">
-                  <span>Frete:</span>
-                  <span id="checkout-delivery-fee">R$ 0,00</span>
-                </div>
-                <div class="checkout-row discount-row hidden" id="checkout-discount-row">
-                  <span id="checkout-discount-label">Desconto Recompensa:</span>
-                  <span id="checkout-discount-val" style="color:var(--primary);font-weight:700;">- R$ 0,00</span>
-                </div>
-                <div class="checkout-total-row">
-                  <span>TOTAL A PAGAR:</span>
-                  <span id="checkout-total">R$ 0,00</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ETAPA 6: Botão Final com Destaque Máximo -->
-          <button type="submit" class="btn-whatsapp-submit" id="btn-send-whatsapp">
-            <i data-lucide="message-circle"></i>
-            <span id="btn-send-whatsapp-text">Finalizar Pedido pelo WhatsApp</span>
-          </button>
         </form>
-
       </div>
     </div>
   </div>
+
 
   <!-- Neighborhood Rates & Delivery Times Modal (Image 1) -->
   <div class="modal-overlay" id="neighborhood-rates-modal" role="dialog" aria-modal="true" aria-labelledby="neighborhood-modal-title">
